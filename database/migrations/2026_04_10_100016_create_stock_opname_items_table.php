@@ -13,7 +13,16 @@ return new class extends Migration
     {
         Schema::create('stock_opname_items', function (Blueprint $table) {
             $table->id();
+             $table->foreignId('stock_opname_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained()->restrictOnDelete();
+            $table->integer('system_stock');
+            $table->integer('physical_stock');
+            $table->integer('difference');
+            $table->text('notes')->nullable();
             $table->timestamps();
+ 
+            $table->unique(['stock_opname_id', 'product_id']);
+            $table->index('product_id');
         });
     }
 

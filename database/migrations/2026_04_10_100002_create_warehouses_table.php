@@ -13,7 +13,16 @@ return new class extends Migration
     {
         Schema::create('warehouses', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('code', 50)->unique();
+            $table->text('location');
+            $table->string('pic_name')->nullable();
+            $table->string('pic_phone', 20)->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
+ 
+            $table->index('is_active');
         });
     }
 

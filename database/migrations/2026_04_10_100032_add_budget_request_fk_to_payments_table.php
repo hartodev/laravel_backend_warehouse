@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('payments', function (Blueprint $table) {
+            $table->foreign('budget_request_id')
+                  ->references('id')
+                  ->on('budget_requests')
+                  ->nullOnDelete();
         });
     }
 
@@ -22,6 +24,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('categories');
+        Schema::table('payments', function (Blueprint $table) {
+             $table->dropForeign(['budget_request_id']);
+        });
     }
 };

@@ -11,9 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sales_order_items', function (Blueprint $table) {
+        Schema::create('user_profiles', function (Blueprint $table) {
             $table->id();
+             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('phone', 20)->nullable();
+            $table->text('address')->nullable();
+            $table->string('photo')->nullable();
             $table->timestamps();
+ 
+            $table->index('user_id');
         });
     }
 
@@ -22,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sales_order_items');
+        Schema::dropIfExists('user_profiles');
     }
 };

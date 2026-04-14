@@ -13,7 +13,15 @@ return new class extends Migration
     {
         Schema::create('request_items', function (Blueprint $table) {
             $table->id();
+             $table->foreignId('request_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained()->restrictOnDelete();
+            $table->integer('quantity');
+            $table->integer('approved_quantity')->nullable();
+            $table->text('note')->nullable();
             $table->timestamps();
+ 
+            $table->unique(['request_id', 'product_id']);
+            $table->index('product_id');
         });
     }
 
