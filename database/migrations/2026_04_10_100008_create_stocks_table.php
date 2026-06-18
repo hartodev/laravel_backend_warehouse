@@ -17,7 +17,8 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->integer('quantity')->default(0);
             $table->timestamps();
- 
+
+            // Setiap kombinasi warehouse + product hanya boleh ada 1 row
             $table->unique(['warehouse_id', 'product_id']);
             $table->index('product_id');
         });

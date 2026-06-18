@@ -13,11 +13,17 @@ return new class extends Migration
     {
         Schema::create('requests', function (Blueprint $table) {
             $table->id();
+            $table->string('request_number', 100)->unique(); // FIX: tambah nomor referensi unik
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
+            $table->foreignId('warehouse_id')->nullable()->constrained()->nullOnDelete(); // FIX: tambah warehouse tujuan
             $table->enum('purpose', ['maintenance', 'distribution', 'return', 'other'])
-                  ->default('distribution');
+                ->default('distribution');
             $table->enum('status', [
-                'pending', 'approved', 'rejected', 'processing', 'completed',
+                'pending',
+                'approved',
+                'rejected',
+                'processing',
+                'completed',
             ])->default('pending');
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('approved_at')->nullable();
@@ -26,10 +32,11 @@ return new class extends Migration
             $table->text('note')->nullable();
             $table->timestamps();
             $table->softDeletes();
- 
+
             $table->index('user_id');
             $table->index('status');
             $table->index('created_at');
+            $table->index('warehouse_id');
         });
     }
 

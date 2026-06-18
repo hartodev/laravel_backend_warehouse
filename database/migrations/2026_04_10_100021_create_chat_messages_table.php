@@ -20,9 +20,10 @@ return new class extends Migration
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
- 
+
             $table->index('chat_id');
-            $table->index(['chat_id', 'is_read']);
+            $table->index(['chat_id', 'is_read']); // untuk query pesan belum dibaca per chat
+            $table->index('sender_id');
         });
     }
 

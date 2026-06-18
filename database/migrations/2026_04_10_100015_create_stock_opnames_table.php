@@ -13,12 +13,16 @@ return new class extends Migration
     {
         Schema::create('stock_opnames', function (Blueprint $table) {
             $table->id();
-             $table->string('opname_number', 100)->unique();
+            $table->string('opname_number', 100)->unique();
             $table->foreignId('warehouse_id')->constrained()->restrictOnDelete();
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->enum('status', [
-                'draft', 'in_progress', 'pending_approval', 'approved', 'cancelled',
+                'draft',
+                'in_progress',
+                'pending_approval',
+                'approved',
+                'cancelled',
             ])->default('draft');
             $table->date('opname_date');
             $table->timestamp('started_at')->nullable();
@@ -28,7 +32,7 @@ return new class extends Migration
             $table->text('reject_reason')->nullable();
             $table->timestamps();
             $table->softDeletes();
- 
+
             $table->index('warehouse_id');
             $table->index('status');
             $table->index('opname_date');

@@ -15,14 +15,19 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('code', 50)->unique();
-            $table->text('location');
+            // FIX: Pisah lokasi agar bisa di-filter/laporan
+            $table->text('address')->nullable();
+            $table->string('city', 100)->nullable();
+            $table->string('province', 100)->nullable();
+            $table->string('postal_code', 10)->nullable();
             $table->string('pic_name')->nullable();
             $table->string('pic_phone', 20)->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
- 
+
             $table->index('is_active');
+            $table->index('city');
         });
     }
 

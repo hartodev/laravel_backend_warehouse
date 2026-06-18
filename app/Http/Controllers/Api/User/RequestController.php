@@ -11,6 +11,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Request as RequestModel;
+use App\Models\ActivityLog;
 
 class RequestController extends Controller
 {
@@ -23,10 +25,10 @@ class RequestController extends Controller
             ->when($request->purpose, fn($q) => $q->where('purpose', $request->purpose))
             ->latest()
             ->paginate($request->per_page ?? 15);
- 
+
         return response()->json(['success' => true, 'data' => $query]);
     }
- 
+
     // Admin lihat semua request
     public function indexAdmin(Request $request): JsonResponse
     {
@@ -36,138 +38,295 @@ class RequestController extends Controller
             ->when($request->purpose, fn($q) => $q->where('purpose', $request->purpose))
             ->latest()
             ->paginate($request->per_page ?? 15);
- 
+
         return response()->json(['success' => true, 'data' => $requests]);
     }
- 
+
     public function show(StockRequest $request): JsonResponse
     {
         // User hanya bisa lihat miliknya sendiri
         if (auth()->user()->isUser() && $request->user_id !== auth()->id()) {
             return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
         }
- 
+
         $request->load(['user:id,name', 'items.product:id,name,sku,unit,photo', 'approvedBy:id,name', 'stockMovements']);
- 
+
         return response()->json(['success' => true, 'data' => $request]);
     }
- 
+
     public function showAdmin(StockRequest $request): JsonResponse
     {
         $request->load(['user:id,name', 'items.product:id,name,sku,unit', 'approvedBy:id,name', 'stockMovements']);
- 
+
         return response()->json(['success' => true, 'data' => $request]);
     }
- 
-    public function store(Request $httpRequest): JsonResponse
+
+
+    // public function store(Request $httpRequest): JsonResponse
+    // {
+    //     $validator = Validator::make($httpRequest->all(), [
+    //         'purpose'            => 'required|in:maintenance,distribution,return,other',
+    //         'note'               => 'nullable|string',
+    //         'items'              => 'required|array|min:1',
+    //         'items.*.product_id' => 'required|exists:products,id',
+    //         'items.*.quantity'   => 'required|integer|min:1',
+    //         'items.*.note'       => 'nullable|string',
+
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
+    //     }
+
+    //     $productIds = array_column($httpRequest->items, 'product_id');
+    //     if (count($productIds) !== count(array_unique($productIds))) {
+    //         return response()->json(['success' => false, 'message' => 'Produk yang sama tidak boleh duplikat.'], 422);
+    //     }
+
+    //     DB::transaction(function () use ($httpRequest, &$stockRequest) {
+    //         $stockRequest = StockRequest::create([
+    //             'user_id' => auth()->id(),
+    //             'purpose' => $httpRequest->purpose,
+    //             'status'  => 'pending',
+    //             'note'    => $httpRequest->note,
+    //         ]);
+
+    //         foreach ($httpRequest->items as $item) {
+    //             RequestItem::create([
+    //                 'request_id' => $stockRequest->id,
+    //                 'product_id' => $item['product_id'],
+    //                 'quantity'   => $item['quantity'],
+    //                 'note'       => $item['note'] ?? null,
+    //             ]);
+    //         }
+
+    //         // ── Activity log: user membuat request ────────────────
+    //         ActivityLog::record(
+    //             'create',
+    //             'Request',
+    //             $stockRequest->id,
+    //             "Permintaan barang #{$stockRequest->request_number} dibuat oleh " . auth()->user()->name,
+    //             null,
+    //             ['status' => 'pending', 'purpose' => $stockRequest->purpose, 'items_count' => count($httpRequest->items)]
+    //         );
+    //     });
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Permintaan barang berhasil dikirim.',
+    //         'data'    => $stockRequest->load('items.product:id,name,sku'),
+    //     ], 201);
+    // }
+
+
+    public function store(Request $httpRequest)
     {
-        $validator = Validator::make($httpRequest->all(), [
-            'purpose'            => 'required|in:maintenance,distribution,return,other',
-            'note'               => 'nullable|string',
-            'items'              => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
+        $validated = $httpRequest->validate([
+            'purpose' => 'required|in:maintenance,distribution,return,other',
+            'note'    => 'nullable|string',
+            'items'   => 'required|array|min:1',
+
+            // Barang gudang (TIDAK diubah)
+            'items.*.product_id' => 'nullable|integer|exists:products,id',
             'items.*.quantity'   => 'required|integer|min:1',
             'items.*.note'       => 'nullable|string',
+
+            // Barang dari luar
+            'items.*.external_name'  => 'nullable|string|max:255',
+            'items.*.external_spec'  => 'nullable|string',
+            'items.*.external_link'  => 'nullable|string|max:500',
+            'items.*.external_price' => 'nullable|numeric|min:0',
         ]);
- 
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
-        }
- 
-        // Cek duplikat produk dalam satu request
-        $productIds = array_column($httpRequest->items, 'product_id');
-        if (count($productIds) !== count(array_unique($productIds))) {
-            return response()->json(['success' => false, 'message' => 'Produk yang sama tidak boleh duplikat dalam satu permintaan.'], 422);
-        }
- 
-        DB::transaction(function () use ($httpRequest, &$stockRequest) {
-            $stockRequest = StockRequest::create([
-                'user_id' => auth()->id(),
-                'purpose' => $httpRequest->purpose,
-                'status'  => 'pending',
-                'note'    => $httpRequest->note,
-            ]);
- 
-            foreach ($httpRequest->items as $item) {
-                RequestItem::create([
-                    'request_id' => $stockRequest->id,
-                    'product_id' => $item['product_id'],
-                    'quantity'   => $item['quantity'],
-                    'note'       => $item['note'] ?? null,
-                ]);
+
+        // Setiap item HARUS salah satu: punya product_id (gudang) ATAU
+        // lengkap 4 field eksternal. Tidak boleh kosong semua / campur tanggung.
+        foreach ($validated['items'] as $i => $item) {
+            $hasProduct = !empty($item['product_id']);
+            $hasExternal = !empty($item['external_name'])
+                && !empty($item['external_spec'])
+                && !empty($item['external_link'])
+                && isset($item['external_price']);
+
+            if (!$hasProduct && !$hasExternal) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'errors'  => [
+                        "items.$i" => ['Barang harus dipilih dari gudang, atau diisi lengkap sebagai barang dari luar.'],
+                    ],
+                ], 422);
             }
-        });
- 
-        return response()->json(['success' => true, 'message' => 'Permintaan barang berhasil dikirim.', 'data' => $stockRequest->load('items.product:id,name,sku')], 201);
+        }
+
+        $stockRequest = \App\Models\Request::create([
+            'user_id'        => $httpRequest->user()->id,
+            'request_number' => 'REQ-' . now()->format('Ymd') . '-' . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(6)),
+            'purpose'        => $validated['purpose'],
+            'status'         => 'pending',
+            'note'           => $validated['note'] ?? null,
+        ]);
+
+        foreach ($validated['items'] as $item) {
+            $stockRequest->items()->create([
+                'product_id'      => $item['product_id'] ?? null,
+                'quantity'        => $item['quantity'],
+                'note'            => $item['note'] ?? null,
+                'external_name'   => $item['external_name'] ?? null,
+                'external_spec'   => $item['external_spec'] ?? null,
+                'external_link'   => $item['external_link'] ?? null,
+                'external_price'  => $item['external_price'] ?? null,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Permintaan berhasil dibuat.',
+            'data'    => $stockRequest->load('items.product'),
+        ], 201);
     }
- 
+
+
     public function update(Request $httpRequest, StockRequest $request): JsonResponse
     {
         if ($request->user_id !== auth()->id()) {
             return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
         }
- 
+
         if (! $request->isPending()) {
             return response()->json(['success' => false, 'message' => 'Hanya permintaan pending yang dapat diubah.'], 422);
         }
- 
+
         $request->update($httpRequest->only('purpose', 'note'));
- 
+
         return response()->json(['success' => true, 'message' => 'Permintaan berhasil diupdate.', 'data' => $request->fresh()->load('items.product:id,name,sku')]);
     }
- 
+
     // Cancel / delete
     public function destroy(StockRequest $request): JsonResponse
     {
         if ($request->user_id !== auth()->id() && ! auth()->user()->isAdmin() && ! auth()->user()->isSuperAdmin()) {
             return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
         }
- 
+
         if (! $request->isPending()) {
             return response()->json(['success' => false, 'message' => 'Hanya permintaan pending yang dapat dibatalkan.'], 422);
         }
- 
+
         $request->items()->delete();
         $request->delete();
- 
+
         return response()->json(['success' => true, 'message' => 'Permintaan berhasil dibatalkan.']);
     }
- 
+
     // Admin: approve
+    // public function approve(Request $httpRequest, StockRequest $request): JsonResponse
+    // {
+    //     if (! $request->isPending()) {
+    //         return response()->json(['success' => false, 'message' => 'Hanya permintaan pending yang dapat disetujui.'], 422);
+    //     }
+
+    //     $validator = Validator::make($httpRequest->all(), [
+    //         'warehouse_id'                => 'required|exists:warehouses,id',
+    //         'items'                       => 'required|array',
+    //         'items.*.request_item_id'     => 'required|exists:request_items,id',
+    //         'items.*.approved_quantity'   => 'required|integer|min:0',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
+    //     }
+
+    //     DB::transaction(function () use ($httpRequest, $request) {
+    //         foreach ($httpRequest->items as $item) {
+    //             $requestItem = RequestItem::find($item['request_item_id']);
+    //             if (! $requestItem || $requestItem->request_id !== $request->id) continue;
+
+    //             $approvedQty = $item['approved_quantity'];
+    //             $requestItem->update(['approved_quantity' => $approvedQty]);
+
+    //             if ($approvedQty > 0) {
+    //                 $stock = Stock::where('warehouse_id', $httpRequest->warehouse_id)
+    //                                ->where('product_id', $requestItem->product_id)
+    //                                ->first();
+
+    //                 if ($stock) {
+    //                     $before = $stock->quantity;
+    //                     $stock->reduceStock($approvedQty);
+
+    //                     StockMovement::create([
+    //                         'product_id'      => $requestItem->product_id,
+    //                         'warehouse_id'    => $httpRequest->warehouse_id,
+    //                         'type'            => 'out',
+    //                         'quantity'        => $approvedQty,
+    //                         'quantity_before' => $before,
+    //                         'quantity_after'  => $stock->quantity,
+    //                         'request_id'      => $request->id,
+    //                         'request_item_id' => $requestItem->id,
+    //                         'created_by'      => auth()->id(),
+    //                         'note'            => "Pengeluaran untuk permintaan #{$request->id}",
+    //                     ]);
+    //                 }
+    //             }
+    //         }
+
+    //         $request->update([
+    //             'status'      => 'approved',
+    //             'approved_by' => auth()->id(),
+    //             'approved_at' => now(),
+    //         ]);
+
+    //         ActivityLog::record(
+    //             'approve',
+    //             'Request',
+    //             $request->id,
+    //             "Permintaan barang #{$request->request_number} disetujui — {$totalApproved} unit dikeluarkan dari gudang #{$httpRequest->warehouse_id}",
+    //             ['status' => 'pending'],
+    //             ['status' => 'approved', 'warehouse_id' => $httpRequest->warehouse_id, 'total_approved_qty' => $totalApproved]
+    //         );
+    //     });
+
+    //     return response()->json(['success' => true, 'message' => 'Permintaan disetujui dan stok telah dikeluarkan.', 'data' => $request->fresh()->load('items.product:id,name,sku')]);
+    // }
+
+
+
+
     public function approve(Request $httpRequest, StockRequest $request): JsonResponse
     {
-        if (! $request->isPending()) {
+        if (!$request->isPending()) {
             return response()->json(['success' => false, 'message' => 'Hanya permintaan pending yang dapat disetujui.'], 422);
         }
- 
+
         $validator = Validator::make($httpRequest->all(), [
-            'warehouse_id'                => 'required|exists:warehouses,id',
-            'items'                       => 'required|array',
-            'items.*.request_item_id'     => 'required|exists:request_items,id',
-            'items.*.approved_quantity'   => 'required|integer|min:0',
+            'warehouse_id'              => 'required|exists:warehouses,id',
+            'items'                     => 'required|array',
+            'items.*.request_item_id'   => 'required|exists:request_items,id',
+            'items.*.approved_quantity' => 'required|integer|min:0',
         ]);
- 
+
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
         }
- 
+
         DB::transaction(function () use ($httpRequest, $request) {
+            $totalApproved = 0; // ← FIX: inisialisasi di sini
+
             foreach ($httpRequest->items as $item) {
                 $requestItem = RequestItem::find($item['request_item_id']);
-                if (! $requestItem || $requestItem->request_id !== $request->id) continue;
- 
+                if (!$requestItem || $requestItem->request_id !== $request->id) continue;
+
                 $approvedQty = $item['approved_quantity'];
                 $requestItem->update(['approved_quantity' => $approvedQty]);
- 
+
                 if ($approvedQty > 0) {
                     $stock = Stock::where('warehouse_id', $httpRequest->warehouse_id)
-                                   ->where('product_id', $requestItem->product_id)
-                                   ->first();
- 
+                        ->where('product_id', $requestItem->product_id)
+                        ->first();
+
                     if ($stock) {
                         $before = $stock->quantity;
                         $stock->reduceStock($approvedQty);
- 
+
                         StockMovement::create([
                             'product_id'      => $requestItem->product_id,
                             'warehouse_id'    => $httpRequest->warehouse_id,
@@ -178,53 +337,125 @@ class RequestController extends Controller
                             'request_id'      => $request->id,
                             'request_item_id' => $requestItem->id,
                             'created_by'      => auth()->id(),
-                            'note'            => "Pengeluaran untuk permintaan #{$request->id}",
+                            'note'            => "Pengeluaran untuk permintaan #{$request->request_number}",
                         ]);
+
+                        $totalApproved += $approvedQty; // ← FIX: akumulasi di sini
                     }
                 }
             }
- 
+
             $request->update([
                 'status'      => 'approved',
                 'approved_by' => auth()->id(),
                 'approved_at' => now(),
             ]);
+
+            ActivityLog::record(
+                'approve',
+                'Request',
+                $request->id,
+                "Permintaan barang #{$request->request_number} disetujui — {$totalApproved} unit dikeluarkan dari gudang #{$httpRequest->warehouse_id}",
+                ['status' => 'pending'],
+                ['status' => 'approved', 'warehouse_id' => $httpRequest->warehouse_id, 'total_approved_qty' => $totalApproved]
+            );
+
+            \App\Models\Notification::create([
+                'user_id' => $request->user_id,   // user yang buat request
+                'type'    => 'request_approved',
+                'title'   => 'Request Disetujui',
+                'body'    => "Request #{$request->request_number} Anda telah disetujui.",
+                'data'    => ['request_id' => $request->id],
+            ]);
         });
- 
-        return response()->json(['success' => true, 'message' => 'Permintaan disetujui dan stok telah dikeluarkan.', 'data' => $request->fresh()->load('items.product:id,name,sku')]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Permintaan disetujui dan stok telah dikeluarkan.',
+            'data'    => $request->fresh()->load('items.product:id,name,sku'),
+        ]);
     }
- 
+
+
+
     // Admin: reject
     public function reject(Request $httpRequest, StockRequest $request): JsonResponse
     {
         if (! $request->isPending()) {
             return response()->json(['success' => false, 'message' => 'Hanya permintaan pending yang dapat ditolak.'], 422);
         }
- 
+
         $validator = Validator::make($httpRequest->all(), ['reject_reason' => 'required|string']);
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Alasan penolakan wajib diisi.', 'errors' => $validator->errors()], 422);
         }
- 
+
         $request->update([
             'status'        => 'rejected',
             'approved_by'   => auth()->id(),
             'approved_at'   => now(),
             'reject_reason' => $httpRequest->reject_reason,
         ]);
- 
+
+        // ── Activity log: admin reject request ────────────────────
+        ActivityLog::record(
+            'reject',
+            'Request',
+            $request->id,
+            "Permintaan barang #{$request->request_number} ditolak — alasan: {$httpRequest->reject_reason}",
+            ['status' => 'pending'],
+            ['status' => 'rejected', 'reject_reason' => $httpRequest->reject_reason]
+        );
+
+        \App\Models\Notification::create([
+            'user_id' => $request->user_id,
+            'type'    => 'request_rejected',
+            'title'   => 'Request Ditolak',
+            'body'    => "Request #{$request->request_number} ditolak. Alasan: {$httpRequest->reject_reason}",
+            'data'    => ['request_id' => $request->id, 'reason' => $httpRequest->reject_reason],
+        ]);
+
         return response()->json(['success' => true, 'message' => 'Permintaan ditolak.', 'data' => $request->fresh()]);
     }
- 
-    // Admin: complete
-    public function complete(StockRequest $request): JsonResponse
+    // Di RequestController@complete
+    // Admin: complete — stok sudah dikurangi saat approve, cukup update status
+    public function complete(Request $httpRequest, StockRequest $request): JsonResponse
     {
-        if (! $request->isApproved()) {
-            return response()->json(['success' => false, 'message' => 'Hanya permintaan approved yang dapat diselesaikan.'], 422);
+        if (!$request->isApproved()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya permintaan yang sudah disetujui yang dapat diselesaikan.',
+            ], 422);
         }
- 
-        $request->update(['status' => 'completed', 'completed_at' => now()]);
- 
-        return response()->json(['success' => true, 'message' => 'Permintaan selesai.', 'data' => $request->fresh()]);
+
+        $request->update([
+            'status'       => 'completed',
+            'completed_at' => now(),
+        ]);
+
+        // ── Activity log: request selesai ─────────────────────────
+        ActivityLog::record(
+            'complete',
+            'Request',
+            $request->id,
+            "Permintaan barang #{$request->request_number} diselesaikan",
+            ['status' => 'approved'],
+            ['status' => 'completed', 'completed_at' => now()->toIso8601String()]
+        );
+
+
+        \App\Models\Notification::create([
+            'user_id' => $request->user_id,
+            'type'    => 'request_completed',
+            'title'   => 'Request Selesai',
+            'body'    => "Request #{$request->request_number} telah selesai diproses.",
+            'data'    => ['request_id' => $request->id],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Permintaan berhasil diselesaikan.',
+            'data'    => $request->fresh()->load('items.product:id,name,sku'),
+        ]);
     }
 }

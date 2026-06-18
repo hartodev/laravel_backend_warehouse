@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('barcode_logs', function (Blueprint $table) {
             $table->id();
-             $table->foreignId('user_id')->constrained()->restrictOnDelete();
+            $table->foreignId('user_id')->constrained()->restrictOnDelete();
             $table->foreignId('warehouse_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
             $table->string('barcode_value', 200);
@@ -21,10 +21,11 @@ return new class extends Migration
             $table->boolean('is_found')->default(true);
             $table->string('device_info')->nullable();
             $table->timestamp('scanned_at')->useCurrent();
- 
+
             $table->index('user_id');
             $table->index('barcode_value');
             $table->index('scanned_at');
+            $table->index('is_found');
         });
     }
 

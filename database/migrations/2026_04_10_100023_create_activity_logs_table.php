@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
-           $table->foreignId('user_id')->constrained()->restrictOnDelete();
-            $table->string('activity', 100);
-            $table->string('module', 100)->nullable();
+            $table->foreignId('user_id')->constrained()->restrictOnDelete();
+            $table->string('activity', 100);         // create, update, delete, login, dll
+            $table->string('module', 100)->nullable(); // Product, PurchaseOrder, dll
             $table->unsignedBigInteger('subject_id')->nullable();
             $table->text('description')->nullable();
             $table->json('old_values')->nullable();
@@ -23,9 +23,10 @@ return new class extends Migration
             $table->ipAddress('ip_address')->nullable();
             $table->string('user_agent')->nullable();
             $table->timestamp('created_at')->useCurrent();
- 
+
             $table->index('user_id');
             $table->index(['module', 'subject_id']);
+            $table->index('activity');
             $table->index('created_at');
         });
     }

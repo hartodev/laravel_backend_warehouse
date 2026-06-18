@@ -17,17 +17,20 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->enum('period_type', ['daily', 'monthly']);
             $table->date('period_date');
-            $table->integer('opening_stock');
-            $table->integer('stock_in');
-            $table->integer('stock_out');
-            $table->integer('transfer_in');
-            $table->integer('transfer_out');
-            $table->integer('adjustment');
-            $table->integer('closing_stock');
+            $table->integer('opening_stock')->default(0);
+            $table->integer('stock_in')->default(0);
+            $table->integer('stock_out')->default(0);
+            $table->integer('transfer_in')->default(0);
+            $table->integer('transfer_out')->default(0);
+            $table->integer('adjustment')->default(0);
+            $table->integer('closing_stock')->default(0);
             $table->decimal('total_value', 18, 2)->default(0);
             $table->timestamp('generated_at')->useCurrent();
 
-            $table->unique(['warehouse_id', 'product_id', 'period_type', 'period_date'], 'stock_reports_unique');
+            $table->unique(
+                ['warehouse_id', 'product_id', 'period_type', 'period_date'],
+                'stock_reports_unique'
+            );
             $table->index(['period_type', 'period_date']);
             $table->index('warehouse_id');
         });

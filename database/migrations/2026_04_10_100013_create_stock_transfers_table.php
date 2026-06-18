@@ -13,14 +13,19 @@ return new class extends Migration
     {
         Schema::create('stock_transfers', function (Blueprint $table) {
             $table->id();
-              $table->string('transfer_number', 100)->unique();
+            $table->string('transfer_number', 100)->unique();
             $table->foreignId('from_warehouse_id')->constrained('warehouses')->restrictOnDelete();
             $table->foreignId('to_warehouse_id')->constrained('warehouses')->restrictOnDelete();
             $table->foreignId('requested_by')->constrained('users')->restrictOnDelete();
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('received_by')->nullable()->constrained('users')->nullOnDelete();
             $table->enum('status', [
-                'pending', 'approved', 'in_transit', 'received', 'rejected', 'cancelled',
+                'pending',
+                'approved',
+                'in_transit',
+                'received',
+                'rejected',
+                'cancelled',
             ])->default('pending');
             $table->date('transfer_date');
             $table->date('expected_arrival')->nullable();
@@ -30,10 +35,11 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();
- 
+
             $table->index('from_warehouse_id');
             $table->index('to_warehouse_id');
             $table->index('status');
+            $table->index('transfer_date');
         });
     }
 

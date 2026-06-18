@@ -26,195 +26,158 @@ class User extends Authenticatable
 
     protected $guarded = [];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
+
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password'          => 'hashed',
-        'is_active'         => 'boolean',
-    ];
- 
-    // ── Role Helpers ─────────────────────────────────────────
-    public function isSuperAdmin(): bool { return $this->role === 'super_admin'; }
-    public function isAdmin(): bool      { return $this->role === 'admin'; }
-    public function isUser(): bool       { return $this->role === 'user'; }
- 
-    // ── Relations ─────────────────────────────────────────────
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password'          => 'hashed',
+            'is_active'         => 'boolean',
+        ];
+    }
+
+    // ============================================================
+    // SCOPES
+    // ============================================================
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeByRole($query, string $role)
+    {
+        return $query->where('role', $role);
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+    public function isUser(): bool
+    {
+        return $this->role === 'user';
+    }
+
+    // ============================================================
+    // RELATIONS
+    // ============================================================
+
     public function profile()
     {
         return $this->hasOne(UserProfile::class);
     }
- 
+
     public function requests()
     {
-        return $this->hasMany(Request::class);
+        return $this->hasMany(RequestItem::class, 'user_id');
     }
- 
+
     public function approvedRequests()
     {
-        return $this->hasMany(Request::class, 'approved_by');
+        return $this->hasMany(RequestItem::class, 'approved_by');
     }
- 
-    public function stockMovements()
-    {
-        return $this->hasMany(StockMovement::class, 'created_by');
-    }
- 
+
     public function productSubmissions()
     {
         return $this->hasMany(ProductSubmission::class, 'admin_id');
     }
- 
-    public function approvedProductSubmissions()
-    {
-        return $this->hasMany(ProductSubmission::class, 'approved_by');
-    }
- 
-    public function purchaseOrders()
+
+    public function createdPurchaseOrders()
     {
         return $this->hasMany(PurchaseOrder::class, 'created_by');
     }
- 
+
     public function approvedPurchaseOrders()
     {
         return $this->hasMany(PurchaseOrder::class, 'approved_by');
     }
- 
+
+    public function createdSalesOrders()
+    {
+        return $this->hasMany(SalesOrder::class, 'created_by');
+    }
+
     public function stockTransfersRequested()
     {
         return $this->hasMany(StockTransfer::class, 'requested_by');
     }
- 
-    public function stockTransfersApproved()
-    {
-        return $this->hasMany(StockTransfer::class, 'approved_by');
-    }
- 
+
     public function stockTransfersReceived()
     {
         return $this->hasMany(StockTransfer::class, 'received_by');
     }
- 
+
     public function stockOpnames()
     {
         return $this->hasMany(StockOpname::class, 'created_by');
     }
- 
-    public function approvedStockOpnames()
-    {
-        return $this->hasMany(StockOpname::class, 'approved_by');
-    }
- 
-    public function salesOrders()
-    {
-        return $this->hasMany(SalesOrder::class, 'created_by');
-    }
- 
-    public function approvedSalesOrders()
-    {
-        return $this->hasMany(SalesOrder::class, 'approved_by');
-    }
- 
-    public function payments()
-    {
-        return $this->hasMany(Payment::class, 'created_by');
-    }
- 
-    public function verifiedPayments()
-    {
-        return $this->hasMany(Payment::class, 'verified_by');
-    }
- 
-    public function cashBooks()
-    {
-        return $this->hasMany(CashBook::class, 'created_by');
-    }
- 
-    public function verifiedCashBooks()
-    {
-        return $this->hasMany(CashBook::class, 'verified_by');
-    }
- 
+
     public function budgetRequests()
     {
-        return $this->hasMany(BudgetRequest::class);
+        return $this->hasMany(BudgetRequest::class, 'user_id');
     }
- 
-    public function managedBudgetRequests()
+
+    // Chat sebagai user_one atau user_two
+    public function chatsAsOne()
     {
-        return $this->hasMany(BudgetRequest::class, 'branch_manager_id');
+        return $this->hasMany(Chat::class, 'user_one_id');
     }
- 
-    public function financeBudgetRequests()
+
+    public function chatsAsTwo()
     {
-        return $this->hasMany(BudgetRequest::class, 'finance_id');
+        return $this->hasMany(Chat::class, 'user_two_id');
     }
- 
-    public function budgetVerifications()
+
+    /**
+     * Semua percakapan user ini (baik sebagai user_one maupun user_two)
+     */
+    public function chats()
     {
-        return $this->hasMany(BudgetVerification::class, 'finance_id');
+        return Chat::where('user_one_id', $this->id)
+            ->orWhere('user_two_id', $this->id);
     }
- 
-    public function expenseReports()
-    {
-        return $this->hasMany(ExpenseReport::class, 'submitted_by');
-    }
- 
-    public function verifiedExpenseReports()
-    {
-        return $this->hasMany(ExpenseReport::class, 'verified_by');
-    }
- 
-    public function budgetRevisions()
-    {
-        return $this->hasMany(BudgetRevision::class, 'created_by');
-    }
- 
-    public function approvedBudgetRevisions()
-    {
-        return $this->hasMany(BudgetRevision::class, 'approved_by');
-    }
- 
-    public function sentChats()
-    {
-        return $this->hasMany(Chat::class, 'sender_id');
-    }
- 
-    public function receivedChats()
-    {
-        return $this->hasMany(Chat::class, 'receiver_id');
-    }
- 
-    public function chatMessages()
+
+    public function sentMessages()
     {
         return $this->hasMany(ChatMessage::class, 'sender_id');
     }
- 
+
     public function notifications()
     {
         return $this->hasMany(Notification::class);
     }
- 
+
     public function activityLogs()
     {
         return $this->hasMany(ActivityLog::class);
     }
- 
-    public function barcodeLogs()
+
+    public function payments()
     {
-        return $this->hasMany(BarcodeLog::class);
+        return $this->hasMany(Payment::class, 'created_by');
+    }
+
+    public function cashBooks()
+    {
+        return $this->hasMany(CashBook::class, 'created_by');
+    }
+
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class, 'created_by');
     }
 }

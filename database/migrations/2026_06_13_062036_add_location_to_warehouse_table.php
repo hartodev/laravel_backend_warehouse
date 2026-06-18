@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('payments', function (Blueprint $table) {
-            $table->foreign('budget_request_id')
-                ->references('id')
-                ->on('budget_requests')
-                ->nullOnDelete();
-        });
+          Schema::table('warehouses', function (Blueprint $table) {
+        $table->string('location')->after('code');
+        $table->string('photo')->nullable();
+    });
     }
 
     /**
@@ -24,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('payments', function (Blueprint $table) {
-            $table->dropForeign(['budget_request_id']);
+        Schema::table('warehouses', function (Blueprint $table) {
+            //
         });
     }
 };

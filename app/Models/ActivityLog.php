@@ -9,20 +9,20 @@ class ActivityLog extends Model
 {
     use HasFactory;
        public $timestamps = false;
- 
+
     protected $guarded = [];
- 
+
     protected $casts = [
         'old_values' => 'array',
         'new_values' => 'array',
         'created_at' => 'datetime',
     ];
- 
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
- 
+
     /**
      * Static helper — catat aktivitas dari mana saja.
      *
@@ -39,7 +39,7 @@ class ActivityLog extends Model
         ?array  $newValues   = null
     ): void {
         if (! auth()->check()) return;
- 
+
         static::create([
             'user_id'     => auth()->id(),
             'activity'    => $activity,
@@ -53,3 +53,7 @@ class ActivityLog extends Model
         ]);
     }
 }
+
+
+
+

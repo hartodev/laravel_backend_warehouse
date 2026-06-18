@@ -8,46 +8,46 @@ use Illuminate\Database\Eloquent\Model;
 class Stock extends Model
 {
     use HasFactory;
-        protected $guarded = [];
- 
-    protected $casts = [
-        'quantity' => 'integer',
-    ];
- 
+    protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return ['quantity' => 'integer'];
+    }
+
+    // -------------------------------------------------------
+    // HELPERS
+    // -------------------------------------------------------
+
+    /** Cek apakah stok di bawah minimum yang ditentukan produk */
+    public function isBelowMinStock(): bool
+    {
+        return $this->quantity < $this->product->min_stock;
+    }
+
+    // -------------------------------------------------------
+    // RELATIONS
+    // -------------------------------------------------------
+
+    /** Gudang tempat stok ini berada */
     public function warehouse()
     {
         return $this->belongsTo(Warehouse::class);
     }
- 
+
+    /** Produk yang distok */
     public function product()
     {
         return $this->belongsTo(Product::class);
     }
- 
-    // ── Helpers ──────────────────────────────────────────────
-    public function addStock(int $qty): static
+
+    public function reduceStock(int $qty): void
     {
-        $this->quantity += $qty;
-        $this->save();
-        return $this;
+        $this->decrement('quantity', $qty);
     }
- 
-    public function reduceStock(int $qty): static
+
+    public function addStock(int $qty): void
     {
-        if ($this->quantity < $qty) {
-            throw new \RuntimeException(
-                "Stok tidak cukup untuk produk ID {$this->product_id} " .
-                "di gudang ID {$this->warehouse_id}. " .
-                "Tersedia: {$this->quantity}, diminta: {$qty}"
-            );
-        }
-        $this->quantity -= $qty;
-        $this->save();
-        return $this;
-    }
- 
-    public function isLow(): bool
-    {
-        return $this->quantity <= ($this->product->min_stock ?? 0);
+        $this->increment('quantity', $qty);
     }
 }

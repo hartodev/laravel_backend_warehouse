@@ -13,17 +13,18 @@ return new class extends Migration
     {
         Schema::create('product_submissions', function (Blueprint $table) {
             $table->id();
-           $table->foreignId('admin_id')->constrained('users')->restrictOnDelete();
+            $table->foreignId('admin_id')->constrained('users')->restrictOnDelete();
             $table->foreignId('category_id')->constrained()->restrictOnDelete();
             $table->string('name');
+            // FIX: sku di submission nullable, tapi wajib divalidasi sebelum approve di aplikasi
             $table->string('sku', 100)->nullable();
             $table->string('barcode', 100)->nullable();
             $table->string('unit', 50);
             $table->integer('initial_stock')->default(0);
             $table->foreignId('initial_warehouse_id')
-                  ->nullable()
-                  ->constrained('warehouses')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('warehouses')
+                ->nullOnDelete();
             $table->decimal('purchase_price', 15, 2)->default(0);
             $table->decimal('selling_price', 15, 2)->default(0);
             $table->text('description')->nullable();
@@ -31,11 +32,13 @@ return new class extends Migration
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('approved_at')->nullable();
             $table->text('reject_reason')->nullable();
+            // Terisi saat submission di-approve dan product dibuat
             $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
- 
+
             $table->index('admin_id');
             $table->index('status');
+            $table->index('category_id');
         });
     }
 

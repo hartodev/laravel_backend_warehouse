@@ -13,14 +13,16 @@ return new class extends Migration
     {
         Schema::create('sales_order_items', function (Blueprint $table) {
             $table->id();
-           $table->foreignId('sales_order_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('sales_order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->restrictOnDelete();
-            $table->string('deskripsi')->nullable();
-            $table->integer('qty');
-            $table->decimal('harga', 15, 2);
-            $table->decimal('total', 15, 2);
+            // FIX: Standardisasi ke bahasa Inggris agar konsisten dengan tabel lain
+            $table->string('description')->nullable(); // deskripsi khusus item ini
+            $table->integer('quantity');
+            $table->decimal('unit_price', 15, 2);
+            $table->decimal('discount_percent', 5, 2)->default(0);
+            $table->decimal('subtotal', 15, 2);
             $table->timestamps();
- 
+
             $table->unique(['sales_order_id', 'product_id']);
             $table->index('product_id');
         });

@@ -13,35 +13,27 @@ return new class extends Migration
     {
         Schema::create('stock_movements', function (Blueprint $table) {
             $table->id();
-             $table->foreignId('product_id')->constrained()->restrictOnDelete();
+            $table->foreignId('product_id')->constrained()->restrictOnDelete();
             $table->foreignId('warehouse_id')->constrained()->restrictOnDelete();
-            $table->enum('type', ['in', 'out', 'transfer', 'adjustment']);
-            $table->integer('quantity');
+            $table->enum('type', ['in', 'out', 'transfer_in', 'transfer_out', 'adjustment']);
+            $table->integer('quantity'); // positif = masuk, negatif = keluar
             $table->integer('quantity_before');
             $table->integer('quantity_after');
- 
-            // Sumber pergerakan stok (nullable, salah satu diisi)
-            $table->foreignId('request_id')
-                  ->nullable()->constrained('requests')->nullOnDelete();
-            $table->foreignId('request_item_id')
-                  ->nullable()->constrained('request_items')->nullOnDelete();
-            $table->foreignId('purchase_order_id')
-                  ->nullable()->constrained('purchase_orders')->nullOnDelete();
-            $table->foreignId('stock_transfer_id')
-                  ->nullable()->constrained('stock_transfers')->nullOnDelete();
-            $table->foreignId('stock_opname_id')
-                  ->nullable()->constrained('stock_opnames')->nullOnDelete();
- 
+
+            // FIX: Polymorphic yang lebih bersih — sumber pergerakan stok
+            // reference_type: 'request', 'purchase_order', 'stock_transfer', 'stock_opname', 'manual'
+            $table->string('reference_type', 50)->nullable();
+            $table->unsignedBigInteger('reference_id')->nullable();
+
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->text('note')->nullable();
             $table->timestamps();
- 
+
             $table->index('product_id');
             $table->index('warehouse_id');
             $table->index('type');
             $table->index('created_at');
-            $table->index('request_id');
-            $table->index('purchase_order_id');
+            $table->index(['reference_type', 'reference_id']);
         });
     }
 

@@ -13,20 +13,19 @@ return new class extends Migration
     {
         Schema::create('cash_books', function (Blueprint $table) {
             $table->id();
-             $table->string('no_bukti', 100)->unique();
+            $table->string('no_bukti', 100)->unique();
             $table->foreignId('payment_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->foreignId('verified_by')->nullable()->constrained('users')->nullOnDelete();
- 
             $table->enum('type', ['masuk', 'keluar']);
-            $table->string('pihak');               // diterima dari / dibayarkan kepada
+            $table->string('pihak'); // diterima dari / dibayarkan kepada
             $table->decimal('jumlah_uang', 15, 2);
             $table->string('terbilang');
             $table->text('keterangan')->nullable();
             $table->date('tanggal');
             $table->timestamp('verified_at')->nullable();
             $table->timestamps();
- 
+
             $table->index('type');
             $table->index('tanggal');
             $table->index('payment_id');

@@ -13,14 +13,16 @@ return new class extends Migration
     {
         Schema::create('chats', function (Blueprint $table) {
             $table->id();
-              $table->foreignId('sender_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('receiver_id')->constrained('users')->cascadeOnDelete();
+            // CONVENTION: user_one_id SELALU user dengan ID lebih kecil
+            $table->foreignId('user_one_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_two_id')->constrained('users')->cascadeOnDelete();
             $table->timestamp('last_message_at')->nullable();
             $table->timestamps();
- 
-            $table->unique(['sender_id', 'receiver_id']);
-            $table->index('sender_id');
-            $table->index('receiver_id');
+
+            // Dengan konvensi di atas, unique ini sudah benar (tidak bisa duplikat)
+            $table->unique(['user_one_id', 'user_two_id']);
+            $table->index('user_one_id');
+            $table->index('user_two_id');
             $table->index('last_message_at');
         });
     }

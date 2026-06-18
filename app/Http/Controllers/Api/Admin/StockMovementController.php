@@ -26,17 +26,17 @@ class StockMovementController extends Controller
             ->when($request->date_to, fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
             ->latest()
             ->paginate($request->per_page ?? 20);
- 
+
         return response()->json(['success' => true, 'data' => $movements]);
     }
- 
+
     public function show(StockMovement $movement): JsonResponse
     {
         $movement->load(['product:id,name,sku,unit', 'warehouse:id,name,code', 'createdBy:id,name']);
- 
+
         return response()->json(['success' => true, 'data' => $movement]);
     }
- 
+
     // POST /api/stock-movements — input stok manual (adjustment)
     public function store(Request $request): JsonResponse
     {
@@ -47,25 +47,25 @@ class StockMovementController extends Controller
             'quantity'     => 'required|integer|min:1',
             'note'         => 'nullable|string',
         ]);
- 
+
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
         }
- 
+
         DB::transaction(function () use ($request, &$movement) {
             $stock = Stock::firstOrCreate(
                 ['warehouse_id' => $request->warehouse_id, 'product_id' => $request->product_id],
                 ['quantity' => 0]
             );
- 
+
             $before = $stock->quantity;
- 
+
             if ($request->type === 'out' || ($request->type === 'adjustment' && $request->adjustment_type === 'out')) {
                 $stock->reduceStock($request->quantity);
             } else {
                 $stock->addStock($request->quantity);
             }
- 
+
             $movement = StockMovement::create([
                 'product_id'      => $request->product_id,
                 'warehouse_id'    => $request->warehouse_id,
@@ -77,7 +77,11 @@ class StockMovementController extends Controller
                 'note'            => $request->note,
             ]);
         });
- 
+
         return response()->json(['success' => true, 'message' => 'Pergerakan stok berhasil dicatat.', 'data' => $movement->load(['product:id,name,sku', 'warehouse:id,name'])], 201);
     }
 }
+
+
+
+
