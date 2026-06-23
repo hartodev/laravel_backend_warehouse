@@ -51,3 +51,5 @@ class Stock extends Model
         $this->increment('quantity', $qty);
     }
 }
+
+

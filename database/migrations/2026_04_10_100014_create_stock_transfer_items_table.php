@@ -34,3 +34,6 @@ return new class extends Migration
         Schema::dropIfExists('stock_transfer_items');
     }
 };
+
+
+

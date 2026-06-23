@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Category;
 
 class StockOpname extends Model
 {
@@ -87,5 +88,10 @@ class StockOpname extends Model
     {
         return $this->hasMany(StockMovement::class, 'reference_id')
             ->where('reference_type', 'stock_opname');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 }

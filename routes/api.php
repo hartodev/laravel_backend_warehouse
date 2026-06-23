@@ -37,6 +37,13 @@ Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
 });
 
+
+Route::get('/users', function () {
+    $users = \App\Models\User::where('id', '!=', auth()->id())
+        ->select('id', 'name', 'email')
+        ->get();
+    return response()->json(['success' => true, 'data' => $users]);
+})->middleware('auth:sanctum');
 // ══════════════════════════════════════════════════════════════
 //  AUTHENTICATED — Semua role (butuh login)
 // ══════════════════════════════════════════════════════════════
@@ -65,12 +72,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ── Chat ─────────────────────────────────────────────────
     Route::prefix('chats')->controller(ChatController::class)->group(function () {
-        Route::get('/',                  'index');
-        Route::post('/',                 'store');
-        Route::get('{chat}',             'show');
-        Route::post('{chat}/messages',   'sendMessage');
-        Route::put('{chat}/read',        'markAsRead');
+        Route::get('/users',                     [ChatController::class, 'users']);
+        Route::get('/',                     [ChatController::class, 'index']);
+        Route::post('/',                    [ChatController::class, 'store']);
+        Route::get('/{chat}',              [ChatController::class, 'show']);
+        Route::post('/{chat}/messages',    [ChatController::class, 'sendMessage']);
+        Route::put('/{chat}/read',         [ChatController::class, 'markAsRead']);
     });
+
+
 
     // ── Products & Categories & Warehouses (semua role bisa GET) ─
     Route::get('products',               [ProductController::class, 'index']);
@@ -178,15 +188,18 @@ Route::middleware('auth:sanctum')->group(function () {
         });
 
         // ── Stock Opname ─────────────────────────────────────
-        Route::prefix('stock-opnames')->controller(StockOpnameController::class)->group(function () {
-            Route::get('/',                   'index');
-            Route::post('/',                  'store');
-            Route::get('{opname}',            'show');
-            Route::put('{opname}',            'update');
-            Route::post('{opname}/start',     'start');
-            Route::post('{opname}/complete',  'complete');
-            Route::post('{opname}/submit',    'submitApproval');
+        Route::prefix('stock-opnames')->group(function () {
+            Route::get('/',                         [StockOpnameController::class, 'index']);
+            Route::post('/',                        [StockOpnameController::class, 'store']);
+            Route::get('/{opname}',                 [StockOpnameController::class, 'show']);
+            Route::post('/{opname}/start',          [StockOpnameController::class, 'start']);
+            Route::patch('/{opname}/save-progress', [StockOpnameController::class, 'saveProgress']); // ← BARU
+            Route::post('/{opname}/complete',       [StockOpnameController::class, 'complete']);
+            Route::post('/{opname}/approve',        [StockOpnameController::class, 'approve']);
+            Route::post('/{opname}/reject',         [StockOpnameController::class, 'reject']);
         });
+
+        Route::get('/products-for-opname', [StockOpnameController::class, 'productsForOpname']);
 
         // ── Stock Reports ────────────────────────────────────
         Route::prefix('stock-reports')->controller(StockReportController::class)->group(function () {
@@ -265,6 +278,13 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('{br}',   'show');
             Route::put('{br}',   'update');
         });
+
+        Route::prefix('stocks')->controller(StockController::class)->group(function () {
+            Route::get('/',           'index');
+            Route::get('low',         'lowStock');
+            Route::post('manual-in',  'manualIn');   // ← tambah
+            Route::get('{warehouse}', 'byWarehouse');
+        });
     });
 
     // ══════════════════════════════════════════════════════════
@@ -317,6 +337,8 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
 });
+
+
 
 
 //api versi lama

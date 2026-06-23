@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Validator;
 
 class StockTransferController extends Controller
 {
- public function index(Request $request): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $transfers = StockTransfer::with(['fromWarehouse:id,name,code', 'toWarehouse:id,name,code', 'requestedBy:id,name'])
             ->when($request->status, fn($q) => $q->where('status', $request->status))
@@ -153,10 +153,11 @@ class StockTransferController extends Controller
                 $before = $stock->quantity;
                 $stock->reduceStock($qtySent);
 
+                // type 'transfer_out' -> sinkron dengan tab/ikon "Transfer" (keluar) di Aktivitas Stok
                 StockMovement::create([
                     'product_id'        => $transferItem->product_id,
                     'warehouse_id'      => $transfer->from_warehouse_id,
-                    'type'              => 'transfer',
+                    'type'              => 'transfer_out',
                     'quantity'          => $qtySent,
                     'quantity_before'   => $before,
                     'quantity_after'    => $stock->quantity,
@@ -207,10 +208,12 @@ class StockTransferController extends Controller
                 $before = $stock->quantity;
                 $stock->addStock($qtyReceived);
 
+                // type 'transfer_in' -> sinkron dengan tab/ikon "Transfer" (masuk) di Aktivitas Stok,
+                // dan bikin isPositive jadi true (tanda "+") di Flutter
                 StockMovement::create([
                     'product_id'        => $transferItem->product_id,
                     'warehouse_id'      => $transfer->to_warehouse_id,
-                    'type'              => 'transfer',
+                    'type'              => 'transfer_in',
                     'quantity'          => $qtyReceived,
                     'quantity_before'   => $before,
                     'quantity_after'    => $stock->quantity,

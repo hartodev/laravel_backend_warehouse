@@ -180,4 +180,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(StockMovement::class, 'created_by');
     }
+
+    // ── Kirim ke semua user dengan role tertentu (mis. semua admin) ──
+    public static function sendToRole(string $role, string $type, string $title, string $body, array $data = []): void
+    {
+        $userIds = User::where('role', $role)
+            ->where('is_active', true)
+            ->pluck('id');
+
+        foreach ($userIds as $userId) {
+            static::send($userId, $type, $title, $body, $data);
+        }
+    }
 }

@@ -99,3 +99,6 @@ class StockTransfer extends Model
             ->where('reference_type', 'stock_transfer');
     }
 }
+
+
+

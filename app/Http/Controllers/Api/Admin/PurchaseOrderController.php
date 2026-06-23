@@ -209,7 +209,8 @@ class PurchaseOrderController extends Controller
                     'quantity'         => $qtyReceived,
                     'quantity_before'  => $before,
                     'quantity_after'   => $stock->quantity,
-                    'purchase_order_id'=> $po->id,
+                    'reference_type'  => 'purchase_order',  // ← ganti
+                    'reference_id'    => $po->id,
                     'created_by'       => auth()->id(),
                     'note'             => "Penerimaan barang PO #{$po->po_number}",
                 ]);

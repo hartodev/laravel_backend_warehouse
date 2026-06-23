@@ -103,4 +103,9 @@ class StockMovement extends Model
 
         return $this->belongsTo($class, 'reference_id');
     }
+
+    public function purchaseOrder()
+    {
+        return $this->belongsTo(PurchaseOrder::class);
+    }
 }
