@@ -31,13 +31,30 @@ class RequestItem extends Model
     }
 
     /** Produk yang diminta */
-    public function product()
-    {
-        return $this->belongsTo(Product::class);
-    }
+   
 
     public function isExternal(): bool
     {
         return $this->product_id === null;
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class, 'warehouse_id');
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
     }
 }

@@ -81,16 +81,15 @@ class User extends Authenticatable
         return $this->hasOne(UserProfile::class);
     }
 
-    public function requests()
-    {
-        return $this->hasMany(RequestItem::class, 'user_id');
-    }
+public function requests()
+{
+    return $this->hasMany(RequestItem::class, 'user_id');
+}
 
-    public function approvedRequests()
-    {
-        return $this->hasMany(RequestItem::class, 'approved_by');
-    }
-
+public function approvedRequests()
+{
+    return $this->hasMany(RequestItem::class, 'approved_by');
+}
     public function productSubmissions()
     {
         return $this->hasMany(ProductSubmission::class, 'admin_id');
@@ -191,5 +190,15 @@ class User extends Authenticatable
         foreach ($userIds as $userId) {
             static::send($userId, $type, $title, $body, $data);
         }
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);   // ✅
+    }
+
+    public function request_items()
+    {
+        return $this->belongsTo(RequestItem::class);
     }
 }
