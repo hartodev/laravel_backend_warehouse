@@ -1,7 +1,7 @@
-@extends('superadmin.layouts.app')
+@extends('layouts.app')
 @section('title', 'Detail Opname')
 @section('breadcrumb')
-    <a href="{{ route('superadmin.stock-opnames.index') }}" class="hover:text-primary-700">Stock Opname</a>
+    <a href="{{ route('stock-opnames.index') }}" class="hover:text-primary-700">Stock Opname</a>
     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
     <span class="text-gray-700 font-medium">{{ $stockOpname->opname_number }}</span>
 @endsection
@@ -21,17 +21,17 @@
     </div>
     <div class="flex flex-wrap gap-2">
         @if($stockOpname->status === 'draft')
-            <form method="POST" action="{{ route('superadmin.stock-opnames.start', $stockOpname) }}">
+            <form method="POST" action="{{ route('stock-opnames.start', $stockOpname) }}">
                 @csrf
                 <button type="submit" class="btn-primary btn">Mulai Opname</button>
             </form>
-            <a href="{{ route('superadmin.stock-opnames.edit', $stockOpname) }}" class="btn-secondary btn">Edit</a>
+            <a href="{{ route('stock-opnames.edit', $stockOpname) }}" class="btn-secondary btn">Edit</a>
         @elseif($stockOpname->status === 'in_progress')
             <button onclick="document.getElementById('complete-form').classList.toggle('hidden')" class="btn-primary btn">
                 Selesaikan Opname
             </button>
         @elseif($stockOpname->status === 'pending_approval')
-            <form method="POST" action="{{ route('superadmin.stock-opnames.approve', $stockOpname) }}" class="inline">
+            <form method="POST" action="{{ route('stock-opnames.approve', $stockOpname) }}" class="inline">
                 @csrf
                 <button type="submit" class="btn-success btn">Setujui & Terapkan</button>
             </form>
@@ -83,7 +83,7 @@
             <h3 class="font-semibold text-primary-900">Update Stok Fisik</h3>
             <p class="text-sm text-primary-600">Isi jumlah stok yang dihitung secara fisik</p>
         </div>
-        <form method="POST" action="{{ route('superadmin.stock-opnames.complete', $stockOpname) }}">
+        <form method="POST" action="{{ route('stock-opnames.complete', $stockOpname) }}">
             @csrf
             <div class="table-wrap rounded-none border-0">
                 <table class="data-table">
@@ -170,7 +170,7 @@
         <div class="px-6 py-5 border-b border-gray-100">
             <h3 class="font-semibold text-gray-900">Tolak Opname</h3>
         </div>
-        <form method="POST" action="{{ route('superadmin.stock-opnames.reject', $stockOpname) }}">
+        <form method="POST" action="{{ route('stock-opnames.reject', $stockOpname) }}">
             @csrf
             <div class="px-6 py-4 space-y-3">
                 <p class="text-sm text-gray-600">Berikan alasan penolakan agar tim dapat memperbaiki opname.</p>

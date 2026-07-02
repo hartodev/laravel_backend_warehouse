@@ -31,7 +31,7 @@ class RequestItem extends Model
     }
 
     /** Produk yang diminta */
-   
+
 
     public function isExternal(): bool
     {
@@ -58,3 +58,5 @@ class RequestItem extends Model
         return $this->belongsTo(Product::class, 'product_id');
     }
 }
+
+

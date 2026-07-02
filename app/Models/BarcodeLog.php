@@ -9,26 +9,27 @@ class BarcodeLog extends Model
 {
     use HasFactory;
       public $timestamps = false;
- 
+
     protected $guarded = [];
- 
+
     protected $casts = [
         'is_found'   => 'boolean',
         'scanned_at' => 'datetime',
     ];
- 
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
- 
+
     public function warehouse()
     {
         return $this->belongsTo(Warehouse::class);
     }
- 
+
     public function product()
     {
         return $this->belongsTo(Product::class);
     }
+
 }

@@ -1,114 +1,178 @@
-{{-- budget_requests/index.blade.php --}}
 @extends('layouts.app')
-@section('title','Pengajuan Anggaran')
-@section('breadcrumb')<span class="text-gray-700 font-medium">Pengajuan Anggaran</span>@endsection
+
+@section('title', 'Pengajuan Anggaran')
+@section('breadcrumb')
+    <span class="text-gray-700 dark:text-gray-300 font-medium">Pengajuan Anggaran</span>
+@endsection
 
 @section('content')
-<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-    <div>
-        <h1 class="text-xl font-bold text-gray-900">Pengajuan Anggaran</h1>
-        <p class="text-sm text-gray-500 mt-0.5">{{ $brs->total() }} pengajuan</p>
-    </div>
-    <a href="{{ route('budget-requests.create') }}" class="btn-primary btn">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-        Buat Pengajuan
-    </a>
-</div>
+    <div class="space-y-6">
 
-<div class="card mb-5">
-    <form method="GET" class="card-body flex flex-wrap gap-3 items-end">
-        <div class="w-36">
-            <label class="form-label">Jenis</label>
-            <select name="jenis" class="form-select">
-                <option value="">Semua</option>
-                <option value="rab" {{ request('jenis')==='rab'?'selected':'' }}>RAB</option>
-                <option value="luar_rab" {{ request('jenis')==='luar_rab'?'selected':'' }}>Luar RAB</option>
-            </select>
+        {{-- Header --}}
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+                <h1 class="page-title">Pengajuan Anggaran (RAB)</h1>
+                <p class="text-sm text-gray-500 mt-1">Kelola dan setujui pengajuan anggaran dari seluruh divisi.</p>
+            </div>
+            <div class="flex gap-2">
+                <a href="{{ route('budget-requests.create') }}" class="btn btn-primary">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Buat RAB
+                </a>
+            </div>
         </div>
-        <div class="w-40">
-            <label class="form-label">Status</label>
-            <select name="status" class="form-select">
-                <option value="">Semua</option>
-                @foreach(['draft','pending','approved','ditolak'] as $s)
-                <option value="{{ $s }}" {{ request('status')===$s?'selected':'' }}>{{ ucfirst($s) }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="flex-1 min-w-40">
-            <label class="form-label">Divisi</label>
-            <input type="text" name="divisi" value="{{ request('divisi') }}" placeholder="Cari divisi..." class="form-input">
-        </div>
-        <div class="w-36">
-            <label class="form-label">Dari</label>
-            <input type="date" name="date_from" value="{{ request('date_from') }}" class="form-input">
-        </div>
-        <div class="w-36">
-            <label class="form-label">Sampai</label>
-            <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-input">
-        </div>
-        <button type="submit" class="btn-primary btn">Filter</button>
-        <a href="{{ route('budget-requests.index') }}" class="btn-secondary btn">Reset</a>
-    </form>
-</div>
 
-<div class="table-wrap">
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>No. Form</th>
-                <th>Divisi</th>
-                <th>Nama Item</th>
-                <th>Jenis</th>
-                <th>Urgensi</th>
-                <th class="text-right">Estimasi Biaya</th>
-                <th>Tgl. Pengajuan</th>
-                <th>Status</th>
-                <th class="text-right">Aksi</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-            @forelse($brs as $br)
-            <tr>
-                <td><span class="font-mono text-xs font-medium text-primary-700">{{ $br->nomor_form }}</span></td>
-                <td>{{ $br->divisi }}</td>
-                <td class="max-w-xs truncate font-medium">{{ $br->nama_item }}</td>
-                <td>
-                    <span class="badge {{ $br->jenis === 'rab' ? 'badge-info' : 'badge-warning' }}">
-                        {{ strtoupper(str_replace('_',' ',$br->jenis)) }}
-                    </span>
-                </td>
-                <td>
-                    <span class="badge {{ $br->urgensi === 'mendesak' ? 'badge-danger' : 'badge-gray' }}">
-                        {{ ucfirst($br->urgensi ?? 'normal') }}
-                    </span>
-                </td>
-                <td class="text-right font-semibold">Rp {{ number_format($br->estimasi_biaya) }}</td>
-                <td>{{ \Carbon\Carbon::parse($br->tanggal_pengajuan)->isoFormat('D MMM Y') }}</td>
-                <td><x-status-badge :status="$br->status" /></td>
-                <td class="text-right">
-                    <div class="flex items-center justify-end gap-1">
-                        <a href="{{ route('budget-requests.show', $br) }}" class="btn btn-secondary btn-sm">Detail</a>
-                        @if($br->status === 'draft')
-                            <form method="POST" action="{{ route('budget-requests.submit', $br) }}" class="inline">@csrf<button class="btn btn-primary btn-sm">Submit</button></form>
-                        @elseif($br->status === 'pending')
-                            <form method="POST" action="{{ route('budget-requests.approve', $br) }}" class="inline">@csrf<button class="btn btn-success btn-sm">Setujui</button></form>
-                            <button onclick="document.getElementById('reject-br-{{ $br->id }}').classList.remove('hidden')" class="btn btn-danger btn-sm">Tolak</button>
+        {{-- Summary Cards --}}
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="stat-card">
+                <div class="stat-icon bg-orange-100 text-orange-600">⏳</div>
+                <div>
+                    <p class="text-xs text-gray-500">Menunggu Admin</p>
+                    <p class="text-xl font-bold text-gray-900 dark:text-white">{{ $summary['menunggu_admin'] }}</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bg-blue-100 text-blue-600">📋</div>
+                <div>
+                    <p class="text-xs text-gray-500">Menunggu Super Admin</p>
+                    <p class="text-xl font-bold text-gray-900 dark:text-white">{{ $summary['menunggu_sa'] }}</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bg-emerald-100 text-emerald-600">💰</div>
+                <div>
+                    <p class="text-xs text-gray-500">Total Anggaran Disetujui</p>
+                    <p class="text-lg font-bold text-gray-900 dark:text-white">Rp
+                        {{ number_format($summary['total_anggaran'], 0, ',', '.') }}</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bg-indigo-100 text-indigo-600">📊</div>
+                <div>
+                    <p class="text-xs text-gray-500">Sisa Anggaran</p>
+                    <p class="text-lg font-bold text-gray-900 dark:text-white">Rp
+                        {{ number_format($summary['sisa_anggaran'], 0, ',', '.') }}</p>
+                </div>
+            </div>
+        </div>
+
+        @if ($summary['mendesak_pending'] > 0)
+            <div class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+                <span class="text-xl">🚨</span>
+                <p class="text-sm text-red-800">
+                    Ada <strong>{{ $summary['mendesak_pending'] }}</strong> pengajuan <strong>mendesak</strong> yang
+                    masih menunggu persetujuan.
+                </p>
+            </div>
+        @endif
+
+        {{-- Filter --}}
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" action="{{ route('budget-requests.index') }}"
+                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                    <div>
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select" onchange="this.form.submit()">
+                            <option value="">Semua Status</option>
+                            @foreach (['draft' => 'Draft', 'pending' => 'Menunggu Admin', 'pending_sa' => 'Menunggu Super Admin', 'approved' => 'Disetujui', 'ditolak' => 'Ditolak', 'ditunda' => 'Ditunda'] as $key => $label)
+                                <option value="{{ $key }}" @selected(request('status') == $key)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Jenis</label>
+                        <select name="jenis" class="form-select" onchange="this.form.submit()">
+                            <option value="">Semua Jenis</option>
+                            <option value="rab" @selected(request('jenis') == 'rab')>RAB</option>
+                            <option value="luar_rab" @selected(request('jenis') == 'luar_rab')>Luar RAB</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Urgensi</label>
+                        <select name="urgensi" class="form-select" onchange="this.form.submit()">
+                            <option value="">Semua</option>
+                            <option value="normal" @selected(request('urgensi') == 'normal')>Normal</option>
+                            <option value="mendesak" @selected(request('urgensi') == 'mendesak')>Mendesak</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Divisi</label>
+                        <input type="text" name="divisi" value="{{ request('divisi') }}" class="form-input"
+                            placeholder="Cari divisi...">
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <button type="submit" class="btn btn-primary w-full">Filter</button>
+                        @if (request()->anyFilled(['status', 'jenis', 'urgensi', 'divisi']))
+                            <a href="{{ route('budget-requests.index') }}" class="btn btn-secondary">Reset</a>
                         @endif
                     </div>
-                    <x-confirm-modal :id="'reject-br-'.$br->id" title="Tolak Pengajuan?" :message="'Pengajuan '.$br->nomor_form.' akan ditolak.'"
-                        :action="route('budget-requests.reject', $br)" method="POST" confirm-label="Tolak" confirm-class="btn-danger">
-                        <div class="mt-3">
-                            <label class="form-label">Alasan <span class="text-red-500">*</span></label>
-                            <textarea name="reject_reason" rows="2" required class="form-textarea"></textarea>
-                        </div>
-                    </x-confirm-modal>
-                </td>
-            </tr>
-            @empty
-            <tr><td colspan="9" class="text-center py-12 text-gray-400">Belum ada pengajuan anggaran</td></tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
-<div class="mt-4">{{ $brs->links() }}</div>
+                </form>
+            </div>
+        </div>
+
+        {{-- Table --}}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>No. Form</th>
+                        <th>Pengaju</th>
+                        <th>Divisi</th>
+                        <th>Jenis</th>
+                        <th>Urgensi</th>
+                        <th>Total Estimasi</th>
+                        <th>Status</th>
+                        <th>Tanggal</th>
+                        <th class="text-right">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($brs as $br)
+                        <tr>
+                            <td class="font-medium text-gray-900 dark:text-white">{{ $br->nomor_form }}</td>
+                            <td>{{ $br->user->name ?? '-' }}</td>
+                            <td>{{ $br->divisi }}</td>
+                            <td>
+                                <span class="badge badge-gray">{{ strtoupper($br->jenis) }}</span>
+                            </td>
+                            <td>
+                                @if ($br->urgensi === 'mendesak')
+                                    <span class="badge badge-danger">Mendesak</span>
+                                @else
+                                    <span class="badge badge-gray">Normal</span>
+                                @endif
+                            </td>
+                            <td class="font-medium">Rp {{ number_format($br->total_estimasi, 0, ',', '.') }}</td>
+                            <td>
+                                @include('superadmin.budget_request._status_badge', ['status' => $br->status])
+                            </td>
+                            <td class="text-xs text-gray-500">
+                                {{ \Carbon\Carbon::parse($br->tanggal_pengajuan)->translatedFormat('d M Y') }}</td>
+                            <td class="text-right whitespace-nowrap">
+                                <a href="{{ route('budget-requests.show', $br) }}" class="btn btn-secondary btn-xs">
+                                    Detail
+                                </a>
+                                @if ($br->status === 'pending_sa')
+                                    <span
+                                        class="inline-flex items-center ml-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700 font-semibold">Perlu
+                                        Aksi</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="9" class="text-center text-gray-400 py-8">
+                                Tidak ada data pengajuan anggaran.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div>{{ $brs->links() }}</div>
+    </div>
 @endsection

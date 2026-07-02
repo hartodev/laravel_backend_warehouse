@@ -95,3 +95,6 @@ class ProductSubmissionController extends Controller
         return back()->with('success', 'Submission produk ditolak.');
     }
 }
+
+
+

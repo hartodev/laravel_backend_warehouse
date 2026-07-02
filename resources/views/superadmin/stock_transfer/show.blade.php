@@ -1,7 +1,7 @@
-@extends('superadmin.layouts.app')
+@extends('layouts.app')
 @section('title', $stockTransfer->transfer_number)
 @section('breadcrumb')
-<a href="{{ route('superadmin.stock-transfers.index') }}" class="hover:text-primary-700">Transfer Stok</a>
+<a href="{{ route('stock-transfers.index') }}" class="hover:text-primary-700">Transfer Stok</a>
 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
 <span class="text-gray-700 font-medium">{{ $stockTransfer->transfer_number }}</span>
 @endsection
@@ -17,12 +17,12 @@
     </div>
     <div class="flex flex-wrap gap-2">
         @if($stockTransfer->status === 'pending')
-            <form method="POST" action="{{ route('superadmin.stock-transfers.approve', $stockTransfer) }}" class="inline">@csrf<button class="btn-success btn">Setujui</button></form>
+            <form method="POST" action="{{ route('stock-transfers.approve', $stockTransfer) }}" class="inline">@csrf<button class="btn-success btn">Setujui</button></form>
             <button onclick="document.getElementById('reject-modal').classList.remove('hidden')" class="btn-danger btn">Tolak</button>
         @elseif($stockTransfer->status === 'approved')
-            <form method="POST" action="{{ route('superadmin.stock-transfers.send', $stockTransfer) }}" class="inline">@csrf<button class="btn-primary btn">Kirim Barang</button></form>
+            <form method="POST" action="{{ route('stock-transfers.send', $stockTransfer) }}" class="inline">@csrf<button class="btn-primary btn">Kirim Barang</button></form>
         @elseif($stockTransfer->status === 'in_transit')
-            <form method="POST" action="{{ route('superadmin.stock-transfers.receive', $stockTransfer) }}" class="inline">@csrf<button class="btn-success btn">Terima Barang</button></form>
+            <form method="POST" action="{{ route('stock-transfers.receive', $stockTransfer) }}" class="inline">@csrf<button class="btn-success btn">Terima Barang</button></form>
         @endif
     </div>
 </div>
@@ -81,7 +81,7 @@
 <div id="reject-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
         <div class="px-6 py-5 border-b"><h3 class="font-semibold">Tolak Transfer</h3></div>
-        <form method="POST" action="{{ route('superadmin.stock-transfers.reject', $stockTransfer) }}">
+        <form method="POST" action="{{ route('stock-transfers.reject', $stockTransfer) }}">
             @csrf
             <div class="px-6 py-4 space-y-3">
                 <textarea name="reject_reason" rows="3" required class="form-textarea" placeholder="Alasan penolakan..."></textarea>

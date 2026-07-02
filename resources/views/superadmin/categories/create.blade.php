@@ -1,8 +1,8 @@
 {{-- categories/create.blade.php --}}
-@extends('superadmin.layouts.app')
+@extends('layouts.app')
 @section('title','Tambah Kategori')
 @section('breadcrumb')
-<a href="{{ route('superadmin.categories.index') }}" class="hover:text-primary-700">Kategori</a>
+<a href="{{ route('categories.index') }}" class="hover:text-primary-700">Kategori</a>
 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
 <span class="text-gray-700 font-medium">Tambah</span>
 @endsection
@@ -11,7 +11,7 @@
 <div class="max-w-xl">
 <div class="card">
     <div class="card-header"><h2 class="font-semibold text-gray-900">Tambah Kategori Baru</h2></div>
-    <form method="POST" action="{{ route('superadmin.categories.store') }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('categories.store') }}" enctype="multipart/form-data">
     @csrf
     <div class="card-body space-y-4">
         <div class="grid grid-cols-2 gap-4">
@@ -49,7 +49,7 @@
         </div>
     </div>
     <div class="card-body border-t flex justify-end gap-3">
-        <a href="{{ route('superadmin.categories.index') }}" class="btn-secondary btn">Batal</a>
+        <a href="{{ route('categories.index') }}" class="btn-secondary btn">Batal</a>
         <button type="submit" class="btn-primary btn">Simpan</button>
     </div>
     </form>

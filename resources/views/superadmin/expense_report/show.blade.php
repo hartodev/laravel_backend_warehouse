@@ -1,78 +1,162 @@
-{{-- ============================================================
-     expense_reports/show.blade.php
-============================================================ --}}
-@extends('superadmin.layouts.app')
+{{-- resources/views/superadmin/expense_report/show.blade.php --}}
+@extends('layouts.app')
 @section('title','Detail Laporan Pertanggungjawaban')
 @section('breadcrumb')
-<a href="{{ route('superadmin.expense-reports.index') }}" class="hover:text-primary-700">Lap. Pertanggungjawaban</a>
-<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-<span class="text-gray-700 font-medium">Detail</span>
+    <a href="{{ route('expense-reports.index') }}" class="hover:text-primary-700">Laporan Pertanggungjawaban</a>
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    <span class="text-gray-700 font-medium">Detail</span>
 @endsection
 
 @section('content')
-<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
+<div class="flex items-center justify-between mb-6">
     <div>
-        <div class="flex items-center gap-3 flex-wrap">
-            <h1 class="text-xl font-bold text-gray-900">Lap. Pertanggungjawaban</h1>
-            <x-status-badge :status="$expenseReport->status" />
-        </div>
-        <p class="text-sm text-gray-500 mt-0.5">Disubmit: <strong>{{ $expenseReport->submittedBy->name ?? '—' }}</strong> · {{ $expenseReport->created_at->isoFormat('D MMM Y') }}</p>
+        <h1 class="text-xl font-bold text-gray-900">Laporan Pertanggungjawaban</h1>
+        <p class="text-sm text-gray-500">Disubmit oleh {{ $expenseReport->submittedBy->name ?? '—' }} pada {{ $expenseReport->created_at?->isoFormat('D MMM Y, HH:mm') }}</p>
     </div>
-    <div class="flex gap-2">
-        @if($expenseReport->status === 'submitted')
-        <a href="{{ route('superadmin.expense-reports.edit', $expenseReport) }}" class="btn-secondary btn">Edit</a>
-        <form method="POST" action="{{ route('superadmin.expense-reports.verify', $expenseReport) }}" class="inline">@csrf<button class="btn-success btn">✓ Verifikasi</button></form>
+<span class="badge {{ match($expenseReport->status) {
+    'verified' => 'badge-success',
+    'pending_revisi' => 'badge-danger',
+    default => 'badge-warning',
+} }}">
+    {{ ucfirst(str_replace('_', ' ', $expenseReport->status)) }}
+</span>
+</div>
+
+@if (session('success'))
+    <div class="mb-5 rounded-md bg-green-50 border border-green-200 p-4 text-sm text-green-700">{{ session('success') }}</div>
+@endif
+@if (session('error'))
+    <div class="mb-5 rounded-md bg-red-50 border border-red-200 p-4 text-sm text-red-700">{{ session('error') }}</div>
+@endif
+
+<div class="card mb-5">
+    <div class="card-header"><h2 class="font-semibold text-gray-800">Pengajuan Anggaran Terkait</h2></div>
+    <div class="card-body text-sm">
+        <p class="font-mono text-primary-700">{{ $expenseReport->budgetRequest->nomor_form ?? '—' }}</p>
+        <p class="text-gray-600 mt-1">
+            Item: {{ $expenseReport->budgetRequest->items->pluck('nama_item')->join(', ') ?? '—' }}
+        </p>
+        <p class="text-gray-600">
+            Total Anggaran: Rp {{ number_format($expenseReport->budgetRequest->total_estimasi ?? 0, 0, ',', '.') }}
+        </p>
+    </div>
+</div>
+
+<div class="card mb-5">
+    <div class="card-header"><h2 class="font-semibold text-gray-800">Detail Transaksi</h2></div>
+    <div class="card-body grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+        <div>
+            <p class="text-gray-500">Nomor Invoice</p>
+            <p class="font-medium text-gray-900">{{ $expenseReport->nomor_invoice ?? '—' }}</p>
+        </div>
+        <div>
+            <p class="text-gray-500">Nama Vendor</p>
+            <p class="font-medium text-gray-900">{{ $expenseReport->nama_vendor ?? '—' }}</p>
+        </div>
+        <div>
+            <p class="text-gray-500">Tanggal Transaksi</p>
+            <p class="font-medium text-gray-900">{{ \Carbon\Carbon::parse($expenseReport->tanggal_transaksi)->isoFormat('D MMM Y') }}</p>
+        </div>
+        <div>
+            <p class="text-gray-500">Nominal Realisasi</p>
+            <p class="font-semibold text-gray-900">Rp {{ number_format($expenseReport->nominal_realisasi, 0, ',', '.') }}</p>
+        </div>
+        <div>
+            <p class="text-gray-500">Selisih (Anggaran - Realisasi)</p>
+            <p class="font-semibold {{ $expenseReport->selisih < 0 ? 'text-red-600' : ($expenseReport->selisih > 0 ? 'text-green-600' : 'text-gray-700') }}">
+                Rp {{ number_format($expenseReport->selisih, 0, ',', '.') }}
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-5">
+    <div class="card-header"><h2 class="font-semibold text-gray-800">Lampiran</h2></div>
+    <div class="card-body">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm mb-4">
+            <span class="badge {{ $expenseReport->lamp_invoice ? 'badge-success' : 'badge-secondary' }}">Invoice {{ $expenseReport->lamp_invoice ? '✓' : '✗' }}</span>
+            <span class="badge {{ $expenseReport->lamp_bukti_transfer ? 'badge-success' : 'badge-secondary' }}">Bukti Transfer {{ $expenseReport->lamp_bukti_transfer ? '✓' : '✗' }}</span>
+            <span class="badge {{ $expenseReport->lamp_kartu_garansi ? 'badge-success' : 'badge-secondary' }}">Kartu Garansi {{ $expenseReport->lamp_kartu_garansi ? '✓' : '✗' }}</span>
+            <span class="badge {{ $expenseReport->lamp_serah_terima ? 'badge-success' : 'badge-secondary' }}">Serah Terima {{ $expenseReport->lamp_serah_terima ? '✓' : '✗' }}</span>
+        </div>
+
+        @if ($expenseReport->lamp_lainnya)
+            <p class="text-sm text-gray-600 mb-3">Lampiran lainnya: {{ $expenseReport->lamp_lainnya }}</p>
+        @endif
+
+        @if ($expenseReport->attachment_files)
+            <ul class="text-sm text-primary-700 space-y-1">
+                @foreach ($expenseReport->attachment_files as $path)
+                    <li><a href="{{ asset('storage/' . $path) }}" target="_blank" class="hover:underline">📎 {{ basename($path) }}</a></li>
+                @endforeach
+            </ul>
+        @else
+            <p class="text-sm text-gray-400">Tidak ada file lampiran terupload.</p>
         @endif
     </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-    <div class="card p-5 space-y-3 text-sm">
-        <p class="font-semibold mb-2">Detail Realisasi</p>
-        <div class="flex justify-between"><span class="text-gray-400">Pengajuan Anggaran</span><span class="font-mono text-primary-700">{{ $expenseReport->budgetRequest->nomor_form ?? '—' }}</span></div>
-        <div class="flex justify-between"><span class="text-gray-400">Nama Item</span><span class="font-medium">{{ $expenseReport->budgetRequest->nama_item ?? '—' }}</span></div>
-        <div class="flex justify-between"><span class="text-gray-400">Vendor</span><span>{{ $expenseReport->nama_vendor ?? '—' }}</span></div>
-        <div class="flex justify-between"><span class="text-gray-400">No. Invoice</span><span class="font-mono">{{ $expenseReport->nomor_invoice ?? '—' }}</span></div>
-        <div class="flex justify-between"><span class="text-gray-400">Tgl. Transaksi</span><span>{{ \Carbon\Carbon::parse($expenseReport->tanggal_transaksi)->isoFormat('D MMMM Y') }}</span></div>
-    </div>
-    <div class="card p-5 space-y-3 text-sm">
-        <p class="font-semibold mb-2">Ringkasan Keuangan</p>
-        <div class="flex justify-between"><span class="text-gray-400">Anggaran</span><span class="font-medium">Rp {{ number_format($expenseReport->budgetRequest->estimasi_biaya ?? 0) }}</span></div>
-        <div class="flex justify-between"><span class="text-gray-400">Realisasi</span><span class="font-bold text-lg">Rp {{ number_format($expenseReport->nominal_realisasi) }}</span></div>
-        <div class="flex justify-between border-t pt-3"><span class="text-gray-400">Selisih</span>
-            <span class="font-bold {{ ($expenseReport->selisih ?? 0) > 0 ? 'text-red-600' : 'text-green-700' }}">
-                {{ ($expenseReport->selisih ?? 0) > 0 ? '+' : '' }}Rp {{ number_format($expenseReport->selisih ?? 0) }}
-                <span class="text-xs font-normal text-gray-400">{{ ($expenseReport->selisih ?? 0) > 0 ? '(melebihi)' : '(sisa)' }}</span>
-            </span>
+@if ($expenseReport->catatan)
+<div class="card mb-5">
+    <div class="card-header"><h2 class="font-semibold text-gray-800">Catatan</h2></div>
+    <div class="card-body text-sm text-gray-700">{{ $expenseReport->catatan }}</div>
+</div>
+@endif
+@if ($expenseReport->status === 'pending_revisi')
+<div class="mb-5 rounded-md bg-orange-50 border border-orange-200 p-4 text-sm text-orange-700">
+    ⚠️ Nominal realisasi melebihi sisa anggaran saat itu. Revisi anggaran tambahan otomatis diajukan dan sedang
+    menunggu persetujuan — laporan ini akan otomatis final (tercatat di buku kas) setelah revisi disetujui.
+</div>
+@endif
+
+@if ($expenseReport->revision)
+<div class="card mb-5">
+    <div class="card-header"><h2 class="font-semibold text-gray-800">Revisi Anggaran Terkait</h2></div>
+    <div class="card-body grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+        <div>
+            <p class="text-gray-500">Status Revisi</p>
+            <p class="font-medium text-gray-900">{{ ucfirst($expenseReport->revision->status) }}</p>
+        </div>
+        <div>
+            <p class="text-gray-500">Nominal Tambahan</p>
+            <p class="font-medium text-gray-900">Rp {{ number_format($expenseReport->revision->nominal_perubahan, 0, ',', '.') }}</p>
+        </div>
+        <div class="sm:col-span-2">
+            <p class="text-gray-500">Alasan</p>
+            <p class="text-gray-700">{{ $expenseReport->revision->alasan_revisi }}</p>
         </div>
     </div>
 </div>
+@endif
 
-<div class="card p-5 mb-5">
-    <p class="font-semibold mb-3">Kelengkapan Dokumen</p>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        @foreach(['lamp_invoice' => 'Invoice', 'lamp_bukti_transfer' => 'Bukti Transfer', 'lamp_kartu_garansi' => 'Kartu Garansi', 'lamp_serah_terima' => 'Serah Terima'] as $key => $label)
-        <div class="flex items-center gap-2 text-sm">
-            @if($expenseReport->$key)
-            <svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-            @else
-            <svg class="w-5 h-5 text-gray-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
-            @endif
-            <span class="{{ $expenseReport->$key ? 'text-gray-800' : 'text-gray-400' }}">{{ $label }}</span>
+@if ($expenseReport->status === 'verified')
+<div class="card mb-5">
+    <div class="card-header"><h2 class="font-semibold text-gray-800">Verifikasi</h2></div>
+    <div class="card-body grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+        <div>
+            <p class="text-gray-500">Diverifikasi Oleh</p>
+            <p class="font-medium text-gray-900">{{ $expenseReport->verifiedBy->name ?? '—' }}</p>
         </div>
-        @endforeach
+        <div>
+            <p class="text-gray-500">Tanggal Verifikasi</p>
+            <p class="font-medium text-gray-900">{{ $expenseReport->verified_at ? \Carbon\Carbon::parse($expenseReport->verified_at)->isoFormat('D MMM Y, HH:mm') : '—' }}</p>
+        </div>
     </div>
-    @if($expenseReport->lamp_lainnya)<p class="text-sm text-gray-500 mt-2">Lainnya: {{ $expenseReport->lamp_lainnya }}</p>@endif
-</div>
-
-@if($expenseReport->catatan)
-<div class="card p-5 mb-5"><p class="font-semibold mb-2">Catatan</p><p class="text-sm text-gray-700">{{ $expenseReport->catatan }}</p></div>
-@endif
-
-@if($expenseReport->verified_by)
-<div class="card p-5 bg-green-50 border-green-200">
-    <p class="font-semibold text-green-900">✓ Terverifikasi</p>
-    <p class="text-sm text-green-700 mt-1">Oleh: {{ $expenseReport->verifiedBy->name }} · {{ \Carbon\Carbon::parse($expenseReport->verified_at)->isoFormat('D MMM Y, HH:mm') }}</p>
 </div>
 @endif
+
+<div class="flex justify-between">
+    <a href="{{ route('expense-reports.index') }}" class="btn-secondary btn">&larr; Kembali</a>
+
+    <div class="flex gap-3">
+        @if ($expenseReport->status !== 'verified')
+            <a href="{{ route('expense-reports.edit', $expenseReport) }}" class="btn-secondary btn">Edit</a>
+            <form method="POST" action="{{ route('expense-reports.verify', $expenseReport) }}" class="inline">
+                @csrf
+                <button type="submit" class="btn-primary btn" onclick="return confirm('Verifikasi laporan ini?')">Verifikasi</button>
+            </form>
+        @endif
+    </div>
+</div>
 @endsection
+

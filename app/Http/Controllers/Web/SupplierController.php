@@ -42,12 +42,14 @@ class SupplierController extends Controller
             'city'    => 'nullable|string|max:100',
             'contact_person' => 'nullable|string|max:150',
             'contact_phone'  => 'nullable|string|max:20',
+            'bank_account_name' => 'nullable|string|max:150',
             'bank_name'      => 'nullable|string|max:100',
             'bank_account'   => 'nullable|string|max:50',
             'bank_holder'    => 'nullable|string|max:150',
             'notes'          => 'nullable|string',
             'logo'           => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'is_active'      => 'nullable|boolean',
+            'code' => 'required|string|max:50|unique:suppliers,code',
         ]);
 
         $logoPath = null;
@@ -56,16 +58,16 @@ class SupplierController extends Controller
         }
 
         Supplier::create([
+            'code' => $request->code,
             'name'           => $request->name,
             'email'          => $request->email,
             'phone'          => $request->phone,
             'address'        => $request->address,
             'city'           => $request->city,
             'contact_person' => $request->contact_person,
-            'contact_phone'  => $request->contact_phone,
             'bank_name'      => $request->bank_name,
             'bank_account'   => $request->bank_account,
-            'bank_holder'    => $request->bank_holder,
+            'bank_account_name' => $request->bank_holder,
             'notes'          => $request->notes,
             'logo'           => $logoPath,
             'is_active'      => $request->boolean('is_active', true),
@@ -90,37 +92,41 @@ class SupplierController extends Controller
         return view('superadmin.suppliers.edit', compact('supplier'));
     }
 
-    public function update(Request $request, Supplier $supplier)
-    {
-        $request->validate([
-            'name'    => ['required', 'string', 'max:200', Rule::unique('suppliers')->ignore($supplier->id)],
-            'email'   => ['nullable', 'email', 'max:100', Rule::unique('suppliers')->ignore($supplier->id)],
-            'phone'   => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'city'    => 'nullable|string|max:100',
-            'contact_person' => 'nullable|string|max:150',
-            'contact_phone'  => 'nullable|string|max:20',
-            'bank_name'      => 'nullable|string|max:100',
-            'bank_account'   => 'nullable|string|max:50',
-            'bank_holder'    => 'nullable|string|max:150',
-            'notes'          => 'nullable|string',
-            'logo'           => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'is_active'      => 'nullable|boolean',
-        ]);
+public function update(Request $request, Supplier $supplier)
+{
+    $request->validate([
+        'name'              => ['required', 'string', 'max:200', Rule::unique('suppliers')->ignore($supplier->id)],
+        'email'             => ['nullable', 'email', 'max:100', Rule::unique('suppliers')->ignore($supplier->id)],
+        'phone'             => 'nullable|string|max:20',
+        'address'           => 'nullable|string',
+        'city'              => 'nullable|string|max:100',
+        'contact_person'    => 'nullable|string|max:150',
+        'bank_name'         => 'nullable|string|max:100',
+        'bank_account'      => 'nullable|string|max:50',
+        'bank_account_name' => 'nullable|string|max:150',
+        'notes'             => 'nullable|string',
+        'logo'              => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        'is_active'         => 'nullable|boolean',
+        'code'              => ['required', 'string', 'max:50', Rule::unique('suppliers')->ignore($supplier->id)],
+    ]);
 
-        $data = $request->only('name', 'email', 'phone', 'address', 'city', 'contact_person', 'contact_phone', 'bank_name', 'bank_account', 'bank_holder', 'notes');
-        $data['is_active'] = $request->boolean('is_active', $supplier->is_active);
+    // Gunakan kolom yang benar sesuai DB — hapus contact_phone & bank_holder
+    $data = $request->only([
+        'name', 'email', 'phone', 'address', 'city',
+        'contact_person', 'bank_name', 'bank_account', 'bank_account_name',
+        'notes', 'code',
+    ]);
+    $data['is_active'] = $request->boolean('is_active', $supplier->is_active);
 
-        if ($request->hasFile('logo')) {
-            $data['logo'] = ImageService::upload($request->file('logo'), 'suppliers', $supplier->logo);
-        }
-
-        $supplier->update($data);
-
-        return redirect()->route('suppliers.index')
-            ->with('success', 'Supplier berhasil diupdate.');
+    if ($request->hasFile('logo')) {
+        $data['logo'] = ImageService::upload($request->file('logo'), 'suppliers', $supplier->logo);
     }
 
+    $supplier->update($data);
+
+    return redirect()->route('suppliers.index')
+        ->with('success', 'Supplier berhasil diupdate.');
+}
     public function destroy(Supplier $supplier)
     {
         if ($supplier->products()->count() > 0) {

@@ -55,7 +55,7 @@ class CategoryController extends Controller
             'is_active' => $request->boolean('is_active', true),
         ]);
 
-        return redirect()->route('superadmin.categories.index')
+        return redirect()->route('categories.index')
             ->with('success', 'Kategori berhasil ditambahkan.');
     }
 
@@ -98,7 +98,7 @@ class CategoryController extends Controller
 
         $category->update($data);
 
-        return redirect()->route('superadmin.categories.index')
+        return redirect()->route('categories.index')
             ->with('success', 'Kategori berhasil diupdate.');
     }
 
@@ -118,7 +118,7 @@ class CategoryController extends Controller
 
         $category->delete();
 
-        return redirect()->route('superadmin.categories.index')
+        return redirect()->route('categories.index')
             ->with('success', 'Kategori berhasil dihapus.');
     }
 }

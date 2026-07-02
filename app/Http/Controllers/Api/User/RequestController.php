@@ -186,139 +186,143 @@ class RequestController extends Controller
     }
 
     // Admin: approve
-    public function approve(Request $httpRequest, StockRequest $request): JsonResponse
-    {
-        if (! $request->isPending()) {
-            return response()->json(['success' => false, 'message' => 'Hanya permintaan pending yang dapat disetujui.'], 422);
-        }
+    // public function approve(Request $httpRequest, StockRequest $request): JsonResponse
+    // {
+    //     if (! $request->isPending()) {
+    //         return response()->json(['success' => false, 'message' => 'Hanya permintaan pending yang dapat disetujui.'], 422);
+    //     }
 
-        $validator = Validator::make($httpRequest->all(), [
-            'warehouse_id'               => 'required|exists:warehouses,id',
-            'items'                      => 'required|array',
-            'items.*.request_item_id'    => 'required|exists:request_items,id',
-            'items.*.approved_quantity'  => 'required|integer|min:0',
-        ]);
+    //     $validator = Validator::make($httpRequest->all(), [
+    //         'warehouse_id'               => 'required|exists:warehouses,id',
+    //         'items'                      => 'required|array',
+    //         'items.*.request_item_id'    => 'required|exists:request_items,id',
+    //         'items.*.approved_quantity'  => 'required|integer|min:0',
+    //     ]);
 
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
-        }
+    //     if ($validator->fails()) {
+    //         return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
+    //     }
 
-        // ── Validasi stok DULU, sebelum ada perubahan apapun ───────────────
-        $stockErrors = [];
-        $stockMap = [];
+    //     // ── Validasi stok DULU, sebelum ada perubahan apapun ───────────────
+    //     $stockErrors = [];
+    //     $stockMap = [];
 
-        foreach ($httpRequest->items as $item) {
-            $approvedQty = $item['approved_quantity'];
-            if ($approvedQty <= 0) {
-                continue;
-            }
+    //     foreach ($httpRequest->items as $item) {
+    //         $approvedQty = $item['approved_quantity'];
+    //         if ($approvedQty <= 0) {
+    //             continue;
+    //         }
 
-            $requestItem = RequestItem::find($item['request_item_id']);
-            if (! $requestItem || $requestItem->request_id !== $request->id) {
-                $stockErrors[] = "Item #{$item['request_item_id']} tidak valid untuk permintaan ini.";
-                continue;
-            }
+    //         $requestItem = RequestItem::find($item['request_item_id']);
+    //         if (! $requestItem || $requestItem->request_id !== $request->id) {
+    //             $stockErrors[] = "Item #{$item['request_item_id']} tidak valid untuk permintaan ini.";
+    //             continue;
+    //         }
 
-            if (! $requestItem->product_id) {
-                continue;
-            }
+    //         if (! $requestItem->product_id) {
+    //             continue;
+    //         }
 
-            $stock = Stock::where('warehouse_id', $httpRequest->warehouse_id)
-                ->where('product_id', $requestItem->product_id)
-                ->first();
+    //         $stock = Stock::where('warehouse_id', $httpRequest->warehouse_id)
+    //             ->where('product_id', $requestItem->product_id)
+    //             ->first();
 
-            if (! $stock) {
-                $namaProduk = $requestItem->product->name ?? "produk #{$requestItem->product_id}";
-                $stockErrors[] = "Stok '{$namaProduk}' tidak ditemukan di gudang yang dipilih (mungkin belum pernah di-stock-in di gudang ini).";
-                continue;
-            }
+    //         if (! $stock) {
+    //             $namaProduk = $requestItem->product->name ?? "produk #{$requestItem->product_id}";
+    //             $stockErrors[] = "Stok '{$namaProduk}' tidak ditemukan di gudang yang dipilih (mungkin belum pernah di-stock-in di gudang ini).";
+    //             continue;
+    //         }
 
-            if ($stock->quantity < $approvedQty) {
-                $namaProduk = $requestItem->product->name ?? "produk #{$requestItem->product_id}";
-                $stockErrors[] = "Stok '{$namaProduk}' tidak cukup (tersedia {$stock->quantity}, diminta {$approvedQty}).";
-                continue;
-            }
+    //         if ($stock->quantity < $approvedQty) {
+    //             $namaProduk = $requestItem->product->name ?? "produk #{$requestItem->product_id}";
+    //             $stockErrors[] = "Stok '{$namaProduk}' tidak cukup (tersedia {$stock->quantity}, diminta {$approvedQty}).";
+    //             continue;
+    //         }
 
-            $stockMap[$requestItem->id] = $stock;
-        }
+    //         $stockMap[$requestItem->id] = $stock;
+    //     }
 
-        if (! empty($stockErrors)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Permintaan tidak dapat disetujui karena masalah stok.',
-                'errors'  => $stockErrors,
-            ], 422);
-        }
+    //     if (! empty($stockErrors)) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Permintaan tidak dapat disetujui karena masalah stok.',
+    //             'errors'  => $stockErrors,
+    //         ], 422);
+    //     }
 
-        DB::transaction(function () use ($httpRequest, $request, $stockMap) {
-            $totalApproved = 0;
+    //     DB::transaction(function () use ($httpRequest, $request, $stockMap) {
+    //         $totalApproved = 0;
 
-            foreach ($httpRequest->items as $item) {
-                $requestItem = RequestItem::find($item['request_item_id']);
-                if (! $requestItem || $requestItem->request_id !== $request->id) {
-                    continue;
-                }
+    //         foreach ($httpRequest->items as $item) {
+    //             $requestItem = RequestItem::find($item['request_item_id']);
+    //             if (! $requestItem || $requestItem->request_id !== $request->id) {
+    //                 continue;
+    //             }
 
-                $approvedQty = $item['approved_quantity'];
-                $requestItem->update(['approved_quantity' => $approvedQty]);
+    //             $approvedQty = $item['approved_quantity'];
+    //             $requestItem->update(['approved_quantity' => $approvedQty]);
 
-                if ($approvedQty <= 0 || ! isset($stockMap[$requestItem->id])) {
-                    continue;
-                }
+    //             if ($approvedQty <= 0 || ! isset($stockMap[$requestItem->id])) {
+    //                 continue;
+    //             }
 
-                $stock = $stockMap[$requestItem->id];
-                $before = $stock->quantity;
-                $stock->reduceStock($approvedQty);
+    //             $stock = $stockMap[$requestItem->id];
+    //             $before = $stock->quantity;
+    //             $stock->reduceStock($approvedQty);
 
-                StockMovement::create([
-                    'product_id'      => $requestItem->product_id,
-                    'warehouse_id'    => $httpRequest->warehouse_id,
-                    'type'            => 'out',
-                    'quantity'        => $approvedQty,
-                    'quantity_before' => $before,
-                    'quantity_after'  => $stock->quantity,
-                    'request_id'      => $request->id,
-                    'request_item_id' => $requestItem->id,
-                    'created_by'      => auth()->id(),
-                    'note'            => "Pengeluaran untuk permintaan #{$request->request_number}",
-                ]);
+    //             StockMovement::create([
+    //                 'product_id'      => $requestItem->product_id,
+    //                 'warehouse_id'    => $httpRequest->warehouse_id,
+    //                 'type'            => 'out',
+    //                 'quantity'        => $approvedQty,
+    //                 'quantity_before' => $before,
+    //                 'quantity_after'  => $stock->quantity,
+    //                 'request_id'      => $request->id,
+    //                 'request_item_id' => $requestItem->id,
+    //                 'created_by'      => auth()->id(),
+    //                 'note'            => "Pengeluaran untuk permintaan #{$request->request_number}",
+    //             ]);
 
-                $totalApproved += $approvedQty;
-            }
+    //             $totalApproved += $approvedQty;
+    //         }
 
-            $request->update([
-                'status'      => 'approved',
-                'approved_by' => auth()->id(),
-                'approved_at' => now(),
-            ]);
+    //         $request->update([
+    //             'status'      => 'approved',
+    //             'approved_by' => auth()->id(),
+    //             'approved_at' => now(),
+    //         ]);
 
-            ActivityLog::record(
-                'approve',
-                'Request',
-                $request->id,
-                "Permintaan barang #{$request->request_number} disetujui — {$totalApproved} unit dikeluarkan dari gudang #{$httpRequest->warehouse_id}",
-                ['status' => 'pending'],
-                ['status' => 'approved', 'warehouse_id' => $httpRequest->warehouse_id, 'total_approved_qty' => $totalApproved]
-            );
+    //         ActivityLog::record(
+    //             'approve',
+    //             'Request',
+    //             $request->id,
+    //             "Permintaan barang #{$request->request_number} disetujui — {$totalApproved} unit dikeluarkan dari gudang #{$httpRequest->warehouse_id}",
+    //             ['status' => 'pending'],
+    //             ['status' => 'approved', 'warehouse_id' => $httpRequest->warehouse_id, 'total_approved_qty' => $totalApproved]
+    //         );
 
-            NotificationController::send(
-                $request->user_id,
-                'request_approved',
-                'Request Disetujui',
-                "Request #{$request->request_number} Anda telah disetujui.",
-                ['request_id' => $request->id]
-            );
-        });
+    //         NotificationController::send(
+    //             $request->user_id,
+    //             'request_approved',
+    //             'Request Disetujui',
+    //             "Request #{$request->request_number} Anda telah disetujui.",
+    //             ['request_id' => $request->id]
+    //         );
+    //     });
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Permintaan disetujui dan stok telah dikeluarkan.',
-            'data'    => $request->fresh()->load('items.product:id,name,sku'),
-        ]);
-    }
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Permintaan disetujui dan stok telah dikeluarkan.',
+    //         'data'    => $request->fresh()->load('items.product:id,name,sku'),
+    //     ]);
+    // }
     // Admin: reject
     public function reject(Request $httpRequest, StockRequest $request): JsonResponse
     {
+
+        if (! in_array($request->status, ['pending', 'pending_superadmin'])) {
+            return response()->json(['success' => false, 'message' => 'Permintaan ini tidak dapat ditolak.'], 422);
+        }
         if (! $request->isPending()) {
             return response()->json(['success' => false, 'message' => 'Hanya permintaan pending yang dapat ditolak.'], 422);
         }
@@ -388,6 +392,196 @@ class RequestController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Permintaan berhasil diselesaikan.',
+            'data'    => $request->fresh()->load('items.product:id,name,sku'),
+        ]);
+    }
+
+    // Tahap 1 — Admin verifikasi (TIDAK potong stok, cuma teruskan ke Super Admin)
+    public function approve(Request $httpRequest, StockRequest $request): JsonResponse
+    {
+        if (! $request->isPending()) {
+            return response()->json(['success' => false, 'message' => 'Hanya permintaan pending yang dapat diverifikasi.'], 422);
+        }
+
+        $validator = Validator::make($httpRequest->all(), [
+            'items'                      => 'required|array',
+            'items.*.request_item_id'    => 'required|exists:request_items,id',
+            'items.*.approved_quantity'  => 'required|integer|min:0',
+            'admin_note'                 => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
+        }
+
+        DB::transaction(function () use ($httpRequest, $request) {
+            foreach ($httpRequest->items as $item) {
+                $requestItem = RequestItem::find($item['request_item_id']);
+                if (! $requestItem || $requestItem->request_id !== $request->id) {
+                    continue;
+                }
+                // Simpan rekomendasi qty dari admin — belum memotong stok
+                $requestItem->update(['approved_quantity' => $item['approved_quantity']]);
+            }
+
+            $request->update([
+                'status'             => 'pending_superadmin',
+                'admin_verified_by'  => auth()->id(),
+                'admin_verified_at'  => now(),
+                'admin_note'         => $httpRequest->admin_note,
+            ]);
+
+            ActivityLog::record(
+                'admin_verify',
+                'Request',
+                $request->id,
+                "Permintaan barang #{$request->request_number} diverifikasi Admin, menunggu approval Super Admin",
+                ['status' => 'pending'],
+                ['status' => 'pending_superadmin']
+            );
+
+            NotificationController::sendToRole(
+                'super_admin',
+                'request_pending_superadmin',
+                'Menunggu Approval Final',
+                "Request #{$request->request_number} sudah diverifikasi Admin, menunggu approval final Anda.",
+                ['request_id' => $request->id]
+            );
+
+            NotificationController::send(
+                $request->user_id,
+                'request_verified',
+                'Request Diverifikasi Admin',
+                "Request #{$request->request_number} Anda telah diverifikasi Admin, menunggu approval final Super Admin.",
+                ['request_id' => $request->id]
+            );
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Permintaan diverifikasi, menunggu approval final Super Admin.',
+            'data'    => $request->fresh()->load('items.product:id,name,sku'),
+        ]);
+    }
+
+    // Tahap 2 — Super Admin approve final (stok BARU dipotong di sini)
+    public function approveFinal(Request $httpRequest, StockRequest $request): JsonResponse
+    {
+        if (! $request->isPendingSuperadmin()) {
+            return response()->json(['success' => false, 'message' => 'Hanya permintaan yang sudah diverifikasi Admin yang dapat disetujui final.'], 422);
+        }
+
+        $validator = Validator::make($httpRequest->all(), [
+            'warehouse_id'               => 'required|exists:warehouses,id',
+            'items'                      => 'required|array',
+            'items.*.request_item_id'    => 'required|exists:request_items,id',
+            'items.*.approved_quantity'  => 'required|integer|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
+        }
+
+        // ── Validasi stok dulu (logic sama seperti approve() versi lama) ──
+        $stockErrors = [];
+        $stockMap = [];
+
+        foreach ($httpRequest->items as $item) {
+            $approvedQty = $item['approved_quantity'];
+            if ($approvedQty <= 0) continue;
+
+            $requestItem = RequestItem::find($item['request_item_id']);
+            if (! $requestItem || $requestItem->request_id !== $request->id) {
+                $stockErrors[] = "Item #{$item['request_item_id']} tidak valid untuk permintaan ini.";
+                continue;
+            }
+            if (! $requestItem->product_id) continue;
+
+            $stock = Stock::where('warehouse_id', $httpRequest->warehouse_id)
+                ->where('product_id', $requestItem->product_id)
+                ->first();
+
+            if (! $stock) {
+                $namaProduk = $requestItem->product->name ?? "produk #{$requestItem->product_id}";
+                $stockErrors[] = "Stok '{$namaProduk}' tidak ditemukan di gudang yang dipilih.";
+                continue;
+            }
+            if ($stock->quantity < $approvedQty) {
+                $namaProduk = $requestItem->product->name ?? "produk #{$requestItem->product_id}";
+                $stockErrors[] = "Stok '{$namaProduk}' tidak cukup (tersedia {$stock->quantity}, diminta {$approvedQty}).";
+                continue;
+            }
+
+            $stockMap[$requestItem->id] = $stock;
+        }
+
+        if (! empty($stockErrors)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permintaan tidak dapat disetujui karena masalah stok.',
+                'errors'  => $stockErrors,
+            ], 422);
+        }
+
+        DB::transaction(function () use ($httpRequest, $request, $stockMap) {
+            $totalApproved = 0;
+
+            foreach ($httpRequest->items as $item) {
+                $requestItem = RequestItem::find($item['request_item_id']);
+                if (! $requestItem || $requestItem->request_id !== $request->id) continue;
+
+                $approvedQty = $item['approved_quantity'];
+                $requestItem->update(['approved_quantity' => $approvedQty]);
+
+                if ($approvedQty <= 0 || ! isset($stockMap[$requestItem->id])) continue;
+
+                $stock = $stockMap[$requestItem->id];
+                $before = $stock->quantity;
+                $stock->reduceStock($approvedQty);
+
+                StockMovement::create([
+                    'product_id'      => $requestItem->product_id,
+                    'warehouse_id'    => $httpRequest->warehouse_id,
+                    'type'            => 'out',
+                    'quantity'        => $approvedQty,
+                    'quantity_before' => $before,
+                    'quantity_after'  => $stock->quantity,
+                    'request_id'      => $request->id,
+                    'request_item_id' => $requestItem->id,
+                    'created_by'      => auth()->id(),
+                    'note'            => "Pengeluaran untuk permintaan #{$request->request_number}",
+                ]);
+
+                $totalApproved += $approvedQty;
+            }
+
+            $request->update([
+                'status'      => 'approved',
+                'approved_by' => auth()->id(), // Super Admin
+                'approved_at' => now(),
+            ]);
+
+            ActivityLog::record(
+                'approve_final',
+                'Request',
+                $request->id,
+                "Permintaan barang #{$request->request_number} disetujui final oleh Super Admin — {$totalApproved} unit dikeluarkan dari gudang #{$httpRequest->warehouse_id}",
+                ['status' => 'pending_superadmin'],
+                ['status' => 'approved', 'warehouse_id' => $httpRequest->warehouse_id, 'total_approved_qty' => $totalApproved]
+            );
+
+            NotificationController::send(
+                $request->user_id,
+                'request_approved',
+                'Request Disetujui',
+                "Request #{$request->request_number} Anda telah disetujui final dan stok telah dikeluarkan.",
+                ['request_id' => $request->id]
+            );
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Permintaan disetujui final dan stok telah dikeluarkan.',
             'data'    => $request->fresh()->load('items.product:id,name,sku'),
         ]);
     }

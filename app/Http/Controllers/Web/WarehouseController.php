@@ -59,7 +59,7 @@ class WarehouseController extends Controller
             'photo'     => $photoPath,
         ]);
 
-        return redirect()->route('superadmin.warehouse.index')
+        return redirect()->route('warehouses.index')
             ->with('success', 'Gudang berhasil dibuat.');
     }
 
@@ -98,7 +98,7 @@ class WarehouseController extends Controller
 
         $warehouse->update($data);
 
-        return redirect()->route('superadmin.warehouse.index')
+        return redirect()->route('warehouses.index')
             ->with('success', 'Gudang berhasil diupdate.');
     }
 
@@ -115,7 +115,7 @@ class WarehouseController extends Controller
 
         $warehouse->delete();
 
-        return redirect()->route('superadmin.warehouse.index')
+        return redirect()->route('warehouses.index')
             ->with('success', 'Gudang berhasil dihapus.');
     }
 

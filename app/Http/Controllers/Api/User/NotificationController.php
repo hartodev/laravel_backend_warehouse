@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Models\User;
 
 class NotificationController extends Controller
 {
@@ -61,6 +62,18 @@ class NotificationController extends Controller
 
     // ── Static helper untuk kirim notifikasi dari controller lain ──
     // Contoh: NotificationController::send($userId, 'request_approved', 'Permintaan Disetujui', 'Permintaan #1 disetujui.')
+    // public static function send(int $userId, string $type, string $title, string $body, array $data = []): void
+    // {
+    //     Notification::create([
+    //         'user_id' => $userId,
+    //         'type'    => $type,
+    //         'title'   => $title,
+    //         'body'    => $body,
+    //         'data'    => $data,
+    //         'is_read' => false,
+    //     ]);
+    // }
+
     public static function send(int $userId, string $type, string $title, string $body, array $data = []): void
     {
         Notification::create([
@@ -71,6 +84,17 @@ class NotificationController extends Controller
             'data'    => $data,
             'is_read' => false,
         ]);
+    }
+
+    // ── Static helper untuk kirim notifikasi ke semua user dengan role tertentu ──
+    // Contoh: NotificationController::sendToRole('approver_ipal', 'request_created', 'Permintaan Baru', 'Ada permintaan baru menunggu approval.')
+    public static function sendToRole(string $role, string $type, string $title, string $body, array $data = []): void
+    {
+        $userIds = User::where('role', $role)->pluck('id');
+
+        foreach ($userIds as $userId) {
+            self::send($userId, $type, $title, $body, $data);
+        }
     }
 }
 

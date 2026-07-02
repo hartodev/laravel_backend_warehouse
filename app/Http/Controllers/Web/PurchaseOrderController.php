@@ -38,6 +38,7 @@ class PurchaseOrderController extends Controller
         $suppliers  = Supplier::where('is_active', true)->get(['id', 'name']);
         $warehouses = Warehouse::where('is_active', true)->get(['id', 'name']);
         $products   = Product::where('is_active', true)->get(['id', 'name', 'sku', 'unit', 'purchase_price']);
+
         return view('superadmin.purchase_order.create', compact('suppliers', 'warehouses', 'products'));
     }
 
@@ -62,7 +63,7 @@ class PurchaseOrderController extends Controller
             $count  = PurchaseOrder::whereYear('created_at', now()->year)->count() + 1;
             $number = 'PO/' . now()->format('Y') . '/' . str_pad($count, 4, '0', STR_PAD_LEFT);
 
-            $subtotal       = collect($request->items)->sum(fn($i) => $i['qty'] * $i['price']);
+            $subtotal       = collect($request->items)->sum(fn($i) => $i['quantity'] * $i['price']);
             $taxAmount      = $subtotal * (($request->tax_percent ?? 0) / 100);
             $discountAmount = $request->discount_amount ?? 0;
             $totalAmount    = $subtotal + $taxAmount - $discountAmount;
@@ -88,20 +89,27 @@ class PurchaseOrderController extends Controller
                 PurchaseOrderItem::create([
                     'purchase_order_id' => $po->id,
                     'product_id'        => $item['product_id'],
-                    'quantity'          => $item['quantity'],
-                    'price'             => $item['price'],
-                    'total'             => $item['quantity'] * $item['price'],
+                    'quantity_ordered'  => $item['quantity'],   // kolom DB
+                    'unit_price'        => $item['price'],      // kolom DB, form kirim 'price'
+                    'subtotal'          => $item['quantity'] * $item['price'],
                 ]);
             }
         });
 
-        return redirect()->route('superadmin.purchase-orders.show', $po)
+        return redirect()->route('purchase-orders.show', $po)
             ->with('success', 'Purchase Order berhasil dibuat.');
     }
 
     public function show(PurchaseOrder $purchaseOrder)
     {
-        $purchaseOrder->load(['supplier', 'warehouse:id,name', 'createdBy:id,name', 'approvedBy:id,name', 'items.product:id,name,sku,unit']);
+        $purchaseOrder->load([
+            'supplier',
+            'warehouse:id,name',
+            'createdBy:id,name',
+            'approvedBy:id,name',
+            'items.product:id,name,sku,unit',
+        ]);
+
         return view('superadmin.purchase_order.show', compact('purchaseOrder'));
     }
 
@@ -114,6 +122,7 @@ class PurchaseOrderController extends Controller
         $suppliers  = Supplier::where('is_active', true)->get(['id', 'name']);
         $warehouses = Warehouse::where('is_active', true)->get(['id', 'name']);
         $products   = Product::where('is_active', true)->get(['id', 'name', 'sku', 'unit', 'purchase_price']);
+
         return view('superadmin.purchase_order.edit', compact('purchaseOrder', 'suppliers', 'warehouses', 'products'));
     }
 
@@ -132,7 +141,7 @@ class PurchaseOrderController extends Controller
 
         $purchaseOrder->update($request->only('expected_date', 'payment_method', 'discount_amount', 'notes'));
 
-        return redirect()->route('superadmin.purchase-orders.show', $purchaseOrder)
+        return redirect()->route('purchase-orders.show', $purchaseOrder)
             ->with('success', 'PO berhasil diupdate.');
     }
 
@@ -145,7 +154,7 @@ class PurchaseOrderController extends Controller
         $purchaseOrder->items()->delete();
         $purchaseOrder->delete();
 
-        return redirect()->route('superadmin.purchase-orders.index')
+        return redirect()->route('purchase-orders.index')
             ->with('success', 'Purchase Order berhasil dihapus.');
     }
 
@@ -155,7 +164,11 @@ class PurchaseOrderController extends Controller
             return back()->with('error', 'Hanya PO pending yang dapat disetujui.');
         }
 
-        $purchaseOrder->update(['status' => 'approved', 'approved_by' => auth()->id(), 'approved_at' => now()]);
+        $purchaseOrder->update([
+            'status'      => 'approved',
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+        ]);
 
         return back()->with('success', 'PO disetujui.');
     }
@@ -168,7 +181,10 @@ class PurchaseOrderController extends Controller
 
         $request->validate(['reject_reason' => 'required|string']);
 
-        $purchaseOrder->update(['status' => 'rejected', 'reject_reason' => $request->reject_reason]);
+        $purchaseOrder->update([
+            'status'        => 'rejected',
+            'reject_reason' => $request->reject_reason,
+        ]);
 
         return back()->with('success', 'PO ditolak.');
     }
@@ -187,22 +203,26 @@ class PurchaseOrderController extends Controller
                 );
 
                 $before = $stock->quantity;
-                $stock->addStock($item->quantity);
+                $stock->addStock($item->quantity_ordered); // ← pakai quantity_ordered sesuai kolom DB
 
                 StockMovement::create([
-                    'product_id'        => $item->product_id,
-                    'warehouse_id'      => $purchaseOrder->warehouse_id,
-                    'type'              => 'in',
-                    'quantity'          => $item->quantity,
-                    'quantity_before'   => $before,
-                    'quantity_after'    => $stock->quantity,
-                    'purchase_order_id' => $purchaseOrder->id,
-                    'created_by'        => auth()->id(),
-                    'note'              => "Penerimaan barang dari PO #{$purchaseOrder->po_number}",
+                    'product_id'      => $item->product_id,
+                    'warehouse_id'    => $purchaseOrder->warehouse_id,
+                    'type'            => 'in',
+                    'quantity'        => $item->quantity_ordered, // ← quantity_ordered
+                    'quantity_before' => $before,
+                    'quantity_after'  => $stock->quantity,
+                    'reference_type'  => 'purchase_order',  // ← polimorfik, bukan purchase_order_id
+                    'reference_id'    => $purchaseOrder->id,
+                    'created_by'      => auth()->id(),
+                    'note'            => "Penerimaan barang dari PO #{$purchaseOrder->po_number}",
                 ]);
             }
 
-            $purchaseOrder->update(['status' => 'received', 'received_at' => now()]);
+            $purchaseOrder->update([
+                'status'      => 'received',
+                'received_at' => now(),
+            ]);
         });
 
         return back()->with('success', 'Barang berhasil diterima dan stok diperbarui.');

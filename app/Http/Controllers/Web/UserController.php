@@ -59,7 +59,7 @@ class UserController extends Controller
             'is_active'    => $request->boolean('is_active', true),
         ]);
 
-        return redirect()->route('superadmin.users.index')
+        return redirect()->route('users.index')
             ->with('success', 'User berhasil ditambahkan.');
     }
 
@@ -99,7 +99,7 @@ class UserController extends Controller
             'is_active'    => $request->boolean('is_active', $user->is_active),
         ]);
 
-        return redirect()->route('superadmin.users.index')
+        return redirect()->route('users.index')
             ->with('success', 'User berhasil diupdate.');
     }
 
@@ -111,7 +111,7 @@ class UserController extends Controller
 
         $user->delete();
 
-        return redirect()->route('superadmin.users.index')
+        return redirect()->route('users.index')
             ->with('success', 'User berhasil dihapus.');
     }
 

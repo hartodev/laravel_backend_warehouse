@@ -36,10 +36,10 @@ class StockMovementController extends Controller
 
     public function show(StockMovement $movement)
     {
+        // dd($movement->toArray()); // ← tambah ini
         $movement->load(['product:id,name,sku,unit', 'warehouse:id,name,code', 'createdBy:id,name']);
         return view('superadmin.stock_movement.show', compact('movement'));
     }
-
     public function create()
     {
         $warehouses = Warehouse::where('is_active', true)->get(['id', 'name']);
@@ -83,7 +83,7 @@ class StockMovementController extends Controller
             ]);
         });
 
-        return redirect()->route('superadmin.stock-movement.index')
+        return redirect()->route('stock-movement.index')
             ->with('success', 'Pergerakan stok berhasil dicatat.');
     }
 }

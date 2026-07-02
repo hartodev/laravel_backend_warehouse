@@ -7,6 +7,16 @@ use App\Models\BudgetRevision;
 use App\Models\BudgetRequest;
 use Illuminate\Http\Request;
 
+/**
+ * Revisi Anggaran — Admin/Super Admin
+ *
+ * Sebagian besar revisi diterapkan OTOMATIS oleh User (lihat
+ * App\Http\Controllers\Api\User\BudgetRevisionController) lewat
+ * BudgetRevision::evaluateAndApply(). Controller ini menangani
+ * revisi yang sempat 'pending' (dana kurang saat diajukan) dan
+ * perlu direview manual oleh Admin/Super Admin — misalnya setelah
+ * ada penambahan saldo kas.
+ */
 class BudgetRevisionController extends Controller
 {
     public function index(Request $request)
@@ -22,13 +32,17 @@ class BudgetRevisionController extends Controller
 
     public function create()
     {
-        $budgetRequests = BudgetRequest::where('status', 'approved')->get(['id', 'nomor_form', 'nama_item']);
+        $budgetRequests = BudgetRequest::with('items:id,budget_request_id,nama_item')
+            ->whereIn('status', ['approved', 'approved_revisi'])
+            ->get(['id', 'nomor_form', 'total_estimasi']);
+
         return view('superadmin.budget_revision.create', compact('budgetRequests'));
     }
 
+    // Input manual oleh Admin/SA (di luar pengajuan otomatis dari User)
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'budget_request_id' => 'nullable|exists:budget_requests,id',
             'expense_report_id' => 'nullable|exists:expense_reports,id',
             'akun_terdampak'    => 'required|string|max:200',
@@ -40,13 +54,13 @@ class BudgetRevisionController extends Controller
             'alasan_revisi'     => 'required|string',
         ]);
 
-        $revision = new BudgetRevision($request->only('budget_request_id', 'expense_report_id', 'akun_terdampak', 'kode_akun', 'anggaran_awal', 'realisasi', 'jenis_perubahan', 'nominal_perubahan', 'alasan_revisi'));
+        $revision = new BudgetRevision($validated);
         $revision->created_by    = auth()->id();
         $revision->status        = 'pending';
         $revision->anggaran_baru = $revision->hitungAnggaranBaru();
         $revision->save();
 
-        return redirect()->route('superadmin.budget-revisions.index')
+        return redirect()->route('budget-revisions.index')
             ->with('success', 'Revisi anggaran berhasil diajukan.');
     }
 
@@ -61,7 +75,11 @@ class BudgetRevisionController extends Controller
         if ($budgetRevision->status !== 'pending') {
             return back()->with('error', 'Revisi yang sudah diproses tidak dapat diubah.');
         }
-        $budgetRequests = BudgetRequest::where('status', 'approved')->get(['id', 'nomor_form', 'nama_item']);
+
+        $budgetRequests = BudgetRequest::with('items:id,budget_request_id,nama_item')
+            ->whereIn('status', ['approved', 'approved_revisi'])
+            ->get(['id', 'nomor_form', 'total_estimasi']);
+
         return view('superadmin.budget_revision.edit', compact('budgetRevision', 'budgetRequests'));
     }
 
@@ -71,20 +89,37 @@ class BudgetRevisionController extends Controller
             return back()->with('error', 'Revisi yang sudah diproses tidak dapat diubah.');
         }
 
-        $budgetRevision->fill($request->only('akun_terdampak', 'kode_akun', 'anggaran_awal', 'realisasi', 'jenis_perubahan', 'nominal_perubahan', 'alasan_revisi'));
+        $budgetRevision->fill($request->only(
+            'akun_terdampak',
+            'kode_akun',
+            'anggaran_awal',
+            'realisasi',
+            'jenis_perubahan',
+            'nominal_perubahan',
+            'alasan_revisi'
+        ));
         $budgetRevision->anggaran_baru = $budgetRevision->hitungAnggaranBaru();
         $budgetRevision->save();
 
-        return redirect()->route('superadmin.budget-revisions.show', $budgetRevision)
+        return redirect()->route('budget-revisions.show', $budgetRevision)
             ->with('success', 'Revisi anggaran berhasil diupdate.');
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // POST /superadmin/budget-revisions/{budgetRevision}/approve
+    // Hanya untuk revisi yang sempat 'pending' (dana kurang saat
+    // diajukan otomatis, atau revisi manual oleh Admin/SA).
+    // Approve di sini BENERAN menerapkan efeknya ke BudgetRequest
+    // dan mencatat Buku Kas jika jenis_perubahan = tambahan.
+    // ─────────────────────────────────────────────────────────────
     public function approve(Request $request, BudgetRevision $budgetRevision)
     {
         if ($budgetRevision->status !== 'pending') {
             return back()->with('error', 'Hanya revisi pending yang dapat disetujui.');
         }
 
+        DB::transaction(function () use ($request, $budgetRevision) {
+            $budgetRevision->applyToBudget();
         $budgetRevision->update([
             'status'           => 'approved',
             'approved_by'      => auth()->id(),
@@ -92,7 +127,15 @@ class BudgetRevisionController extends Controller
             'catatan_approver' => $request->catatan,
         ]);
 
-        return back()->with('success', 'Revisi anggaran disetujui.');
+            // Kalau revisi ini lahir otomatis dari Pertanggungjawaban yang
+            // sempat tertahan (anggaran kurang), finalisasi realisasinya sekarang.
+            $er = $budgetRevision->expenseReport;
+            if ($er && $er->status === 'pending_revisi') {
+                ExpenseReportService::finalizeRealisasi($er->fresh());
+            }
+        });
+
+        return back()->with('success', 'Revisi anggaran disetujui dan diterapkan ke RAB.');
     }
 
     public function reject(Request $request, BudgetRevision $budgetRevision)
@@ -113,4 +156,3 @@ class BudgetRevisionController extends Controller
         return back()->with('success', 'Revisi anggaran ditolak.');
     }
 }
-

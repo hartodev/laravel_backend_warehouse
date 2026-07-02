@@ -123,6 +123,21 @@ class Request extends Model
             );
         });
     }
+
+    public function scopePendingSuperadmin($query)
+{
+    return $query->where('status', 'pending_superadmin');
+}
+
+public function isPendingSuperadmin(): bool
+{
+    return $this->status === 'pending_superadmin';
+}
+
+public function adminVerifiedBy()
+{
+    return $this->belongsTo(User::class, 'admin_verified_by');
+}
 }
 
 

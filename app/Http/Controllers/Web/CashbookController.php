@@ -60,7 +60,7 @@ class CashBookController extends Controller
             'tanggal'     => $request->tanggal,
         ]);
 
-        return redirect()->route('superadmin.cash-books.index')
+        return redirect()->route('cash-books.index')
             ->with('success', 'Entri kas berhasil ditambahkan.');
     }
 
@@ -81,7 +81,7 @@ class CashBookController extends Controller
 
         $cashBook->update($request->only('pihak', 'jumlah_uang', 'terbilang', 'keterangan', 'tanggal'));
 
-        return redirect()->route('superadmin.cash-books.show', $cashBook)
+        return redirect()->route('cash-books.show', $cashBook)
             ->with('success', 'Entri kas berhasil diupdate.');
     }
 }

@@ -83,7 +83,14 @@ class StockTransferController extends Controller
 
     public function show(StockTransfer $stockTransfer)
     {
-        $stockTransfer->load(['fromWarehouse:id,name,code', 'toWarehouse:id,name,code', 'requestedBy:id,name', 'approvedBy:id,name', 'receivedBy:id,name', 'items.product:id,name,sku,unit']);
+        $stockTransfer->load([
+            'fromWarehouse:id,name,code',
+            'toWarehouse:id,name,code',
+            'requestedBy:id,name',
+            'approvedBy:id,name',
+            'receivedBy:id,name',
+            'items.product:id,name,sku,unit',
+        ]);
         return view('superadmin.stock_transfer.show', compact('stockTransfer'));
     }
 
@@ -103,9 +110,9 @@ class StockTransferController extends Controller
         }
 
         $request->validate([
-            'transfer_date'   => 'required|date',
-            'expected_arrival'=> 'nullable|date|after_or_equal:transfer_date',
-            'notes'           => 'nullable|string',
+            'transfer_date'    => 'required|date',
+            'expected_arrival' => 'nullable|date|after_or_equal:transfer_date',
+            'notes'            => 'nullable|string',
         ]);
 
         $stockTransfer->update($request->only('transfer_date', 'expected_arrival', 'notes'));
@@ -120,7 +127,11 @@ class StockTransferController extends Controller
             return back()->with('error', 'Hanya transfer pending yang dapat disetujui.');
         }
 
-        $stockTransfer->update(['status' => 'approved', 'approved_by' => auth()->id(), 'approved_at' => now()]);
+        $stockTransfer->update([
+            'status'      => 'approved',
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+        ]);
 
         return back()->with('success', 'Transfer disetujui.');
     }
@@ -133,7 +144,10 @@ class StockTransferController extends Controller
 
         $request->validate(['reject_reason' => 'required|string']);
 
-        $stockTransfer->update(['status' => 'rejected', 'reject_reason' => $request->reject_reason]);
+        $stockTransfer->update([
+            'status'        => 'rejected',
+            'reject_reason' => $request->reject_reason,
+        ]);
 
         return back()->with('success', 'Transfer ditolak.');
     }
@@ -155,20 +169,25 @@ class StockTransferController extends Controller
                     $item->update(['quantity_sent' => $item->quantity_requested]);
 
                     StockMovement::create([
-                        'product_id'        => $item->product_id,
-                        'warehouse_id'      => $stockTransfer->from_warehouse_id,
-                        'type'              => 'out',
-                        'quantity'          => $item->quantity_requested,
-                        'quantity_before'   => $before,
-                        'quantity_after'    => $stock->quantity,
-                        'stock_transfer_id' => $stockTransfer->id,
-                        'created_by'        => auth()->id(),
-                        'note'              => "Transfer ke gudang #{$stockTransfer->transfer_number}",
+                        'product_id'      => $item->product_id,
+                        'warehouse_id'    => $stockTransfer->from_warehouse_id,
+                        'type'            => 'transfer_out', // ← fix: pakai enum yang valid
+                        'quantity'        => $item->quantity_requested,
+                        'quantity_before' => $before,
+                        'quantity_after'  => $stock->quantity,
+                        'reference_type'  => 'stock_transfer', // ← fix: ganti stock_transfer_id
+                        'reference_id'    => $stockTransfer->id,
+                        'created_by'      => auth()->id(),
+                        'note'            => "Transfer keluar ke gudang #{$stockTransfer->transfer_number}",
                     ]);
                 }
             }
 
-            $stockTransfer->update(['status' => 'in_transit', 'sent_at' => now(), 'sent_by' => auth()->id()]);
+            $stockTransfer->update([
+                'status'  => 'in_transit',
+                'sent_at' => now(),
+                'sent_by' => auth()->id(),
+            ]);
         });
 
         return back()->with('success', 'Stok berhasil dikirim.');
@@ -191,22 +210,26 @@ class StockTransferController extends Controller
                 $item->update(['quantity_received' => $item->quantity_sent]);
 
                 StockMovement::create([
-                    'product_id'        => $item->product_id,
-                    'warehouse_id'      => $stockTransfer->to_warehouse_id,
-                    'type'              => 'in',
-                    'quantity'          => $item->quantity_sent,
-                    'quantity_before'   => $before,
-                    'quantity_after'    => $stock->quantity,
-                    'stock_transfer_id' => $stockTransfer->id,
-                    'created_by'        => auth()->id(),
-                    'note'              => "Terima dari transfer #{$stockTransfer->transfer_number}",
+                    'product_id'      => $item->product_id,
+                    'warehouse_id'    => $stockTransfer->to_warehouse_id,
+                    'type'            => 'transfer_in', // ← fix: pakai enum yang valid
+                    'quantity'        => $item->quantity_sent,
+                    'quantity_before' => $before,
+                    'quantity_after'  => $stock->quantity,
+                    'reference_type'  => 'stock_transfer', // ← fix: ganti stock_transfer_id
+                    'reference_id'    => $stockTransfer->id,
+                    'created_by'      => auth()->id(),
+                    'note'            => "Transfer masuk dari gudang #{$stockTransfer->transfer_number}",
                 ]);
             }
 
-            $stockTransfer->update(['status' => 'completed', 'received_at' => now(), 'received_by' => auth()->id()]);
+            $stockTransfer->update([
+                'status'      => 'received',  // ← fix: ganti 'completed' → 'received' sesuai enum
+                'received_at' => now(),
+                'received_by' => auth()->id(),
+            ]);
         });
 
         return back()->with('success', 'Stok berhasil diterima.');
     }
 }
-

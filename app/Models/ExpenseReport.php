@@ -9,7 +9,7 @@ class ExpenseReport extends Model
 {
     use HasFactory;
   protected $guarded = [];
- 
+
     protected $casts = [
         'tanggal_transaksi'   => 'date',
         'nominal_realisasi'   => 'float',
@@ -21,36 +21,42 @@ class ExpenseReport extends Model
         'attachment_files'    => 'array',
         'verified_at'         => 'datetime',
     ];
- 
+
     public function budgetRequest()
     {
         return $this->belongsTo(BudgetRequest::class);
     }
- 
+
     public function submittedBy()
     {
         return $this->belongsTo(User::class, 'submitted_by');
     }
- 
+
     public function verifiedBy()
     {
         return $this->belongsTo(User::class, 'verified_by');
     }
- 
+
     public function revision()
     {
         return $this->hasOne(BudgetRevision::class);
     }
- 
-    // ── Helpers ──────────────────────────────────────────────
-    public function calculateSelisih(): void
-    {
-        $estimasi      = (float) ($this->budgetRequest?->estimasi_biaya ?? 0);
-        $this->selisih = $estimasi - $this->nominal_realisasi;
-    }
- 
+
+    // // ── Helpers ──────────────────────────────────────────────
+    // public function calculateSelisih(): void
+    // {
+    //     $estimasi      = (float) ($this->budgetRequest?->estimasi_biaya ?? 0);
+    //     $this->selisih = $estimasi - $this->nominal_realisasi;
+    // }
+
     public function isOverBudget(): bool
     {
         return $this->selisih < 0;
+    }
+
+    public function calculateSelisih(): void
+    {
+        $estimasi      = (float) ($this->budgetRequest?->total_estimasi ?? 0);
+        $this->selisih = $estimasi - $this->nominal_realisasi;
     }
 }
