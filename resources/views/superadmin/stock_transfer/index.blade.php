@@ -1,6 +1,3 @@
-{{-- ============================================================
-     stock_transfers/index.blade.php
-============================================================ --}}
 @extends('layouts.app')
 @section('title', 'Transfer Stok')
 @section('breadcrumb')<span class="text-gray-700 font-medium">Transfer Stok</span>@endsection
@@ -23,7 +20,7 @@
             <label class="form-label">Status</label>
             <select name="status" class="form-select">
                 <option value="">Semua</option>
-                @foreach(['pending','approved','rejected','in_transit','completed'] as $s)
+                @foreach(['pending','approved','in_transit','received','rejected','cancelled','discrepancy'] as $s)
                 <option value="{{ $s }}" {{ request('status')===$s?'selected':'' }}>{{ ucfirst(str_replace('_',' ',$s)) }}</option>
                 @endforeach
             </select>
@@ -63,21 +60,18 @@
                 <td>{{ $t->toWarehouse->name ?? '—' }}</td>
                 <td>{{ \Carbon\Carbon::parse($t->transfer_date)->isoFormat('D MMM Y') }}</td>
                 <td>{{ $t->requestedBy->name ?? '—' }}</td>
-                <td><x-status-badge :status="$t->status" /></td>
+                <td>
+                    <x-status-badge :status="$t->status" />
+                    @if($t->status === 'discrepancy')
+                        <span class="text-xs text-yellow-600 font-medium block mt-0.5">Perlu resolusi</span>
+                    @endif
+                </td>
                 <td class="text-right">
                     <div class="flex items-center justify-end gap-1">
                         <a href="{{ route('stock-transfers.show', $t) }}" class="btn btn-secondary btn-sm">Detail</a>
-                        @if($t->status === 'pending')
+                        @if($t->status === 'pending_approval')
                             <form method="POST" action="{{ route('stock-transfers.approve', $t) }}" class="inline">
                                 @csrf <button class="btn btn-success btn-sm">Setujui</button>
-                            </form>
-                        @elseif($t->status === 'approved')
-                            <form method="POST" action="{{ route('stock-transfers.send', $t) }}" class="inline">
-                                @csrf <button class="btn btn-primary btn-sm">Kirim</button>
-                            </form>
-                        @elseif($t->status === 'in_transit')
-                            <form method="POST" action="{{ route('stock-transfers.receive', $t) }}" class="inline">
-                                @csrf <button class="btn btn-success btn-sm">Terima</button>
                             </form>
                         @endif
                     </div>

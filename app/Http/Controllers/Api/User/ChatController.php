@@ -209,16 +209,31 @@ use App\Http\Controllers\Controller;
 class ChatController extends Controller
 {
     // GET /api/users — daftar semua user untuk dipilih
+    // GET /api/chats/users — daftar user untuk dipilih chat, difilter per warehouse
     public function users(Request $request)
     {
-        $users = User::where('id', '!=', auth()->id())
-            ->when(
-                $request->search,
-                fn($q, $s) =>
-                $q->where('name', 'like', "%$s%")
-                    ->orWhere('email', 'like', "%$s%")
-            )
-            ->select('id', 'name', 'email', 'role')
+        $me = auth()->user();
+
+        $query = User::where('id', '!=', $me->id);
+
+        // Superadmin bebas lintas warehouse.
+        // Admin & user biasa hanya lihat orang di warehouse yang sama.
+        if (!in_array($me->role, ['superadmin', 'super_admin'])) {
+            $query->where('warehouse_id', $me->warehouse_id);
+        }
+
+        // ⚠️ FIX: search harus dibungkus closure, kalau tidak orWhere('email', ...)
+        // akan lepas dari filter id/warehouse di atas (bug keamanan sebelumnya).
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                    ->orWhere('email', 'like', "%$search%");
+            });
+        }
+
+        $users = $query
+            ->select('id', 'name', 'email', 'role', 'warehouse_id')
             ->orderBy('role')
             ->orderBy('name')
             ->get();

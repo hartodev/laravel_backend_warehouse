@@ -176,3 +176,7 @@
         <div>{{ $brs->links() }}</div>
     </div>
 @endsection
+
+
+
+

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
-use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -22,17 +22,17 @@ class SupplierController extends Controller
             ->when(isset($request->is_active), fn($q) => $q->where('is_active', $request->boolean('is_active')))
             ->latest()
             ->paginate($request->per_page ?? 15);
- 
+
         return response()->json(['success' => true, 'data' => $suppliers]);
     }
- 
+
     public function show(Supplier $supplier): JsonResponse
     {
         $supplier->loadCount('purchaseOrders');
- 
+
         return response()->json(['success' => true, 'data' => $supplier]);
     }
- 
+
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -51,11 +51,11 @@ class SupplierController extends Controller
             'notes'             => 'nullable|string',
             'is_active'         => 'nullable|boolean',
         ]);
- 
+
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
         }
- 
+
         $supplier = Supplier::create(array_merge(
             $request->only('name', 'contact_person', 'phone', 'email', 'address', 'city', 'province', 'npwp', 'bank_name', 'bank_account', 'bank_account_name', 'notes'),
             [
@@ -63,10 +63,10 @@ class SupplierController extends Controller
                 'is_active' => $request->boolean('is_active', true),
             ]
         ));
- 
+
         return response()->json(['success' => true, 'message' => 'Supplier berhasil dibuat.', 'data' => $supplier], 201);
     }
- 
+
     public function update(Request $request, Supplier $supplier): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -85,29 +85,29 @@ class SupplierController extends Controller
             'notes'             => 'nullable|string',
             'is_active'         => 'nullable|boolean',
         ]);
- 
+
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
         }
- 
+
         $data = $request->only('name', 'contact_person', 'phone', 'email', 'address', 'city', 'province', 'npwp', 'bank_name', 'bank_account', 'bank_account_name', 'notes');
- 
+
         if ($request->has('code')) $data['code'] = strtoupper($request->code);
         if ($request->has('is_active')) $data['is_active'] = $request->boolean('is_active');
- 
+
         $supplier->update($data);
- 
+
         return response()->json(['success' => true, 'message' => 'Supplier berhasil diupdate.', 'data' => $supplier->fresh()]);
     }
- 
+
     public function destroy(Supplier $supplier): JsonResponse
     {
         if ($supplier->purchaseOrders()->exists()) {
             return response()->json(['success' => false, 'message' => 'Supplier tidak dapat dihapus karena masih memiliki purchase order.'], 422);
         }
- 
+
         $supplier->delete();
- 
+
         return response()->json(['success' => true, 'message' => 'Supplier berhasil dihapus.']);
     }
 }

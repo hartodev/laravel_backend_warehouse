@@ -60,6 +60,7 @@ class MasterDataSeeder extends Seeder
                 'address' => 'Jl. Ringroad Utara',
                 'city' => 'Yogyakarta',
                 'province' => 'DI Yogyakarta',
+                'location' => '-7.7828,110.3705', // <-- tambahkan ini
                 'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -71,6 +72,7 @@ class MasterDataSeeder extends Seeder
                 'address' => 'Jl. Kaliurang',
                 'city' => 'Sleman',
                 'province' => 'DI Yogyakarta',
+                'location' => '-7.6667,110.4167', // <-- tambahkan ini
                 'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),

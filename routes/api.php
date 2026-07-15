@@ -28,7 +28,7 @@ use App\Http\Controllers\Api\User\RequestController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\User\UserBudgetRequestController;
 use App\Http\Controllers\Api\Admin\AdminBudgetRequestController;
-
+use App\Http\Controllers\Api\Admin\UserCreationRequestController;
 
 // ══════════════════════════════════════════════════════════════
 //  PUBLIC — Tidak butuh login
@@ -200,14 +200,16 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('{po}/receive', 'receive');
         });
 
-        // ── Stock Transfer ───────────────────────────────────
+        // ── Stock Transfer (Admin Gudang A/B + Super Admin) ──
         Route::prefix('stock-transfers')->controller(StockTransferController::class)->group(function () {
-            Route::get('/',                   'index');
-            Route::post('/',                  'store');
-            Route::get('{transfer}',          'show');
-            Route::put('{transfer}',          'update');
-            Route::post('{transfer}/send',    'send');
-            Route::post('{transfer}/receive', 'receive');
+            Route::get('/',                     'index');
+            Route::post('/',                    'store');
+            Route::get('{transfer}',            'show');
+            Route::put('{transfer}',            'update');
+            Route::post('{transfer}/confirm',   'confirm');
+            Route::post('{transfer}/cancel',    'cancel');
+            Route::post('{transfer}/send',      'send');
+            Route::post('{transfer}/checklist', 'checklist');
         });
 
         // ── Stock Opname ─────────────────────────────────────
@@ -328,9 +330,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('stock-opnames/{opname}/reject',  [StockOpnameController::class, 'reject']);
 
         // ── Approve Stock Transfer ────────────────────────────
-        Route::post('stock-transfers/{transfer}/approve', [StockTransferController::class, 'approve']);
-        Route::post('stock-transfers/{transfer}/reject',  [StockTransferController::class, 'reject']);
+        // Route::post('stock-transfers/{transfer}/approve', [StockTransferController::class, 'approve']);
+        // Route::post('stock-transfers/{transfer}/reject',  [StockTransferController::class, 'reject']);
 
+
+        // ── Stock Transfer (Super Admin only) ────────────────
+        Route::prefix('stock-transfers')->controller(StockTransferController::class)->group(function () {
+            Route::post('{transfer}/approve',             'approve');
+            Route::post('{transfer}/reject',              'reject');
+            Route::post('{transfer}/resolve-discrepancy', 'resolveDiscrepancy');
+        });
         // ── Approve Purchase Order ───────────────────────────
         Route::post('purchase-orders/{po}/approve', [PurchaseOrderController::class, 'approve']);
         Route::post('purchase-orders/{po}/reject',  [PurchaseOrderController::class, 'reject']);
@@ -350,3 +359,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('admin/requests/{request}/approve-final', [RequestController::class, 'approveFinal']);
     });
 });
+
+Route::middleware(['auth:sanctum', 'role:admin,super_admin'])->prefix('admin')->group(function () {
+    Route::post('user-requests', [UserCreationRequestController::class, 'store']);
+    Route::get('user-requests/mine', [UserCreationRequestController::class, 'myRequests']);
+});
+
+Route::middleware(['auth:sanctum', 'role:super_admin'])->prefix('superadmin')->group(function () {
+    Route::get('user-requests', [UserCreationRequestController::class, 'index']);
+    Route::patch('user-requests/{userRequest}', [UserCreationRequestController::class, 'update']);
+    Route::post('user-requests/{userRequest}/approve', [UserCreationRequestController::class, 'approve']);
+    Route::post('user-requests/{userRequest}/reject', [UserCreationRequestController::class, 'reject']);
+});
+
+
+

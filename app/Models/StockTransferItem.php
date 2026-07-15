@@ -18,6 +18,7 @@ class StockTransferItem extends Model
             'quantity_requested' => 'integer',
             'quantity_sent'      => 'integer',
             'quantity_received'  => 'integer',
+            'is_matched'         => 'boolean',
         ];
     }
 

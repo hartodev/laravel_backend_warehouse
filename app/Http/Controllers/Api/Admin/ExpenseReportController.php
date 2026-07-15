@@ -8,6 +8,9 @@ use App\Services\ImageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Services\ExpenseReportService;
+use App\Models\BudgetRequest;
+use Illuminate\Validation\ValidationException;
 
 class ExpenseReportController extends Controller
 {
@@ -85,9 +88,6 @@ class ExpenseReportController extends Controller
     // }
 
 
-    use App\Services\ExpenseReportService;
-    use App\Models\BudgetRequest;
-    use Illuminate\Validation\ValidationException;
 
     public function store(Request $request): JsonResponse
     {

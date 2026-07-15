@@ -201,4 +201,12 @@ public function approvedRequests()
     {
         return $this->belongsTo(RequestItem::class);
     }
+
+    public function userCreationRequests()
+    {
+        return $this->hasMany(UserCreationRequest::class, 'requested_by');
+    }
 }
+
+
+

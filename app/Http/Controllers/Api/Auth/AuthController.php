@@ -137,6 +137,7 @@ class AuthController extends Controller
             'email'     => $user->email,
             'role'      => $user->role,
             'is_active' => $user->is_active,
+            'warehouse_id' => $user->warehouse_id,
             'profile'   => $user->profile ? [
                 'phone'   => $user->profile->phone,
                 'address' => $user->profile->address,

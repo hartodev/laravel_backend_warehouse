@@ -16,16 +16,55 @@
         <p class="text-sm text-gray-500 mt-0.5">Diajukan oleh: <strong>{{ $stockTransfer->requestedBy->name ?? '—' }}</strong> · {{ $stockTransfer->created_at->isoFormat('D MMM Y, HH:mm') }}</p>
     </div>
     <div class="flex flex-wrap gap-2">
-        @if($stockTransfer->status === 'pending')
-            <form method="POST" action="{{ route('stock-transfers.approve', $stockTransfer) }}" class="inline">@csrf<button class="btn-success btn">Setujui</button></form>
-            <button onclick="document.getElementById('reject-modal').classList.remove('hidden')" class="btn-danger btn">Tolak</button>
-        @elseif($stockTransfer->status === 'approved')
-            <form method="POST" action="{{ route('stock-transfers.send', $stockTransfer) }}" class="inline">@csrf<button class="btn-primary btn">Kirim Barang</button></form>
-        @elseif($stockTransfer->status === 'in_transit')
-            <form method="POST" action="{{ route('stock-transfers.receive', $stockTransfer) }}" class="inline">@csrf<button class="btn-success btn">Terima Barang</button></form>
-        @endif
+    @if($stockTransfer->status === 'pending_approval')
+    <form method="POST" action="{{ route('stock-transfers.approve', $stockTransfer) }}" class="inline">@csrf<button class="btn-success btn">Setujui</button></form>
+    <button onclick="document.getElementById('reject-modal').classList.remove('hidden')" class="btn-danger btn">Tolak</button>
+@elseif($stockTransfer->status === 'discrepancy')
+    <button onclick="document.getElementById('resolve-modal').classList.remove('hidden')" class="btn-primary btn">Resolusi Selisih</button>
+@endif
     </div>
 </div>
+
+{{-- Info tambahan sesuai status --}}
+@if($stockTransfer->status === 'cancelled' && $stockTransfer->cancel_reason)
+<div class="card p-4 mb-5 bg-red-50 border-red-100">
+    <p class="text-sm font-semibold text-red-700 mb-1">Dibatalkan oleh Admin Gudang Asal</p>
+    <p class="text-sm text-red-600">{{ $stockTransfer->cancel_reason }}</p>
+    <p class="text-xs text-red-400 mt-1">Oleh {{ $stockTransfer->cancelledBy->name ?? '—' }} · {{ $stockTransfer->cancelled_at?->isoFormat('D MMM Y, HH:mm') }}</p>
+</div>
+@endif
+
+@if($stockTransfer->status === 'rejected' && $stockTransfer->reject_reason)
+<div class="card p-4 mb-5 bg-red-50 border-red-100">
+    <p class="text-sm font-semibold text-red-700 mb-1">Alasan Penolakan</p>
+    <p class="text-sm text-red-600">{{ $stockTransfer->reject_reason }}</p>
+</div>
+@endif
+
+@if($stockTransfer->status === 'discrepancy' && $stockTransfer->discrepancy_notes)
+<div class="card p-4 mb-5 bg-yellow-50 border-yellow-100">
+    <p class="text-sm font-semibold text-yellow-700 mb-1">Selisih Dilaporkan Admin Gudang Tujuan</p>
+    <p class="text-sm text-yellow-700">{{ $stockTransfer->discrepancy_notes }}</p>
+    <p class="text-xs text-yellow-500 mt-1">Oleh {{ $stockTransfer->discrepancyReportedBy->name ?? '—' }} · {{ $stockTransfer->discrepancy_reported_at?->isoFormat('D MMM Y, HH:mm') }}</p>
+</div>
+@endif
+
+@if($stockTransfer->resolution_notes)
+<div class="card p-4 mb-5 bg-blue-50 border-blue-100">
+    <p class="text-sm font-semibold text-blue-700 mb-1">Resolusi Superadmin</p>
+    <p class="text-sm text-blue-600">{{ $stockTransfer->resolution_notes }}</p>
+    <p class="text-xs text-blue-400 mt-1">Oleh {{ $stockTransfer->resolvedBy->name ?? '—' }} · {{ $stockTransfer->resolved_at?->isoFormat('D MMM Y, HH:mm') }}</p>
+</div>
+@endif
+
+@if($stockTransfer->shipment_attachment)
+<div class="card p-4 mb-5">
+    <p class="text-sm font-semibold text-gray-700 mb-2">Lampiran Bukti Pengiriman</p>
+    <a href="{{ Storage::url($stockTransfer->shipment_attachment) }}" target="_blank" class="btn btn-secondary btn-sm">
+        Lihat Lampiran
+    </a>
+</div>
+@endif
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
     <div class="card p-5">
@@ -55,7 +94,7 @@
     <div class="card-header"><h3 class="font-semibold text-gray-900">Item Transfer</h3></div>
     <div class="table-wrap rounded-none border-0">
         <table class="data-table">
-            <thead><tr><th>#</th><th>Produk</th><th>SKU</th><th class="text-right">Diminta</th><th class="text-right">Dikirim</th><th class="text-right">Diterima</th></tr></thead>
+            <thead><tr><th>#</th><th>Produk</th><th>SKU</th><th class="text-right">Diminta</th><th class="text-right">Dikirim</th><th class="text-right">Diterima</th><th class="text-center">Cocok?</th></tr></thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse($stockTransfer->items as $i => $item)
                 <tr>
@@ -65,9 +104,18 @@
                     <td class="text-right">{{ number_format($item->quantity_requested) }}</td>
                     <td class="text-right {{ $item->quantity_sent < $item->quantity_requested ? 'text-yellow-600' : '' }}">{{ number_format($item->quantity_sent) }}</td>
                     <td class="text-right {{ $item->quantity_received < $item->quantity_sent ? 'text-yellow-600' : 'text-green-700' }}">{{ number_format($item->quantity_received) }}</td>
+                    <td class="text-center">
+                        @if(is_null($item->is_matched))
+                            <span class="text-gray-300">—</span>
+                        @elseif($item->is_matched)
+                            <span class="text-green-600">✓</span>
+                        @else
+                            <span class="text-red-600">✗</span>
+                        @endif
+                    </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="text-center py-8 text-gray-400">Tidak ada item</td></tr>
+                <tr><td colspan="7" class="text-center py-8 text-gray-400">Tidak ada item</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -93,4 +141,39 @@
         </form>
     </div>
 </div>
+
+{{-- Resolve Discrepancy Modal --}}
+<div id="resolve-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div class="px-6 py-5 border-b"><h3 class="font-semibold">Resolusi Selisih Barang</h3></div>
+        <form method="POST" action="{{ route('stock-transfers.resolve-discrepancy', $stockTransfer) }}">
+            @csrf
+            <div class="px-6 py-4 space-y-3">
+                <div>
+                    <label class="form-label">Keputusan</label>
+                    <div class="flex gap-4 mt-1">
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="radio" name="resolution" value="accept" required>
+                            Terima selisih (tandai selesai)
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="radio" name="resolution" value="cancel" required>
+                            Batalkan transfer
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">Catatan Resolusi <span class="text-red-500">*</span></label>
+                    <textarea name="notes" rows="3" required class="form-textarea" placeholder="Jelaskan keputusan..."></textarea>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('resolve-modal').classList.add('hidden')" class="btn-secondary btn">Batal</button>
+                <button type="submit" class="btn-primary btn">Simpan Resolusi</button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
+
+

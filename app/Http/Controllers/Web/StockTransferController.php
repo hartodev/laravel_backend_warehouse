@@ -3,14 +3,11 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Stock;
-use App\Models\StockMovement;
 use App\Models\StockTransfer;
 use App\Models\StockTransferItem;
 use App\Models\Warehouse;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class StockTransferController extends Controller
 {
@@ -31,6 +28,24 @@ class StockTransferController extends Controller
         return view('superadmin.stock_transfer.index', compact('transfers', 'warehouses'));
     }
 
+    public function show(StockTransfer $stockTransfer)
+    {
+        $stockTransfer->load([
+            'fromWarehouse:id,name,code',
+            'toWarehouse:id,name,code',
+            'requestedBy:id,name',
+            'approvedBy:id,name',
+            'cancelledBy:id,name',
+            'receivedBy:id,name',
+            'discrepancyReportedBy:id,name',
+            'resolvedBy:id,name',
+            'items.product:id,name,sku,unit',
+        ]);
+        return view('superadmin.stock_transfer.show', compact('stockTransfer'));
+    }
+
+    // Superadmin masih bisa membuat transfer manual kalau perlu (opsional, jarang dipakai
+    // karena flow normal dibuat Admin Gudang A lewat app). Tetap dipertahankan untuk fleksibilitas.
     public function create()
     {
         $warehouses = Warehouse::where('is_active', true)->get(['id', 'name']);
@@ -51,7 +66,7 @@ class StockTransferController extends Controller
             'items.*.quantity_requested' => 'required|integer|min:1',
         ]);
 
-        DB::transaction(function () use ($request, &$transfer) {
+        \DB::transaction(function () use ($request, &$transfer) {
             $count  = StockTransfer::whereYear('created_at', now()->year)->count() + 1;
             $number = 'TRF/' . now()->format('Y') . '/' . str_pad($count, 4, '0', STR_PAD_LEFT);
 
@@ -81,155 +96,68 @@ class StockTransferController extends Controller
             ->with('success', 'Transfer stok berhasil dibuat.');
     }
 
-    public function show(StockTransfer $stockTransfer)
-    {
-        $stockTransfer->load([
-            'fromWarehouse:id,name,code',
-            'toWarehouse:id,name,code',
-            'requestedBy:id,name',
-            'approvedBy:id,name',
-            'receivedBy:id,name',
-            'items.product:id,name,sku,unit',
-        ]);
-        return view('superadmin.stock_transfer.show', compact('stockTransfer'));
+    // ── APPROVE — Superadmin ──
+public function approve(StockTransfer $stockTransfer)
+{
+    if ($stockTransfer->status !== 'pending_approval') {
+        return back()->with('error', 'Hanya transfer yang menunggu approval yang dapat disetujui.');
     }
 
-    public function edit(StockTransfer $stockTransfer)
-    {
-        if ($stockTransfer->status !== 'pending') {
-            return back()->with('error', 'Transfer yang sudah diproses tidak dapat diubah.');
-        }
-        $warehouses = Warehouse::where('is_active', true)->get(['id', 'name']);
-        return view('superadmin.stock_transfer.edit', compact('stockTransfer', 'warehouses'));
+    $stockTransfer->update([
+        'status'      => 'approved',
+        'approved_by' => auth()->id(),
+        'approved_at' => now(),
+    ]);
+
+    return back()->with('success', 'Transfer disetujui. Admin gudang asal dapat mulai mengirim barang.');
+}
+
+public function reject(Request $request, StockTransfer $stockTransfer)
+{
+    if ($stockTransfer->status !== 'pending_approval') {
+        return back()->with('error', 'Hanya transfer yang menunggu approval yang dapat ditolak.');
     }
 
-    public function update(Request $request, StockTransfer $stockTransfer)
+    $request->validate(['reject_reason' => 'required|string']);
+
+    $stockTransfer->update([
+        'status'        => 'rejected',
+        'reject_reason' => $request->reject_reason,
+    ]);
+
+    return back()->with('success', 'Transfer ditolak.');
+}
+
+    // ── RESOLVE DISCREPANCY — Superadmin ──
+    public function resolveDiscrepancy(Request $request, StockTransfer $stockTransfer)
     {
-        if ($stockTransfer->status !== 'pending') {
-            return back()->with('error', 'Transfer yang sudah diproses tidak dapat diubah.');
+        if ($stockTransfer->status !== 'discrepancy') {
+            return back()->with('error', 'Transfer ini tidak dalam status discrepancy.');
         }
 
         $request->validate([
-            'transfer_date'    => 'required|date',
-            'expected_arrival' => 'nullable|date|after_or_equal:transfer_date',
-            'notes'            => 'nullable|string',
+            'resolution' => 'required|in:accept,cancel',
+            'notes'      => 'required|string',
         ]);
 
-        $stockTransfer->update($request->only('transfer_date', 'expected_arrival', 'notes'));
-
-        return redirect()->route('superadmin.stock-transfers.show', $stockTransfer)
-            ->with('success', 'Transfer berhasil diupdate.');
-    }
-
-    public function approve(StockTransfer $stockTransfer)
-    {
-        if ($stockTransfer->status !== 'pending') {
-            return back()->with('error', 'Hanya transfer pending yang dapat disetujui.');
-        }
+        $newStatus = $request->resolution === 'accept' ? 'received' : 'cancelled';
 
         $stockTransfer->update([
-            'status'      => 'approved',
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
+            'status'           => $newStatus,
+            'resolved_by'      => auth()->id(),
+            'resolved_at'      => now(),
+            'resolution_notes' => $request->notes,
         ]);
 
-        return back()->with('success', 'Transfer disetujui.');
-    }
+        $msg = $newStatus === 'received'
+            ? 'Selisih diterima, transfer ditandai selesai.'
+            : 'Transfer dibatalkan akibat selisih barang.';
 
-    public function reject(Request $request, StockTransfer $stockTransfer)
-    {
-        if ($stockTransfer->status !== 'pending') {
-            return back()->with('error', 'Hanya transfer pending yang dapat ditolak.');
-        }
-
-        $request->validate(['reject_reason' => 'required|string']);
-
-        $stockTransfer->update([
-            'status'        => 'rejected',
-            'reject_reason' => $request->reject_reason,
-        ]);
-
-        return back()->with('success', 'Transfer ditolak.');
-    }
-
-    public function send(Request $request, StockTransfer $stockTransfer)
-    {
-        if ($stockTransfer->status !== 'approved') {
-            return back()->with('error', 'Hanya transfer yang disetujui yang dapat dikirim.');
-        }
-
-        DB::transaction(function () use ($request, $stockTransfer) {
-            foreach ($stockTransfer->items as $item) {
-                $stock = Stock::where('warehouse_id', $stockTransfer->from_warehouse_id)
-                              ->where('product_id', $item->product_id)
-                              ->first();
-                if ($stock) {
-                    $before = $stock->quantity;
-                    $stock->reduceStock($item->quantity_requested);
-                    $item->update(['quantity_sent' => $item->quantity_requested]);
-
-                    StockMovement::create([
-                        'product_id'      => $item->product_id,
-                        'warehouse_id'    => $stockTransfer->from_warehouse_id,
-                        'type'            => 'transfer_out', // ← fix: pakai enum yang valid
-                        'quantity'        => $item->quantity_requested,
-                        'quantity_before' => $before,
-                        'quantity_after'  => $stock->quantity,
-                        'reference_type'  => 'stock_transfer', // ← fix: ganti stock_transfer_id
-                        'reference_id'    => $stockTransfer->id,
-                        'created_by'      => auth()->id(),
-                        'note'            => "Transfer keluar ke gudang #{$stockTransfer->transfer_number}",
-                    ]);
-                }
-            }
-
-            $stockTransfer->update([
-                'status'  => 'in_transit',
-                'sent_at' => now(),
-                'sent_by' => auth()->id(),
-            ]);
-        });
-
-        return back()->with('success', 'Stok berhasil dikirim.');
-    }
-
-    public function receive(StockTransfer $stockTransfer)
-    {
-        if ($stockTransfer->status !== 'in_transit') {
-            return back()->with('error', 'Hanya transfer in_transit yang dapat diterima.');
-        }
-
-        DB::transaction(function () use ($stockTransfer) {
-            foreach ($stockTransfer->items as $item) {
-                $stock = Stock::firstOrCreate(
-                    ['warehouse_id' => $stockTransfer->to_warehouse_id, 'product_id' => $item->product_id],
-                    ['quantity' => 0]
-                );
-                $before = $stock->quantity;
-                $stock->addStock($item->quantity_sent);
-                $item->update(['quantity_received' => $item->quantity_sent]);
-
-                StockMovement::create([
-                    'product_id'      => $item->product_id,
-                    'warehouse_id'    => $stockTransfer->to_warehouse_id,
-                    'type'            => 'transfer_in', // ← fix: pakai enum yang valid
-                    'quantity'        => $item->quantity_sent,
-                    'quantity_before' => $before,
-                    'quantity_after'  => $stock->quantity,
-                    'reference_type'  => 'stock_transfer', // ← fix: ganti stock_transfer_id
-                    'reference_id'    => $stockTransfer->id,
-                    'created_by'      => auth()->id(),
-                    'note'            => "Transfer masuk dari gudang #{$stockTransfer->transfer_number}",
-                ]);
-            }
-
-            $stockTransfer->update([
-                'status'      => 'received',  // ← fix: ganti 'completed' → 'received' sesuai enum
-                'received_at' => now(),
-                'received_by' => auth()->id(),
-            ]);
-        });
-
-        return back()->with('success', 'Stok berhasil diterima.');
+        return back()->with('success', $msg);
     }
 }
+
+
+
+
+

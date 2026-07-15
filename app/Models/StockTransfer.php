@@ -16,16 +16,20 @@ class StockTransfer extends Model
     protected function casts(): array
     {
         return [
-            'transfer_date'    => 'date',
-            'expected_arrival' => 'date',
-            'approved_at'      => 'datetime',
-            'received_at'      => 'datetime',
+            'transfer_date'           => 'date',
+            'expected_arrival'        => 'date',
+            'approved_at'             => 'datetime',
+            'received_at'             => 'datetime',
+            'cancelled_at'            => 'datetime',
+            'discrepancy_reported_at' => 'datetime',
+            'resolved_at'             => 'datetime',
         ];
     }
 
     // -------------------------------------------------------
     // SCOPES
     // -------------------------------------------------------
+
 
     public function scopePending($query)
     {
@@ -51,48 +55,60 @@ class StockTransfer extends Model
     {
         return $query->where('status', 'cancelled');
     }
+    public function scopeDiscrepancy($query)
+    {
+        return $query->where('status', 'discrepancy');
+    }
 
     // -------------------------------------------------------
     // RELATIONS
     // -------------------------------------------------------
 
-    /** Gudang pengirim */
     public function fromWarehouse()
     {
         return $this->belongsTo(Warehouse::class, 'from_warehouse_id');
     }
 
-    /** Gudang penerima */
     public function toWarehouse()
     {
         return $this->belongsTo(Warehouse::class, 'to_warehouse_id');
     }
 
-    /** User yang meminta transfer */
     public function requestedBy()
     {
         return $this->belongsTo(User::class, 'requested_by');
     }
 
-    /** User yang meng-approve transfer */
     public function approvedBy()
     {
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    /** User yang menerima barang di gudang tujuan */
+    public function cancelledBy()
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
     public function receivedBy()
     {
         return $this->belongsTo(User::class, 'received_by');
     }
 
-    /** Item-item produk dalam transfer ini */
+    public function discrepancyReportedBy()
+    {
+        return $this->belongsTo(User::class, 'discrepancy_reported_by');
+    }
+
+    public function resolvedBy()
+    {
+        return $this->belongsTo(User::class, 'resolved_by');
+    }
+
     public function items()
     {
         return $this->hasMany(StockTransferItem::class);
     }
 
-    /** Pergerakan stok yang dipicu transfer ini */
     public function stockMovements()
     {
         return $this->hasMany(StockMovement::class, 'reference_id')

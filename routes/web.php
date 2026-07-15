@@ -29,6 +29,8 @@ use App\Http\Controllers\Web\SupplierController;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\WarehouseController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Web\UserCreationRequestController;
+
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthWebController::class, 'showLogin'])->name('login');
@@ -109,18 +111,18 @@ Route::prefix('superadmin')
         Route::post('/reject', 'reject')->name('reject');
         });
 
-        // ── Stock Transfers ────────────────────────────────────
-        Route::resource('stock-transfers', StockTransferController::class);
+    // ── Stock Transfers ────────────────────────────────────
+    Route::resource('stock-transfers', StockTransferController::class)
+        ->only(['index', 'create', 'store', 'show']);
+
     Route::prefix('stock-transfers/{stockTransfer}')
         ->name('stock-transfers.')
         ->controller(StockTransferController::class)
         ->group(function () {
             Route::post('/approve', 'approve')->name('approve');
         Route::post('/reject', 'reject')->name('reject');
-        Route::post('/send', 'send')->name('send');
-            Route::post('/receive', 'receive')->name('receive');
+            Route::post('/resolve-discrepancy', 'resolveDiscrepancy')->name('resolve-discrepancy');
         });
-
     // ── Stock Reports ──────────────────────────────────────
     Route::prefix('stock-reports')
         ->name('stock-reports.')
@@ -218,6 +220,17 @@ Route::prefix('superadmin')
         });
     });
 
+
+// ── User Creation Requests (Pengajuan User Baru) ───────
+Route::prefix('user-requests')
+    ->name('user-requests.')
+    ->controller(UserCreationRequestController::class)
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::patch('/{userRequest}', 'updateRole')->name('update-role');
+        Route::post('/{userRequest}/approve', 'approve')->name('approve');
+        Route::post('/{userRequest}/reject', 'reject')->name('reject');
+    });
 // ──────────────────────────────────────────────────────────────
 //  REFERENSI NAMA ROUTE LENGKAP (semua berprefix 'superadmin.')
 // ──────────────────────────────────────────────────────────────
