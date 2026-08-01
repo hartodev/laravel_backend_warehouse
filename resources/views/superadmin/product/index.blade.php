@@ -161,7 +161,8 @@
                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
                             </a>
-                            <form method="POST" action="{{ route('products.toggle-active', $p) }}" class="inline">
+                            <form method="POST" action="{{ route('superadmin.products.toggle-active', $p) }}"
+                                class="inline">
                                 @csrf @method('PATCH')
                                 <button type="submit"
                                     class="btn btn-xs {{ $p->is_active ? 'btn-warning' : 'btn-success' }}"
@@ -197,7 +198,8 @@
                                     </h3>
                                     <p class="text-center text-sm text-gray-500 mb-6">Produk
                                         <strong>{{ $p->name }}</strong> akan dihapus permanen dan tidak dapat
-                                        dikembalikan.</p>
+                                        dikembalikan.
+                                    </p>
                                     <div class="flex gap-3">
                                         <button type="button"
                                             onclick="document.getElementById('del-p-{{ $p->id }}').classList.add('hidden')"

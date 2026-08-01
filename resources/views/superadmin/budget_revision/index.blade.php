@@ -26,7 +26,7 @@
 {{-- Filter --}}
 <div class="card mb-5">
     <div class="card-body">
-        <form method="GET" action="{{ route('budget-revisions.index') }}" class="flex flex-wrap gap-3 items-end">
+        <form method="GET" action="{{ route('budget_revisions.index') }}" class="flex flex-wrap gap-3 items-end">
             <div>
                 <label class="form-label">Status</label>
                 <select name="status" class="form-select">
@@ -44,7 +44,7 @@
                 </select>
             </div>
             <div class="flex gap-2">
-                <a href="{{ route('superadmin.budget-revisions.index') }}" class="btn btn-secondary text-sm">Reset</a>
+                <a href="{{ route('superadmin.budget_revisions.index') }}" class="btn btn-secondary text-sm">Reset</a>
                 <button type="submit" class="btn btn-primary text-sm">Filter</button>
             </div>
         </form>

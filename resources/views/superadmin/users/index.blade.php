@@ -131,7 +131,8 @@
                                 </svg>
                             </a>
                             @if($user->id !== auth()->id())
-                            <form method="POST" action="{{ route('users.toggle-active', $user) }}" class="inline">
+                            <form method="POST" action="{{ route('superadmin.users.toggle-active', $user) }}"
+                                class="inline">
                                 @csrf @method('PATCH')
                                 <button class="btn btn-xs {{ $user->is_active ? 'btn-warning' : 'btn-success' }}"
                                     title="{{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}">

@@ -255,7 +255,7 @@ Route::prefix('superadmin')
 // ──────────────────────────────────────────────────────────────
 //
 //  BUDGET REQUESTS (resource + submit/approve/reject/realisasi)
-//    superadmin.budget-requests.index    | .create  | .store
+//    superadmin.budget_requests.index    | .create  | .store
 //    superadmin.budget-requests.show     | .edit    | .update | .destroy
 //    superadmin.budget-requests.submit   | .approve | .reject | .realisasi
 //

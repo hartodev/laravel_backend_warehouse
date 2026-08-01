@@ -60,7 +60,7 @@ class BudgetRevisionController extends Controller
         $revision->anggaran_baru = $revision->hitungAnggaranBaru();
         $revision->save();
 
-        return redirect()->route('budget-revisions.index')
+        return redirect()->route('budget_revisions.index')
             ->with('success', 'Revisi anggaran berhasil diajukan.');
     }
 

@@ -33,7 +33,7 @@
     </div>
     <div class="flex gap-2">
         <a href="{{ route('superadmin.suppliers.edit', $supplier) }}" class="btn btn-secondary">Edit</a>
-        <form method="POST" action="{{ route('suppliers.toggle-active', $supplier) }}">
+        <form method="POST" action="{{ route('superadmin.suppliers.toggle-active', $supplier) }}">
             @csrf @method('PATCH')
             <button
                 class="btn {{ $supplier->is_active ? 'btn-warning' : 'btn-success' }}">{{ $supplier->is_active ? 'Nonaktifkan' : 'Aktifkan' }}</button>

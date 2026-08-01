@@ -961,7 +961,7 @@
                     ['route' => 'superadmin.payments.index', 'label' => 'Pembayaran', 'base' => 'payments'],
                     ['route' => 'superadmin.cash-books.index', 'label' => 'Buku Kas', 'base' => 'cash-books'],
                     [
-                    'route' => 'superadmin.budget-requests.index',
+                    'route' => 'superadmin.budget_requests.index',
                     'label' => 'Pengajuan Anggaran',
                     'base' => 'budget-requests',
                     ],
@@ -971,7 +971,7 @@
                     'base' => 'budget-verifications',
                     ],
                     [
-                    'route' => 'superadmin.budget-revisions.index',
+                    'route' => 'superadmin.budget_revisions.index',
                     'label' => 'Revisi Anggaran',
                     'base' => 'budget-revisions',
                     ],
@@ -1132,7 +1132,7 @@
                                     <p class="text-xs text-gray-400">Beberapa menit lalu</p>
                                 </div>
                             </a>
-                            <a href="{{ route('superadmin.budget-requests.index', ['status' => 'pending']) }}"
+                            <a href="{{ route('superadmin.budget_requests.index', ['status' => 'pending']) }}"
                                 class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
                                 <div
                                     class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 text-sm">
