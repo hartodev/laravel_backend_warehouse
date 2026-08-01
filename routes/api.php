@@ -371,6 +371,3 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->prefix('superadmin')->g
     Route::post('user-requests/{userRequest}/approve', [UserCreationRequestController::class, 'approve']);
     Route::post('user-requests/{userRequest}/reject', [UserCreationRequestController::class, 'reject']);
 });
-
-
-

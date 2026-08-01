@@ -1,9 +1,11 @@
 @extends('layouts.app')
 @section('title', 'Detail Opname')
 @section('breadcrumb')
-    <a href="{{ route('stock-opnames.index') }}" class="hover:text-primary-700">Stock Opname</a>
-    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-    <span class="text-gray-700 font-medium">{{ $stockOpname->opname_number }}</span>
+<a href="{{ route('superadmin.stock-opnames.index') }}" class="hover:text-primary-700">Stock Opname</a>
+<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+</svg>
+<span class="text-gray-700 font-medium">{{ $stockOpname->opname_number }}</span>
 @endsection
 
 @section('content')
@@ -21,23 +23,23 @@
     </div>
     <div class="flex flex-wrap gap-2">
         @if($stockOpname->status === 'draft')
-            <form method="POST" action="{{ route('stock-opnames.start', $stockOpname) }}">
-                @csrf
-                <button type="submit" class="btn-primary btn">Mulai Opname</button>
-            </form>
-            <a href="{{ route('stock-opnames.edit', $stockOpname) }}" class="btn-secondary btn">Edit</a>
+        <form method="POST" action="{{ route('stock-opnames.start', $stockOpname) }}">
+            @csrf
+            <button type="submit" class="btn-primary btn">Mulai Opname</button>
+        </form>
+        <a href="{{ route('superadmin.stock-opnames.edit', $stockOpname) }}" class="btn-secondary btn">Edit</a>
         @elseif($stockOpname->status === 'in_progress')
-            <button onclick="document.getElementById('complete-form').classList.toggle('hidden')" class="btn-primary btn">
-                Selesaikan Opname
-            </button>
+        <button onclick="document.getElementById('complete-form').classList.toggle('hidden')" class="btn-primary btn">
+            Selesaikan Opname
+        </button>
         @elseif($stockOpname->status === 'pending_approval')
-            <form method="POST" action="{{ route('stock-opnames.approve', $stockOpname) }}" class="inline">
-                @csrf
-                <button type="submit" class="btn-success btn">Setujui & Terapkan</button>
-            </form>
-            <button onclick="document.getElementById('reject-modal').classList.remove('hidden')" class="btn-danger btn">
-                Tolak
-            </button>
+        <form method="POST" action="{{ route('stock-opnames.approve', $stockOpname) }}" class="inline">
+            @csrf
+            <button type="submit" class="btn-success btn">Setujui & Terapkan</button>
+        </form>
+        <button onclick="document.getElementById('reject-modal').classList.remove('hidden')" class="btn-danger btn">
+            Tolak
+        </button>
         @endif
     </div>
 </div>
@@ -54,14 +56,16 @@
     <div class="stat-card">
         <div class="stat-icon bg-green-50 text-green-600">✅</div>
         <div>
-            <p class="text-2xl font-bold text-green-700">{{ $stockOpname->items->where('difference', '>', 0)->count() }}</p>
+            <p class="text-2xl font-bold text-green-700">{{ $stockOpname->items->where('difference', '>', 0)->count() }}
+            </p>
             <p class="text-sm text-gray-500">Lebih</p>
         </div>
     </div>
     <div class="stat-card">
         <div class="stat-icon bg-red-50 text-red-600">❌</div>
         <div>
-            <p class="text-2xl font-bold text-red-700">{{ $stockOpname->items->where('difference', '<', 0)->count() }}</p>
+            <p class="text-2xl font-bold text-red-700">{{ $stockOpname->items->where('difference', '<', 0)->count() }}
+            </p>
             <p class="text-sm text-gray-500">Kurang</p>
         </div>
     </div>
@@ -103,10 +107,11 @@
                             <td class="font-mono text-xs text-gray-500">{{ $item->product->sku ?? '—' }}</td>
                             <td class="text-right font-medium">{{ $item->system_stock }}</td>
                             <td class="text-right">
-                                <input type="hidden" name="items[{{ $loop->index }}][stock_opname_item_id]" value="{{ $item->id }}">
+                                <input type="hidden" name="items[{{ $loop->index }}][stock_opname_item_id]"
+                                    value="{{ $item->id }}">
                                 <input type="number" name="items[{{ $loop->index }}][physical_stock]"
-                                    x-model.number="phys" min="0"
-                                    class="w-24 form-input text-right text-sm py-1.5" required>
+                                    x-model.number="phys" min="0" class="w-24 form-input text-right text-sm py-1.5"
+                                    required>
                             </td>
                             <td class="text-right font-semibold"
                                 :class="phys - sys < 0 ? 'text-red-600' : phys - sys > 0 ? 'text-green-600' : 'text-gray-400'">
@@ -118,7 +123,8 @@
                 </table>
             </div>
             <div class="card-body border-t flex justify-end gap-3">
-                <button type="button" onclick="document.getElementById('complete-form').classList.add('hidden')" class="btn-secondary btn">Batal</button>
+                <button type="button" onclick="document.getElementById('complete-form').classList.add('hidden')"
+                    class="btn-secondary btn">Batal</button>
                 <button type="submit" class="btn-primary btn">Simpan & Kirim Approval</button>
             </div>
         </form>
@@ -152,12 +158,15 @@
                     <td class="font-mono text-xs text-gray-500">{{ $item->product->sku ?? '—' }}</td>
                     <td class="text-right">{{ number_format($item->system_stock) }}</td>
                     <td class="text-right">{{ number_format($item->physical_stock) }}</td>
-                    <td class="text-right font-semibold {{ $item->difference < 0 ? 'text-red-600' : ($item->difference > 0 ? 'text-green-600' : 'text-gray-400') }}">
+                    <td
+                        class="text-right font-semibold {{ $item->difference < 0 ? 'text-red-600' : ($item->difference > 0 ? 'text-green-600' : 'text-gray-400') }}">
                         {{ $item->difference > 0 ? '+' : '' }}{{ $item->difference }}
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="text-center py-8 text-gray-400">Belum ada item (klik Mulai Opname dulu)</td></tr>
+                <tr>
+                    <td colspan="5" class="text-center py-8 text-gray-400">Belum ada item (klik Mulai Opname dulu)</td>
+                </tr>
                 @endforelse
             </tbody>
         </table>
@@ -176,11 +185,13 @@
                 <p class="text-sm text-gray-600">Berikan alasan penolakan agar tim dapat memperbaiki opname.</p>
                 <div>
                     <label class="form-label">Alasan Penolakan <span class="text-red-500">*</span></label>
-                    <textarea name="reject_reason" rows="3" required class="form-textarea" placeholder="Tulis alasan..."></textarea>
+                    <textarea name="reject_reason" rows="3" required class="form-textarea"
+                        placeholder="Tulis alasan..."></textarea>
                 </div>
             </div>
             <div class="px-6 py-4 border-t flex justify-end gap-3">
-                <button type="button" onclick="document.getElementById('reject-modal').classList.add('hidden')" class="btn-secondary btn">Batal</button>
+                <button type="button" onclick="document.getElementById('reject-modal').classList.add('hidden')"
+                    class="btn-secondary btn">Batal</button>
                 <button type="submit" class="btn-danger btn">Tolak Opname</button>
             </div>
         </form>

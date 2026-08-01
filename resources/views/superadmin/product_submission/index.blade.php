@@ -15,7 +15,8 @@
     <form method="GET" class="card-body flex flex-wrap gap-3 items-end">
         <div class="w-56">
             <label class="form-label">Cari Produk</label>
-            <input type="text" name="search" value="{{ request('search') }}" class="form-input" placeholder="Nama produk / SKU">
+            <input type="text" name="search" value="{{ request('search') }}" class="form-input"
+                placeholder="Nama produk / SKU">
         </div>
         <div class="w-40">
             <label class="form-label">Status</label>
@@ -35,7 +36,7 @@
             <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-input">
         </div>
         <button type="submit" class="btn-primary btn">Filter</button>
-        <a href="{{ route('product-submissions.index') }}" class="btn-secondary btn">Reset</a>
+        <a href="{{ route('superadmin.product-submissions.index') }}" class="btn-secondary btn">Reset</a>
     </form>
 </div>
 
@@ -61,21 +62,23 @@
                 <td>{{ $s->submittedBy->name ?? '—' }}</td>
                 <td>{{ $s->created_at?->isoFormat('D MMM Y, HH:mm') }}</td>
                 <td>
-                    <span class="badge {{ $s->status === 'approved' ? 'badge-success' : ($s->status === 'pending' ? 'badge-warning' : 'badge-danger') }}">
+                    <span
+                        class="badge {{ $s->status === 'approved' ? 'badge-success' : ($s->status === 'pending' ? 'badge-warning' : 'badge-danger') }}">
                         {{ ucfirst($s->status) }}
                     </span>
                 </td>
                 <td class="text-right">
-                    <a href="{{ route('product-submissions.show', $s) }}" class="btn btn-secondary btn-sm">Detail</a>
+                    <a href="{{ route('superadmin.product-submissions.show', $s) }}"
+                        class="btn btn-secondary btn-sm">Detail</a>
                 </td>
             </tr>
             @empty
-            <tr><td colspan="7" class="text-center py-12 text-gray-400">Belum ada pengajuan produk</td></tr>
+            <tr>
+                <td colspan="7" class="text-center py-12 text-gray-400">Belum ada pengajuan produk</td>
+            </tr>
             @endforelse
         </tbody>
     </table>
 </div>
 <div class="mt-4">{{ $submissions->links() }}</div>
 @endsection
-
-

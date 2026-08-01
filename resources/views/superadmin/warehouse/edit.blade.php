@@ -1,9 +1,11 @@
 @extends('layouts.app')
 @section('title', 'Edit Gudang')
 @section('breadcrumb')
-    <a href="{{ route('warehouses.index') }}" class="hover:text-primary-700">Gudang</a>
-    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-    <span class="text-gray-700 font-medium">Edit: {{ $warehouse->name }}</span>
+<a href="{{ route('superadmin.warehouses.index') }}" class="hover:text-primary-700">Gudang</a>
+<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+</svg>
+<span class="text-gray-700 font-medium">Edit: {{ $warehouse->name }}</span>
 @endsection
 
 @section('content')
@@ -20,30 +22,36 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="form-label">Nama Gudang <span class="text-red-500">*</span></label>
-                        <input type="text" name="name" value="{{ old('name', $warehouse->name) }}" class="form-input @error('name') border-red-400 @enderror">
+                        <input type="text" name="name" value="{{ old('name', $warehouse->name) }}"
+                            class="form-input @error('name') border-red-400 @enderror">
                         @error('name')<p class="form-error">{{ $message }}</p>@enderror
                     </div>
                     <div>
                         <label class="form-label">Kode Gudang <span class="text-red-500">*</span></label>
-                        <input type="text" name="code" value="{{ old('code', $warehouse->code) }}" class="form-input @error('code') border-red-400 @enderror font-mono uppercase" oninput="this.value=this.value.toUpperCase()">
+                        <input type="text" name="code" value="{{ old('code', $warehouse->code) }}"
+                            class="form-input @error('code') border-red-400 @enderror font-mono uppercase"
+                            oninput="this.value=this.value.toUpperCase()">
                         @error('code')<p class="form-error">{{ $message }}</p>@enderror
                     </div>
                 </div>
 
                 <div>
                     <label class="form-label">Lokasi / Alamat <span class="text-red-500">*</span></label>
-                    <textarea name="location" rows="3" class="form-textarea @error('location') border-red-400 @enderror">{{ old('location', $warehouse->location) }}</textarea>
+                    <textarea name="location" rows="3"
+                        class="form-textarea @error('location') border-red-400 @enderror">{{ old('location', $warehouse->location) }}</textarea>
                     @error('location')<p class="form-error">{{ $message }}</p>@enderror
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="form-label">Nama PIC</label>
-                        <input type="text" name="pic_name" value="{{ old('pic_name', $warehouse->pic_name) }}" class="form-input">
+                        <input type="text" name="pic_name" value="{{ old('pic_name', $warehouse->pic_name) }}"
+                            class="form-input">
                     </div>
                     <div>
                         <label class="form-label">No. HP PIC</label>
-                        <input type="text" name="pic_phone" value="{{ old('pic_phone', $warehouse->pic_phone) }}" class="form-input">
+                        <input type="text" name="pic_phone" value="{{ old('pic_phone', $warehouse->pic_phone) }}"
+                            class="form-input">
                     </div>
                 </div>
 
@@ -51,7 +59,8 @@
                     <label class="form-label">Foto Gudang</label>
                     @if($warehouse->photo)
                     <div class="mb-2">
-                        <img src="{{ Storage::url($warehouse->photo) }}" class="w-32 h-24 object-cover rounded-lg border" id="photoPreview">
+                        <img src="{{ Storage::url($warehouse->photo) }}"
+                            class="w-32 h-24 object-cover rounded-lg border" id="photoPreview">
                         <p class="text-xs text-gray-400 mt-1">Foto saat ini. Upload baru untuk mengganti.</p>
                     </div>
                     @else
@@ -69,7 +78,7 @@
 
             </div>
             <div class="card-body border-t border-gray-100 flex justify-end gap-3">
-                <a href="{{ route('warehouses.show', $warehouse) }}" class="btn-secondary btn">Batal</a>
+                <a href="{{ route('superadmin.warehouses.show', $warehouse) }}" class="btn-secondary btn">Batal</a>
                 <button type="submit" class="btn-primary btn">Update Gudang</button>
             </div>
         </form>

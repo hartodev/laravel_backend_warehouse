@@ -8,8 +8,10 @@
         <h1 class="text-xl font-bold text-gray-900">Transfer Stok</h1>
         <p class="text-sm text-gray-500 mt-0.5">{{ $transfers->total() }} transfer</p>
     </div>
-    <a href="{{ route('stock-transfers.create') }}" class="btn-primary btn">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    <a href="{{ route('superadmin.stock-transfers.create') }}" class="btn-primary btn">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
         Buat Transfer
     </a>
 </div>
@@ -21,7 +23,8 @@
             <select name="status" class="form-select">
                 <option value="">Semua</option>
                 @foreach(['pending','approved','in_transit','received','rejected','cancelled','discrepancy'] as $s)
-                <option value="{{ $s }}" {{ request('status')===$s?'selected':'' }}>{{ ucfirst(str_replace('_',' ',$s)) }}</option>
+                <option value="{{ $s }}" {{ request('status')===$s?'selected':'' }}>
+                    {{ ucfirst(str_replace('_',' ',$s)) }}</option>
                 @endforeach
             </select>
         </div>
@@ -35,7 +38,7 @@
             </select>
         </div>
         <button type="submit" class="btn-primary btn">Filter</button>
-        <a href="{{ route('stock-transfers.index') }}" class="btn-secondary btn">Reset</a>
+        <a href="{{ route('superadmin.stock-transfers.index') }}" class="btn-secondary btn">Reset</a>
     </form>
 </div>
 
@@ -63,22 +66,25 @@
                 <td>
                     <x-status-badge :status="$t->status" />
                     @if($t->status === 'discrepancy')
-                        <span class="text-xs text-yellow-600 font-medium block mt-0.5">Perlu resolusi</span>
+                    <span class="text-xs text-yellow-600 font-medium block mt-0.5">Perlu resolusi</span>
                     @endif
                 </td>
                 <td class="text-right">
                     <div class="flex items-center justify-end gap-1">
-                        <a href="{{ route('stock-transfers.show', $t) }}" class="btn btn-secondary btn-sm">Detail</a>
+                        <a href="{{ route('superadmin.stock-transfers.show', $t) }}"
+                            class="btn btn-secondary btn-sm">Detail</a>
                         @if($t->status === 'pending_approval')
-                            <form method="POST" action="{{ route('stock-transfers.approve', $t) }}" class="inline">
-                                @csrf <button class="btn btn-success btn-sm">Setujui</button>
-                            </form>
+                        <form method="POST" action="{{ route('stock-transfers.approve', $t) }}" class="inline">
+                            @csrf <button class="btn btn-success btn-sm">Setujui</button>
+                        </form>
                         @endif
                     </div>
                 </td>
             </tr>
             @empty
-            <tr><td colspan="7" class="text-center py-12 text-gray-400">Belum ada data transfer stok</td></tr>
+            <tr>
+                <td colspan="7" class="text-center py-12 text-gray-400">Belum ada data transfer stok</td>
+            </tr>
             @endforelse
         </tbody>
     </table>

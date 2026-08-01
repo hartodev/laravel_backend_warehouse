@@ -1,9 +1,11 @@
 @extends('layouts.app')
 @section('title', $warehouse->name)
 @section('breadcrumb')
-    <a href="{{ route('warehouses.index') }}" class="hover:text-primary-700">Gudang</a>
-    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-    <span class="text-gray-700 font-medium">{{ $warehouse->name }}</span>
+<a href="{{ route('superadmin.warehouses.index') }}" class="hover:text-primary-700">Gudang</a>
+<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+</svg>
+<span class="text-gray-700 font-medium">{{ $warehouse->name }}</span>
 @endsection
 
 @section('content')
@@ -17,8 +19,8 @@
         <p class="text-sm text-gray-500 mt-0.5">{{ $warehouse->location }}</p>
     </div>
     <div class="flex gap-2">
-        <a href="{{ route('warehouses.edit', $warehouse) }}" class="btn-secondary btn">Edit</a>
-        <a href="{{ route('stocks.by-warehouse', $warehouse) }}" class="btn-primary btn">Lihat Stok</a>
+        <a href="{{ route('superadmin.warehouses.edit', $warehouse) }}" class="btn-secondary btn">Edit</a>
+        <a href="{{ route('superadmin.stocks.by-warehouse', $warehouse) }}" class="btn-primary btn">Lihat Stok</a>
     </div>
 </div>
 
@@ -70,7 +72,8 @@
             <div class="stat-icon bg-purple-50 text-purple-600">💰</div>
             <div>
                 <p class="text-2xl font-bold text-gray-900">
-                    Rp {{ number_format($warehouse->stocks->sum(fn($s) => $s->quantity * ($s->product->purchase_price ?? 0)) / 1000) }}K
+                    Rp
+                    {{ number_format($warehouse->stocks->sum(fn($s) => $s->quantity * ($s->product->purchase_price ?? 0)) / 1000) }}K
                 </p>
                 <p class="text-sm text-gray-500">Estimasi Nilai Stok</p>
             </div>
@@ -82,7 +85,8 @@
 <div class="card">
     <div class="card-header">
         <h3 class="font-semibold text-gray-900">Daftar Stok</h3>
-        <a href="{{ route('stocks.by-warehouse', $warehouse) }}" class="text-sm text-primary-700 hover:underline">Lihat semua →</a>
+        <a href="{{ route('superadmin.stocks.by-warehouse', $warehouse) }}"
+            class="text-sm text-primary-700 hover:underline">Lihat semua →</a>
     </div>
     <div class="table-wrap rounded-none border-0">
         <table class="data-table">
@@ -103,19 +107,22 @@
                     <td class="font-mono text-xs text-gray-500">{{ $stock->product->sku ?? '—' }}</td>
                     <td>{{ $stock->product->unit ?? '—' }}</td>
                     <td>{{ $stock->product->min_stock ?? 0 }}</td>
-                    <td class="font-semibold {{ $stock->product && $stock->quantity <= $stock->product->min_stock ? 'text-red-600' : 'text-gray-900' }}">
+                    <td
+                        class="font-semibold {{ $stock->product && $stock->quantity <= $stock->product->min_stock ? 'text-red-600' : 'text-gray-900' }}">
                         {{ number_format($stock->quantity) }}
                     </td>
                     <td>
                         @if($stock->product && $stock->quantity <= $stock->product->min_stock)
                             <span class="badge badge-danger">Menipis</span>
-                        @else
+                            @else
                             <span class="badge badge-success">Normal</span>
-                        @endif
+                            @endif
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="text-center py-8 text-gray-400">Belum ada stok di gudang ini</td></tr>
+                <tr>
+                    <td colspan="6" class="text-center py-8 text-gray-400">Belum ada stok di gudang ini</td>
+                </tr>
                 @endforelse
             </tbody>
         </table>

@@ -2,133 +2,218 @@
 @extends('layouts.app')
 @section('title','Buat Sales Order')
 @section('breadcrumb')
-<a href="{{ route('sales-orders.index') }}" class="hover:text-primary-700">Sales Order</a>
-<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+<a href="{{ route('superadmin.sales-orders.index') }}" class="hover:text-primary-700">Sales Order</a>
+<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+</svg>
 <span class="text-gray-700 font-medium">Buat Baru</span>
 @endsection
 
 @section('content')
 <form method="POST" action="{{ route('sales-orders.store') }}" x-data="soForm()">
-@csrf
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-    <div class="lg:col-span-2 space-y-4">
-        <div class="card">
-            <div class="card-header"><h2 class="font-semibold text-gray-900">Informasi SO</h2></div>
-            <div class="card-body grid grid-cols-2 gap-4">
-                <div>
-                    <label class="form-label">Gudang <span class="text-red-500">*</span></label>
-                    <select name="warehouse_id" required class="form-select">
-                        <option value="">— Pilih —</option>
-                        @foreach($warehouses as $w)<option value="{{ $w->id }}" {{ old('warehouse_id')==$w->id?'selected':'' }}>{{ $w->name }}</option>@endforeach
-                    </select>
+    @csrf
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="lg:col-span-2 space-y-4">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="font-semibold text-gray-900">Informasi SO</h2>
                 </div>
-                <div>
-                    <label class="form-label">Metode Pembayaran</label>
-                    <select name="payment_method" class="form-select">
-                        <option value="">— Pilih —</option>
-                        <option value="cash">Cash</option>
-                        <option value="transfer">Transfer</option>
-                        <option value="credit">Kredit</option>
-                    </select>
+                <div class="card-body grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label">Gudang <span class="text-red-500">*</span></label>
+                        <select name="warehouse_id" required class="form-select">
+                            <option value="">— Pilih —</option>
+                            @foreach($warehouses as $w)<option value="{{ $w->id }}"
+                                {{ old('warehouse_id')==$w->id?'selected':'' }}>{{ $w->name }}</option>@endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Metode Pembayaran</label>
+                        <select name="payment_method" class="form-select">
+                            <option value="">— Pilih —</option>
+                            <option value="cash">Cash</option>
+                            <option value="transfer">Transfer</option>
+                            <option value="credit">Kredit</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="form-label">Nama Customer <span class="text-red-500">*</span></label>
+                        <input type="text" name="customer_name" value="{{ old('customer_name') }}" required
+                            class="form-input">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="form-label">Alamat Customer</label>
+                        <textarea name="customer_address" rows="2"
+                            class="form-textarea">{{ old('customer_address') }}</textarea>
+                    </div>
+                    <div>
+                        <label class="form-label">Tanggal Order <span class="text-red-500">*</span></label>
+                        <input type="date" name="order_date" value="{{ old('order_date', date('Y-m-d')) }}" required
+                            class="form-input">
+                    </div>
+                    <div>
+                        <label class="form-label">Jatuh Tempo</label>
+                        <input type="date" name="due_date" value="{{ old('due_date') }}" class="form-input">
+                    </div>
+                    <div>
+                        <label class="form-label">PPN (%)</label>
+                        <input type="number" name="tax_percent" x-model.number="taxPercent"
+                            value="{{ old('tax_percent',0) }}" min="0" max="100" step="0.1" class="form-input">
+                    </div>
+                    <div>
+                        <label class="form-label">Diskon (Rp)</label>
+                        <input type="number" name="discount_amount" x-model.number="discount"
+                            value="{{ old('discount_amount',0) }}" min="0" class="form-input">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="form-label">Keterangan</label>
+                        <textarea name="keterangan" rows="2" class="form-textarea">{{ old('keterangan') }}</textarea>
+                    </div>
                 </div>
-                <div class="col-span-2">
-                    <label class="form-label">Nama Customer <span class="text-red-500">*</span></label>
-                    <input type="text" name="customer_name" value="{{ old('customer_name') }}" required class="form-input">
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="font-semibold text-gray-900">Item Produk</h2>
+                    <button type="button" @click="addRow" class="btn-primary btn btn-sm">+ Tambah Baris</button>
                 </div>
-                <div class="col-span-2">
-                    <label class="form-label">Alamat Customer</label>
-                    <textarea name="customer_address" rows="2" class="form-textarea">{{ old('customer_address') }}</textarea>
-                </div>
-                <div>
-                    <label class="form-label">Tanggal Order <span class="text-red-500">*</span></label>
-                    <input type="date" name="order_date" value="{{ old('order_date', date('Y-m-d')) }}" required class="form-input">
-                </div>
-                <div>
-                    <label class="form-label">Jatuh Tempo</label>
-                    <input type="date" name="due_date" value="{{ old('due_date') }}" class="form-input">
-                </div>
-                <div>
-                    <label class="form-label">PPN (%)</label>
-                    <input type="number" name="tax_percent" x-model.number="taxPercent" value="{{ old('tax_percent',0) }}" min="0" max="100" step="0.1" class="form-input">
-                </div>
-                <div>
-                    <label class="form-label">Diskon (Rp)</label>
-                    <input type="number" name="discount_amount" x-model.number="discount" value="{{ old('discount_amount',0) }}" min="0" class="form-input">
-                </div>
-                <div class="col-span-2">
-                    <label class="form-label">Keterangan</label>
-                    <textarea name="keterangan" rows="2" class="form-textarea">{{ old('keterangan') }}</textarea>
+                <div class="table-wrap rounded-none border-0">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Produk</th>
+                                <th>Deskripsi</th>
+                                <th class="text-right">Qty</th>
+                                <th class="text-right">Harga</th>
+                                <th class="text-right">Subtotal</th>
+                                <th class="w-8"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="(row, idx) in rows" :key="idx">
+                                <tr>
+                                    <td>
+                                        <select :name="'items['+idx+'][product_id]'" x-model="row.product_id"
+                                            @change="setPrice(row)" required class="form-select text-sm py-1.5">
+                                            <option value="">— Pilih —</option>
+                                            @foreach($products as $p)
+                                            <option value="{{ $p->id }}" data-price="{{ $p->selling_price }}">
+                                                {{ $p->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td><input type="text" :name="'items['+idx+'][deskripsi]'" x-model="row.deskripsi"
+                                            class="form-input text-sm py-1.5" placeholder="Opsional"></td>
+                                    <td><input type="number" :name="'items['+idx+'][qty]'" x-model.number="row.qty"
+                                            @input="calcRow(row)" min="1" required
+                                            class="form-input text-right text-sm py-1.5 w-20"></td>
+                                    <td><input type="number" :name="'items['+idx+'][harga]'" x-model.number="row.price"
+                                            @input="calcRow(row)" min="0" required
+                                            class="form-input text-right text-sm py-1.5 w-32"></td>
+                                    <td class="text-right font-medium pr-4"
+                                        x-text="'Rp '+row.total.toLocaleString('id-ID')"></td>
+                                    <td><button type="button" @click="removeRow(idx)"
+                                            class="text-red-400 hover:text-red-600"><svg class="w-4 h-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12" />
+                                            </svg></button></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h2 class="font-semibold text-gray-900">Item Produk</h2>
-                <button type="button" @click="addRow" class="btn-primary btn btn-sm">+ Tambah Baris</button>
-            </div>
-            <div class="table-wrap rounded-none border-0">
-                <table class="data-table">
-                    <thead><tr><th>Produk</th><th>Deskripsi</th><th class="text-right">Qty</th><th class="text-right">Harga</th><th class="text-right">Subtotal</th><th class="w-8"></th></tr></thead>
-                    <tbody>
-                        <template x-for="(row, idx) in rows" :key="idx">
-                        <tr>
-                            <td>
-                                <select :name="'items['+idx+'][product_id]'" x-model="row.product_id" @change="setPrice(row)" required class="form-select text-sm py-1.5">
-                                    <option value="">— Pilih —</option>
-                                    @foreach($products as $p)
-                                    <option value="{{ $p->id }}" data-price="{{ $p->selling_price }}">{{ $p->name }}</option>
-                                    @endforeach
-                                </select>
-                            </td>
-                            <td><input type="text" :name="'items['+idx+'][deskripsi]'" x-model="row.deskripsi" class="form-input text-sm py-1.5" placeholder="Opsional"></td>
-                            <td><input type="number" :name="'items['+idx+'][qty]'" x-model.number="row.qty" @input="calcRow(row)" min="1" required class="form-input text-right text-sm py-1.5 w-20"></td>
-                            <td><input type="number" :name="'items['+idx+'][harga]'" x-model.number="row.price" @input="calcRow(row)" min="0" required class="form-input text-right text-sm py-1.5 w-32"></td>
-                            <td class="text-right font-medium pr-4" x-text="'Rp '+row.total.toLocaleString('id-ID')"></td>
-                            <td><button type="button" @click="removeRow(idx)" class="text-red-400 hover:text-red-600"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></td>
-                        </tr>
-                        </template>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div class="lg:col-span-1">
-        <div class="card sticky top-20">
-            <div class="card-header"><h3 class="font-semibold">Ringkasan</h3></div>
-            <div class="card-body space-y-3 text-sm">
-                <div class="flex justify-between"><span class="text-gray-500">Subtotal</span><span class="font-medium" x-text="'Rp '+subtotal.toLocaleString('id-ID')"></span></div>
-                <div class="flex justify-between"><span class="text-gray-500">PPN (<span x-text="taxPercent"></span>%)</span><span x-text="'Rp '+tax.toLocaleString('id-ID')"></span></div>
-                <div class="flex justify-between"><span class="text-gray-500">Diskon</span><span class="text-red-600" x-text="'- Rp '+discount.toLocaleString('id-ID')"></span></div>
-                <div class="border-t pt-3 flex justify-between font-bold text-base">
-                    <span>Total</span><span class="text-primary-700" x-text="'Rp '+total.toLocaleString('id-ID')"></span>
+        <div class="lg:col-span-1">
+            <div class="card sticky top-20">
+                <div class="card-header">
+                    <h3 class="font-semibold">Ringkasan</h3>
+                </div>
+                <div class="card-body space-y-3 text-sm">
+                    <div class="flex justify-between"><span class="text-gray-500">Subtotal</span><span
+                            class="font-medium" x-text="'Rp '+subtotal.toLocaleString('id-ID')"></span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">PPN (<span
+                                x-text="taxPercent"></span>%)</span><span
+                            x-text="'Rp '+tax.toLocaleString('id-ID')"></span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Diskon</span><span
+                            class="text-red-600" x-text="'- Rp '+discount.toLocaleString('id-ID')"></span></div>
+                    <div class="border-t pt-3 flex justify-between font-bold text-base">
+                        <span>Total</span><span class="text-primary-700"
+                            x-text="'Rp '+total.toLocaleString('id-ID')"></span>
+                    </div>
+                </div>
+                <div class="card-body border-t space-y-2">
+                    <button type="submit" class="btn-primary btn w-full justify-center">Buat Sales Order</button>
+                    <a href="{{ route('superadmin.sales-orders.index') }}"
+                        class="btn-secondary btn w-full justify-center">Batal</a>
                 </div>
             </div>
-            <div class="card-body border-t space-y-2">
-                <button type="submit" class="btn-primary btn w-full justify-center">Buat Sales Order</button>
-                <a href="{{ route('sales-orders.index') }}" class="btn-secondary btn w-full justify-center">Batal</a>
-            </div>
         </div>
     </div>
-</div>
 </form>
 @endsection
 
 @push('scripts')
 <script>
-const productPrices = { @foreach($products as $p)"{{ $p->id }}": {{ $p->selling_price ?? 0 }}, @endforeach };
+const productPrices = {
+    @foreach($products as $p)
+    "{{ $p->id }}": {
+        {
+            $p - > selling_price ?? 0
+        }
+    },
+    @endforeach
+};
+
 function soForm() {
     return {
-        rows: [{ product_id:'', deskripsi:'', qty:1, price:0, total:0 }],
-        taxPercent: {{ old('tax_percent',0) }}, discount: {{ old('discount_amount',0) }},
-        get subtotal(){ return this.rows.reduce((s,r)=>s+r.total,0); },
-        get tax(){ return Math.round(this.subtotal*this.taxPercent/100); },
-        get total(){ return this.subtotal+this.tax-this.discount; },
-        addRow(){ this.rows.push({product_id:'',deskripsi:'',qty:1,price:0,total:0}); },
-        removeRow(i){ if(this.rows.length>1) this.rows.splice(i,1); },
-        calcRow(r){ r.total=r.qty*r.price; },
-        setPrice(r){ r.price=productPrices[r.product_id]||0; r.total=r.qty*r.price; },
+        rows: [{
+            product_id: '',
+            deskripsi: '',
+            qty: 1,
+            price: 0,
+            total: 0
+        }],
+        taxPercent: {
+            {
+                old('tax_percent', 0)
+            }
+        },
+        discount: {
+            {
+                old('discount_amount', 0)
+            }
+        },
+        get subtotal() {
+            return this.rows.reduce((s, r) => s + r.total, 0);
+        },
+        get tax() {
+            return Math.round(this.subtotal * this.taxPercent / 100);
+        },
+        get total() {
+            return this.subtotal + this.tax - this.discount;
+        },
+        addRow() {
+            this.rows.push({
+                product_id: '',
+                deskripsi: '',
+                qty: 1,
+                price: 0,
+                total: 0
+            });
+        },
+        removeRow(i) {
+            if (this.rows.length > 1) this.rows.splice(i, 1);
+        },
+        calcRow(r) {
+            r.total = r.qty * r.price;
+        },
+        setPrice(r) {
+            r.price = productPrices[r.product_id] || 0;
+            r.total = r.qty * r.price;
+        },
     };
 }
 </script>

@@ -9,8 +9,10 @@
         <h1 class="text-xl font-bold text-gray-900">Pergerakan Stok</h1>
         <p class="text-sm text-gray-500 mt-0.5">{{ $movements->total() }} record</p>
     </div>
-    <a href="{{ route('stock-movements.create') }}" class="btn-primary btn">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    <a href="{{ route('superadmin.stock-movements.create') }}" class="btn-primary btn">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
         Catat Manual
     </a>
 </div>
@@ -21,8 +23,8 @@
             <label class="form-label">Tipe</label>
             <select name="type" class="form-select">
                 <option value="">Semua</option>
-                <option value="in"         {{ request('type')==='in'         ? 'selected' : '' }}>Masuk (In)</option>
-                <option value="out"        {{ request('type')==='out'        ? 'selected' : '' }}>Keluar (Out)</option>
+                <option value="in" {{ request('type')==='in'         ? 'selected' : '' }}>Masuk (In)</option>
+                <option value="out" {{ request('type')==='out'        ? 'selected' : '' }}>Keluar (Out)</option>
                 <option value="adjustment" {{ request('type')==='adjustment' ? 'selected' : '' }}>Penyesuaian</option>
             </select>
         </div>
@@ -31,7 +33,8 @@
             <select name="warehouse_id" class="form-select">
                 <option value="">Semua Gudang</option>
                 @foreach($warehouses as $w)
-                <option value="{{ $w->id }}" {{ request('warehouse_id') == $w->id ? 'selected' : '' }}>{{ $w->name }}</option>
+                <option value="{{ $w->id }}" {{ request('warehouse_id') == $w->id ? 'selected' : '' }}>{{ $w->name }}
+                </option>
                 @endforeach
             </select>
         </div>
@@ -40,7 +43,8 @@
             <select name="product_id" class="form-select">
                 <option value="">Semua Produk</option>
                 @foreach($products as $p)
-                <option value="{{ $p->id }}" {{ request('product_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                <option value="{{ $p->id }}" {{ request('product_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}
+                </option>
                 @endforeach
             </select>
         </div>
@@ -53,7 +57,7 @@
             <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-input">
         </div>
         <button type="submit" class="btn-primary btn">Filter</button>
-        <a href="{{ route('stock-movements.index') }}" class="btn-secondary btn">Reset</a>
+        <a href="{{ route('superadmin.stock-movements.index') }}" class="btn-secondary btn">Reset</a>
     </form>
 </div>
 
@@ -82,12 +86,14 @@
                 </td>
                 <td>{{ $mv->warehouse->name ?? '—' }}</td>
                 <td>
-                    <span class="badge {{ $mv->type === 'in' ? 'badge-success' : ($mv->type === 'out' ? 'badge-danger' : 'badge-warning') }}">
+                    <span
+                        class="badge {{ $mv->type === 'in' ? 'badge-success' : ($mv->type === 'out' ? 'badge-danger' : 'badge-warning') }}">
                         {{ strtoupper($mv->type) }}
                     </span>
                 </td>
                 <td class="text-right text-gray-500">{{ number_format($mv->quantity_before) }}</td>
-                <td class="text-right font-bold {{ $mv->type === 'in' ? 'text-green-700' : ($mv->type === 'out' ? 'text-red-600' : 'text-yellow-700') }}">
+                <td
+                    class="text-right font-bold {{ $mv->type === 'in' ? 'text-green-700' : ($mv->type === 'out' ? 'text-red-600' : 'text-yellow-700') }}">
                     {{ $mv->type === 'in' ? '+' : ($mv->type === 'out' ? '-' : '±') }}{{ number_format($mv->quantity) }}
                 </td>
                 <td class="text-right font-semibold">{{ number_format($mv->quantity_after) }}</td>
@@ -95,11 +101,14 @@
                 <td class="text-sm">{{ $mv->createdBy->name ?? '—' }}</td>
                 <td class="text-xs text-gray-400">{{ $mv->created_at->isoFormat('D MMM, HH:mm') }}</td>
                 <td class="text-right">
-                    <a href="{{ route('stock-movements.show', $mv) }}" class="btn btn-secondary btn-sm">Detail</a>
+                    <a href="{{ route('superadmin.stock-movements.show', $mv) }}"
+                        class="btn btn-secondary btn-sm">Detail</a>
                 </td>
             </tr>
             @empty
-            <tr><td colspan="10" class="text-center py-12 text-gray-400">Belum ada data pergerakan stok</td></tr>
+            <tr>
+                <td colspan="10" class="text-center py-12 text-gray-400">Belum ada data pergerakan stok</td>
+            </tr>
             @endforelse
         </tbody>
     </table>

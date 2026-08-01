@@ -9,7 +9,7 @@
         <h1 class="text-xl font-bold text-gray-900">Laporan Pertanggungjawaban</h1>
         <p class="text-sm text-gray-500">{{ $reports->total() }} laporan</p>
     </div>
-    <a href="{{ route('expense-reports.create') }}" class="btn-primary btn">+ Buat Laporan</a>
+    <a href="{{ route('superadmin.expense-reports.create') }}" class="btn-primary btn">+ Buat Laporan</a>
 </div>
 
 <div class="card mb-5">
@@ -31,7 +31,7 @@
             <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-input">
         </div>
         <button type="submit" class="btn-primary btn">Filter</button>
-        <a href="{{ route('expense-reports.index') }}" class="btn-secondary btn">Reset</a>
+        <a href="{{ route('superadmin.expense-reports.index') }}" class="btn-secondary btn">Reset</a>
     </form>
 </div>
 
@@ -53,12 +53,14 @@
         <tbody class="divide-y divide-gray-100">
             @forelse($reports as $r)
             <tr>
-                <td><span class="font-mono text-xs text-primary-700">{{ $r->budgetRequest->nomor_form ?? '—' }}</span></td>
+                <td><span class="font-mono text-xs text-primary-700">{{ $r->budgetRequest->nomor_form ?? '—' }}</span>
+                </td>
                 <td>{{ $r->nomor_invoice ?? '—' }}</td>
                 <td>{{ $r->nama_vendor ?? '—' }}</td>
                 <td>{{ \Carbon\Carbon::parse($r->tanggal_transaksi)->isoFormat('D MMM Y') }}</td>
                 <td class="text-right font-semibold">Rp {{ number_format($r->nominal_realisasi, 0, ',', '.') }}</td>
-                <td class="text-right {{ $r->selisih < 0 ? 'text-red-600' : ($r->selisih > 0 ? 'text-green-600' : 'text-gray-500') }}">
+                <td
+                    class="text-right {{ $r->selisih < 0 ? 'text-red-600' : ($r->selisih > 0 ? 'text-green-600' : 'text-gray-500') }}">
                     Rp {{ number_format($r->selisih, 0, ',', '.') }}
                 </td>
                 <td>{{ $r->submittedBy->name ?? '—' }}</td>
@@ -68,19 +70,21 @@
                     </span>
                 </td>
                 <td class="text-right whitespace-nowrap">
-                    <a href="{{ route('expense-reports.show', $r) }}" class="btn btn-secondary btn-sm">Detail</a>
+                    <a href="{{ route('superadmin.expense-reports.show', $r) }}"
+                        class="btn btn-secondary btn-sm">Detail</a>
                     @if ($r->status !== 'verified')
-                        <a href="{{ route('expense-reports.edit', $r) }}" class="btn btn-secondary btn-sm">Edit</a>
+                    <a href="{{ route('superadmin.expense-reports.edit', $r) }}"
+                        class="btn btn-secondary btn-sm">Edit</a>
                     @endif
                 </td>
             </tr>
             @empty
-            <tr><td colspan="9" class="text-center py-12 text-gray-400">Belum ada laporan pertanggungjawaban</td></tr>
+            <tr>
+                <td colspan="9" class="text-center py-12 text-gray-400">Belum ada laporan pertanggungjawaban</td>
+            </tr>
             @endforelse
         </tbody>
     </table>
 </div>
 <div class="mt-4">{{ $reports->links() }}</div>
 @endsection
-
-

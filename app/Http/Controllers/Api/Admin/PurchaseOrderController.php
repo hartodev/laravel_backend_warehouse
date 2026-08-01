@@ -227,5 +227,3 @@ class PurchaseOrderController extends Controller
         return response()->json(['success' => true, 'message' => 'Penerimaan barang berhasil dicatat.', 'data' => $po->fresh()->load('items.product:id,name,sku')]);
     }
 }
-
-

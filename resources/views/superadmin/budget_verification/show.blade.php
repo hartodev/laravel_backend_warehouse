@@ -3,14 +3,16 @@
 @section('title', 'Detail Verifikasi Anggaran')
 
 @section('breadcrumb')
-    <a href="{{ route('budget-verifications.index') }}" class="text-gray-500 hover:text-gray-700">Verifikasi Anggaran</a>
-    <span class="text-gray-400 mx-1">/</span>
-    <span class="text-gray-700 font-medium">Detail</span>
+<a href="{{ route('superadmin.budget-verifications.index') }}" class="text-gray-500 hover:text-gray-700">Verifikasi
+    Anggaran</a>
+<span class="text-gray-400 mx-1">/</span>
+<span class="text-gray-700 font-medium">Detail</span>
 @endsection
 
 @section('content')
 @if (session('success'))
-    <div class="mb-4 rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">{{ session('success') }}</div>
+<div class="mb-4 rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+    {{ session('success') }}</div>
 @endif
 
 <div class="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -18,15 +20,16 @@
         <h1 class="text-xl font-bold text-gray-900">Detail Verifikasi Anggaran</h1>
         <p class="text-sm text-gray-500 mt-0.5">
             Pengajuan:
-            <a href="{{ route('budget-requests.show', $budgetVerification->budgetRequest) }}"
+            <a href="{{ route('superadmin.budget-requests.show', $budgetVerification->budgetRequest) }}"
                 class="text-blue-600 hover:underline font-mono">
                 {{ $budgetVerification->budgetRequest?->nomor_form ?? '-' }}
             </a>
         </p>
     </div>
     <div class="flex gap-2">
-        <a href="{{ route('budget-verifications.edit', $budgetVerification) }}" class="btn btn-secondary text-sm">Edit</a>
-        <a href="{{ route('budget-verifications.index') }}" class="btn btn-secondary text-sm">← Kembali</a>
+        <a href="{{ route('superadmin.budget-verifications.edit', $budgetVerification) }}"
+            class="btn btn-secondary text-sm">Edit</a>
+        <a href="{{ route('superadmin.budget-verifications.index') }}" class="btn btn-secondary text-sm">← Kembali</a>
     </div>
 </div>
 
@@ -35,24 +38,26 @@
 
         {{-- Dokumen --}}
         <div class="card">
-            <div class="card-header"><h2 class="font-semibold text-gray-800">Kelengkapan Dokumen</h2></div>
+            <div class="card-header">
+                <h2 class="font-semibold text-gray-800">Kelengkapan Dokumen</h2>
+            </div>
             <div class="card-body space-y-3 text-sm">
                 @php
-                    $checks = [
-                        'doc_form_lengkap'       => 'Form pengajuan lengkap',
-                        'doc_surat_justifikasi'  => 'Surat justifikasi terlampir',
-                        'doc_estimasi_vendor'    => 'Estimasi vendor terlampir',
-                        'doc_spesifikasi_teknis' => 'Spesifikasi teknis tersedia',
-                    ];
+                $checks = [
+                'doc_form_lengkap' => 'Form pengajuan lengkap',
+                'doc_surat_justifikasi' => 'Surat justifikasi terlampir',
+                'doc_estimasi_vendor' => 'Estimasi vendor terlampir',
+                'doc_spesifikasi_teknis' => 'Spesifikasi teknis tersedia',
+                ];
                 @endphp
                 @foreach ($checks as $field => $label)
                 <div class="flex items-center gap-3">
                     @if ($budgetVerification->$field)
-                        <span class="text-green-500">✓</span>
-                        <span class="text-gray-800">{{ $label }}</span>
+                    <span class="text-green-500">✓</span>
+                    <span class="text-gray-800">{{ $label }}</span>
                     @else
-                        <span class="text-gray-300">✗</span>
-                        <span class="text-gray-400">{{ $label }}</span>
+                    <span class="text-gray-300">✗</span>
+                    <span class="text-gray-400">{{ $label }}</span>
                     @endif
                 </div>
                 @endforeach
@@ -67,7 +72,9 @@
 
         {{-- Analisa Finance --}}
         <div class="card">
-            <div class="card-header"><h2 class="font-semibold text-gray-800">Analisa Finance</h2></div>
+            <div class="card-header">
+                <h2 class="font-semibold text-gray-800">Analisa Finance</h2>
+            </div>
             <div class="card-body space-y-4 text-sm">
                 @if ($budgetVerification->cek_anggaran)
                 <div>
@@ -93,7 +100,9 @@
         {{-- Item Pengajuan --}}
         @if ($budgetVerification->budgetRequest?->items->count())
         <div class="card">
-            <div class="card-header"><h2 class="font-semibold text-gray-800">Item Pengajuan</h2></div>
+            <div class="card-header">
+                <h2 class="font-semibold text-gray-800">Item Pengajuan</h2>
+            </div>
             <div class="card-body p-0">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
@@ -112,8 +121,10 @@
                                 <td class="px-4 py-3 text-gray-400">{{ $i+1 }}</td>
                                 <td class="px-4 py-3 text-gray-800">{{ $item->nama_item }}</td>
                                 <td class="px-4 py-3 text-right text-gray-600">{{ $item->qty ?? '-' }}</td>
-                                <td class="px-4 py-3 text-right text-gray-700">Rp {{ number_format($item->estimasi_biaya, 0, ',', '.') }}</td>
-                                <td class="px-4 py-3 text-right font-semibold">Rp {{ number_format($item->total, 0, ',', '.') }}</td>
+                                <td class="px-4 py-3 text-right text-gray-700">Rp
+                                    {{ number_format($item->estimasi_biaya, 0, ',', '.') }}</td>
+                                <td class="px-4 py-3 text-right font-semibold">Rp
+                                    {{ number_format($item->total, 0, ',', '.') }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -121,7 +132,8 @@
                             <tr>
                                 <td colspan="4" class="px-4 py-3 text-right font-semibold text-gray-700">Total</td>
                                 <td class="px-4 py-3 text-right font-bold text-gray-900">
-                                    Rp {{ number_format($budgetVerification->budgetRequest->total_estimasi, 0, ',', '.') }}
+                                    Rp
+                                    {{ number_format($budgetVerification->budgetRequest->total_estimasi, 0, ',', '.') }}
                                 </td>
                             </tr>
                         </tfoot>
@@ -136,13 +148,17 @@
     {{-- Sidebar --}}
     <div class="space-y-5">
         <div class="card">
-            <div class="card-header"><h2 class="font-semibold text-gray-800">Hasil Verifikasi</h2></div>
+            <div class="card-header">
+                <h2 class="font-semibold text-gray-800">Hasil Verifikasi</h2>
+            </div>
             <div class="card-body space-y-3 text-sm">
                 <div class="flex justify-between">
                     <span class="text-gray-500">Rekomendasi</span>
                     @php
-                        $rekMap = ['setuju'=>['bg-green-100','text-green-700','Setuju'],'tunda'=>['bg-yellow-100','text-yellow-700','Tunda'],'tolak'=>['bg-red-100','text-red-700','Tolak']];
-                        [$rbg,$rc,$rl] = $rekMap[$budgetVerification->rekomendasi] ?? ['bg-gray-100','text-gray-600',$budgetVerification->rekomendasi];
+                    $rekMap =
+                    ['setuju'=>['bg-green-100','text-green-700','Setuju'],'tunda'=>['bg-yellow-100','text-yellow-700','Tunda'],'tolak'=>['bg-red-100','text-red-700','Tolak']];
+                    [$rbg,$rc,$rl] = $rekMap[$budgetVerification->rekomendasi] ??
+                    ['bg-gray-100','text-gray-600',$budgetVerification->rekomendasi];
                     @endphp
                     <span class="px-2 py-0.5 rounded text-xs font-medium {{ $rbg }} {{ $rc }}">{{ $rl }}</span>
                 </div>
@@ -155,7 +171,8 @@
                 @if ($budgetVerification->nominal_rekomendasi)
                 <div class="flex justify-between">
                     <span class="text-gray-500">Nominal Direkomendasikan</span>
-                    <span class="font-bold text-gray-900">Rp {{ number_format($budgetVerification->nominal_rekomendasi, 0, ',', '.') }}</span>
+                    <span class="font-bold text-gray-900">Rp
+                        {{ number_format($budgetVerification->nominal_rekomendasi, 0, ',', '.') }}</span>
                 </div>
                 @endif
                 <div class="flex justify-between">
@@ -164,7 +181,8 @@
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-500">Tanggal</span>
-                    <span class="text-gray-700">{{ \Carbon\Carbon::parse($budgetVerification->verified_at)->translatedFormat('d M Y, H:i') }}</span>
+                    <span
+                        class="text-gray-700">{{ \Carbon\Carbon::parse($budgetVerification->verified_at)->translatedFormat('d M Y, H:i') }}</span>
                 </div>
             </div>
         </div>
@@ -172,11 +190,13 @@
         {{-- Link ke Pengajuan --}}
         @if ($budgetVerification->budgetRequest)
         <div class="card">
-            <div class="card-header"><h2 class="font-semibold text-gray-800">Pengajuan Terkait</h2></div>
+            <div class="card-header">
+                <h2 class="font-semibold text-gray-800">Pengajuan Terkait</h2>
+            </div>
             <div class="card-body text-sm space-y-2">
                 <div class="flex justify-between">
                     <span class="text-gray-500">Nomor Form</span>
-                    <a href="{{ route('budget-requests.show', $budgetVerification->budgetRequest) }}"
+                    <a href="{{ route('superadmin.budget-requests.show', $budgetVerification->budgetRequest) }}"
                         class="font-mono text-blue-600 hover:underline text-xs">
                         {{ $budgetVerification->budgetRequest->nomor_form }}
                     </a>
@@ -187,7 +207,8 @@
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-500">Jenis</span>
-                    <span class="uppercase font-medium text-gray-800">{{ $budgetVerification->budgetRequest->jenis }}</span>
+                    <span
+                        class="uppercase font-medium text-gray-800">{{ $budgetVerification->budgetRequest->jenis }}</span>
                 </div>
             </div>
         </div>
@@ -195,7 +216,3 @@
     </div>
 </div>
 @endsection
-
-
-
-

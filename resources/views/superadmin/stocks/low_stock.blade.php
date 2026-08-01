@@ -9,7 +9,7 @@
         <h1 class="text-xl font-bold text-gray-900">Stok Menipis</h1>
         <p class="text-sm text-gray-500">{{ $stocks->count() }} item perlu restock</p>
     </div>
-    <a href="{{ route('stocks.index') }}" class="btn btn-secondary">Lihat Semua Stok</a>
+    <a href="{{ route('superadmin.stocks.index') }}" class="btn btn-secondary">Lihat Semua Stok</a>
 </div>
 
 <div class="card mb-5">
@@ -19,12 +19,13 @@
             <select name="warehouse_id" class="form-select">
                 <option value="">Semua Gudang</option>
                 @foreach($warehouses as $warehouse)
-                <option value="{{ $warehouse->id }}" {{ request('warehouse_id')==$warehouse->id ? 'selected' : '' }}>{{ $warehouse->name }}</option>
+                <option value="{{ $warehouse->id }}" {{ request('warehouse_id')==$warehouse->id ? 'selected' : '' }}>
+                    {{ $warehouse->name }}</option>
                 @endforeach
             </select>
         </div>
         <button type="submit" class="btn btn-primary">Filter</button>
-        <a href="{{ route('stocks.low-stock') }}" class="btn btn-secondary">Reset</a>
+        <a href="{{ route('superadmin.stocks.low-stock') }}" class="btn btn-secondary">Reset</a>
     </form>
 </div>
 
@@ -57,7 +58,8 @@
                     {{ $stock->warehouse->name ?? '—' }}
                     <div class="text-xs text-gray-400 font-mono">{{ $stock->warehouse->code ?? '' }}</div>
                 </td>
-                <td class="text-right font-semibold text-red-600">{{ number_format($stock->quantity) }} {{ $stock->product->unit ?? '' }}</td>
+                <td class="text-right font-semibold text-red-600">{{ number_format($stock->quantity) }}
+                    {{ $stock->product->unit ?? '' }}</td>
                 <td class="text-right text-gray-500">{{ number_format($stock->product->min_stock ?? 0) }}</td>
                 <td class="text-right font-semibold text-red-600">
                     {{ number_format(max(($stock->product->min_stock ?? 0) - $stock->quantity, 0)) }}

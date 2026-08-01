@@ -80,7 +80,3 @@ class StockMovementController extends Controller
         return response()->json(['success' => true, 'message' => 'Pergerakan stok berhasil dicatat.', 'data' => $movement->load(['product:id,name,sku', 'warehouse:id,name'])], 201);
     }
 }
-
-
-
-

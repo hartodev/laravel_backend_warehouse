@@ -11,12 +11,12 @@
             <h4 class="fw-semibold mb-1">Edit Kategori</h4>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0 small">
-                    <li class="breadcrumb-item"><a href="{{ route('categories.index') }}">Kategori</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('superadmin.categories.index') }}">Kategori</a></li>
                     <li class="breadcrumb-item active">Edit</li>
                 </ol>
             </nav>
         </div>
-        <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary btn-sm">
+        <a href="{{ route('superadmin.categories.index') }}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-arrow-left me-1"></i> Kembali
         </a>
     </div>
@@ -30,9 +30,8 @@
                     <h6 class="mb-0 fw-semibold">Informasi Kategori</h6>
                 </div>
                 <div class="card-body p-4">
-                    <form action="{{ route('categories.update', $category) }}"
-                          method="POST"
-                          enctype="multipart/form-data">
+                    <form action="{{ route('categories.update', $category) }}" method="POST"
+                        enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 
@@ -41,29 +40,23 @@
                             <label for="name" class="form-label fw-medium">
                                 Nama Kategori <span class="text-danger">*</span>
                             </label>
-                            <input type="text"
-                                   id="name"
-                                   name="name"
-                                   class="form-control @error('name') is-invalid @enderror"
-                                   value="{{ old('name', $category->name) }}"
-                                   placeholder="cth. Elektronik"
-                                   required>
+                            <input type="text" id="name" name="name"
+                                class="form-control @error('name') is-invalid @enderror"
+                                value="{{ old('name', $category->name) }}" placeholder="cth. Elektronik" required>
                             @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         {{-- Slug --}}
                         <div class="mb-3">
                             <label for="slug" class="form-label fw-medium">Slug</label>
-                            <input type="text"
-                                   id="slug"
-                                   name="slug"
-                                   class="form-control @error('slug') is-invalid @enderror"
-                                   value="{{ old('slug', $category->slug) }}"
-                                   placeholder="auto-generate dari nama jika dikosongkan">
+                            <input type="text" id="slug" name="slug"
+                                class="form-control @error('slug') is-invalid @enderror"
+                                value="{{ old('slug', $category->slug) }}"
+                                placeholder="auto-generate dari nama jika dikosongkan">
                             @error('slug')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                             <div class="form-text">Kosongkan untuk generate otomatis dari nama.</div>
                         </div>
@@ -71,19 +64,18 @@
                         {{-- Parent Kategori --}}
                         <div class="mb-3">
                             <label for="parent_id" class="form-label fw-medium">Kategori Induk</label>
-                            <select id="parent_id"
-                                    name="parent_id"
-                                    class="form-select @error('parent_id') is-invalid @enderror">
+                            <select id="parent_id" name="parent_id"
+                                class="form-select @error('parent_id') is-invalid @enderror">
                                 <option value="">— Tidak ada (kategori utama) —</option>
                                 @foreach ($parents as $parent)
-                                    <option value="{{ $parent->id }}"
-                                        {{ old('parent_id', $category->parent_id) == $parent->id ? 'selected' : '' }}>
-                                        {{ $parent->name }}
-                                    </option>
+                                <option value="{{ $parent->id }}"
+                                    {{ old('parent_id', $category->parent_id) == $parent->id ? 'selected' : '' }}>
+                                    {{ $parent->name }}
+                                </option>
                                 @endforeach
                             </select>
                             @error('parent_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -94,14 +86,11 @@
                                 <span class="input-group-text">
                                     <i id="icon-preview" class="{{ old('icon', $category->icon ?? 'bi bi-tag') }}"></i>
                                 </span>
-                                <input type="text"
-                                       id="icon"
-                                       name="icon"
-                                       class="form-control @error('icon') is-invalid @enderror"
-                                       value="{{ old('icon', $category->icon) }}"
-                                       placeholder="cth. bi bi-laptop">
+                                <input type="text" id="icon" name="icon"
+                                    class="form-control @error('icon') is-invalid @enderror"
+                                    value="{{ old('icon', $category->icon) }}" placeholder="cth. bi bi-laptop">
                                 @error('icon')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="form-text">Gunakan class Bootstrap Icons, cth: <code>bi bi-laptop</code></div>
@@ -111,12 +100,8 @@
                         <div class="mb-4">
                             <label class="form-label fw-medium d-block">Status</label>
                             <div class="form-check form-switch">
-                                <input class="form-check-input"
-                                       type="checkbox"
-                                       id="is_active"
-                                       name="is_active"
-                                       value="1"
-                                       {{ old('is_active', $category->is_active) ? 'checked' : '' }}>
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
+                                    value="1" {{ old('is_active', $category->is_active) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="is_active">Aktif</label>
                             </div>
                         </div>
@@ -126,8 +111,7 @@
                             <button type="submit" class="btn btn-primary px-4">
                                 <i class="bi bi-check-lg me-1"></i> Simpan Perubahan
                             </button>
-                            <a href="{{ route('categories.index') }}"
-                               class="btn btn-outline-secondary px-4">
+                            <a href="{{ route('superadmin.categories.index') }}" class="btn btn-outline-secondary px-4">
                                 Batal
                             </a>
                         </div>
@@ -149,38 +133,29 @@
                     {{-- Preview gambar saat ini --}}
                     <div id="image-wrapper" class="mb-3 text-center">
                         @if ($category->image)
-                            <img id="image-preview"
-                                 src="{{ asset('storage/' . $category->image) }}"
-                                 alt="{{ $category->name }}"
-                                 class="img-fluid rounded"
-                                 style="max-height: 160px; object-fit: cover; width: 100%;">
+                        <img id="image-preview" src="{{ asset('storage/' . $category->image) }}"
+                            alt="{{ $category->name }}" class="img-fluid rounded"
+                            style="max-height: 160px; object-fit: cover; width: 100%;">
                         @else
-                            <div id="image-placeholder"
-                                 class="d-flex align-items-center justify-content-center bg-light rounded"
-                                 style="height: 160px;">
-                                <div class="text-center text-muted">
-                                    <i class="bi bi-image fs-1"></i>
-                                    <p class="small mb-0 mt-1">Belum ada gambar</p>
-                                </div>
+                        <div id="image-placeholder"
+                            class="d-flex align-items-center justify-content-center bg-light rounded"
+                            style="height: 160px;">
+                            <div class="text-center text-muted">
+                                <i class="bi bi-image fs-1"></i>
+                                <p class="small mb-0 mt-1">Belum ada gambar</p>
                             </div>
-                            <img id="image-preview"
-                                 src=""
-                                 alt="Preview"
-                                 class="img-fluid rounded d-none"
-                                 style="max-height: 160px; object-fit: cover; width: 100%;">
+                        </div>
+                        <img id="image-preview" src="" alt="Preview" class="img-fluid rounded d-none"
+                            style="max-height: 160px; object-fit: cover; width: 100%;">
                         @endif
                     </div>
 
                     <label for="image" class="form-label fw-medium">Ganti Gambar</label>
-                    <input type="file"
-                           id="image"
-                           name="image"
-                           form="{{ 'form_edit_category' }}"
-                           class="form-control @error('image') is-invalid @enderror"
-                           accept="image/jpg,image/jpeg,image/png,image/webp"
-                           onchange="previewImage(this)">
+                    <input type="file" id="image" name="image" form="{{ 'form_edit_category' }}"
+                        class="form-control @error('image') is-invalid @enderror"
+                        accept="image/jpg,image/jpeg,image/png,image/webp" onchange="previewImage(this)">
                     @error('image')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                     <div class="form-text">JPG, PNG, WEBP. Maks 2 MB.</div>
                 </div>
@@ -218,27 +193,27 @@
 
 @push('scripts')
 <script>
-    // Live icon preview
-    document.getElementById('icon').addEventListener('input', function () {
-        const preview = document.getElementById('icon-preview');
-        preview.className = this.value || 'bi bi-tag';
-    });
+// Live icon preview
+document.getElementById('icon').addEventListener('input', function() {
+    const preview = document.getElementById('icon-preview');
+    preview.className = this.value || 'bi bi-tag';
+});
 
-    // Image preview before upload
-    function previewImage(input) {
-        if (!input.files || !input.files[0]) return;
+// Image preview before upload
+function previewImage(input) {
+    if (!input.files || !input.files[0]) return;
 
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const preview = document.getElementById('image-preview');
-            const placeholder = document.getElementById('image-placeholder');
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById('image-preview');
+        const placeholder = document.getElementById('image-placeholder');
 
-            preview.src = e.target.result;
-            preview.classList.remove('d-none');
+        preview.src = e.target.result;
+        preview.classList.remove('d-none');
 
-            if (placeholder) placeholder.classList.add('d-none');
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
+        if (placeholder) placeholder.classList.add('d-none');
+    };
+    reader.readAsDataURL(input.files[0]);
+}
 </script>
 @endpush
