@@ -121,7 +121,7 @@ public function store(Request $request)
         ? 'Nominal realisasi melebihi sisa anggaran. Laporan disimpan dan revisi anggaran otomatis diajukan, menunggu persetujuan.'
         : 'Laporan pertanggungjawaban berhasil dikirim & realisasi otomatis tercatat di buku kas.';
 
-    return redirect()->route('expense-reports.show', $er)->with('success', $message);
+    return redirect()->route('superadmin.expense-reports.show', $er)->with('success', $message);
 }
 
    public function show(ExpenseReport $expenseReport)
@@ -154,7 +154,7 @@ public function store(Request $request)
         $expenseReport->calculateSelisih();
         $expenseReport->save();
 
-        return redirect()->route('expense-reports.show', $expenseReport)
+        return redirect()->route('superadmin.expense-reports.show', $expenseReport)
             ->with('success', 'Laporan berhasil diupdate.');
     }
 

@@ -96,7 +96,7 @@ class PurchaseOrderController extends Controller
             }
         });
 
-        return redirect()->route('purchase-orders.show', $po)
+        return redirect()->route('superadmin.purchase-orders.show', $po)
             ->with('success', 'Purchase Order berhasil dibuat.');
     }
 
@@ -141,7 +141,7 @@ class PurchaseOrderController extends Controller
 
         $purchaseOrder->update($request->only('expected_date', 'payment_method', 'discount_amount', 'notes'));
 
-        return redirect()->route('purchase-orders.show', $purchaseOrder)
+        return redirect()->route('superadmin.purchase-orders.show', $purchaseOrder)
             ->with('success', 'PO berhasil diupdate.');
     }
 
@@ -154,7 +154,7 @@ class PurchaseOrderController extends Controller
         $purchaseOrder->items()->delete();
         $purchaseOrder->delete();
 
-        return redirect()->route('purchase-orders.index')
+        return redirect()->route('superadmin.purchase-orders.index')
             ->with('success', 'Purchase Order berhasil dihapus.');
     }
 
@@ -228,3 +228,5 @@ class PurchaseOrderController extends Controller
         return back()->with('success', 'Barang berhasil diterima dan stok diperbarui.');
     }
 }
+
+

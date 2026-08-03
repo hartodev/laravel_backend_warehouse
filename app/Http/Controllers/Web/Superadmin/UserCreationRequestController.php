@@ -82,7 +82,7 @@ class UserCreationRequestController extends Controller
             'data'    => ['user_request_id' => $userRequest->id],
         ]);
 
-        return redirect()->route('user-requests.index')
+        return redirect()->route('superadmin.user-requests.index')
             ->with('success', "User {$userRequest->name} berhasil disetujui dan dibuat.");
     }
 
@@ -110,7 +110,9 @@ class UserCreationRequestController extends Controller
             'data'    => ['user_request_id' => $userRequest->id],
         ]);
 
-        return redirect()->route('user-requests.index')
+        return redirect()->route('superadmin.user-requests.index')
             ->with('success', "Pengajuan {$userRequest->name} ditolak.");
     }
 }
+
+

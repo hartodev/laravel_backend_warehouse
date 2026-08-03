@@ -35,6 +35,12 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('categories');
+        Schema::table('categories', function (Blueprint $table) {
+            $table->dropForeign(['parent_id']);
+            // SEBELUM: dropColumn(['parent_id', 'slug', 'icon', 'image', 'is_active']);
+            // SESUDAH: hapus 'is_active' — bukan kolom milik migration ini.
+            $table->dropColumn(['parent_id', 'slug', 'icon', 'image']);
+        });
     }
 };
+

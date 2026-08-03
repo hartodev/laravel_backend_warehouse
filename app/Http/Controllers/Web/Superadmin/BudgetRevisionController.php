@@ -60,7 +60,7 @@ class BudgetRevisionController extends Controller
         $revision->anggaran_baru = $revision->hitungAnggaranBaru();
         $revision->save();
 
-        return redirect()->route('budget_revisions.index')
+        return redirect()->route('superadmin.budget_revisions.index')
             ->with('success', 'Revisi anggaran berhasil diajukan.');
     }
 
@@ -101,7 +101,7 @@ class BudgetRevisionController extends Controller
         $budgetRevision->anggaran_baru = $budgetRevision->hitungAnggaranBaru();
         $budgetRevision->save();
 
-        return redirect()->route('budget-revisions.show', $budgetRevision)
+        return redirect()->route('superadmin.budget-revisions.show', $budgetRevision)
             ->with('success', 'Revisi anggaran berhasil diupdate.');
     }
 
@@ -156,3 +156,5 @@ class BudgetRevisionController extends Controller
         return back()->with('success', 'Revisi anggaran ditolak.');
     }
 }
+
+

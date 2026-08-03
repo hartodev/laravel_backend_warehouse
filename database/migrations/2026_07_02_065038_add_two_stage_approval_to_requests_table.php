@@ -44,5 +44,6 @@ public function up(): void
             'processing',
             'completed'
         ) DEFAULT 'pending'");
-    }   
+    }
 };
+

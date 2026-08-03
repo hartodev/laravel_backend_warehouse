@@ -15,8 +15,7 @@
         <div class="card-header">
             <h2 class="font-semibold text-gray-900">Tambah Kategori Baru</h2>
         </div>
-        <form method="POST" action="{{ route('categories.store') }}" enctype="multipart/form-data">
-            @csrf
+<form method="POST" action="{{ route('superadmin.categories.store') }}" enctype="multipart/form-data">            @csrf
             <div class="card-body space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="col-span-2">
@@ -79,3 +78,5 @@ document.getElementById('imgInput').addEventListener('change', function(e) {
 });
 </script>
 @endpush
+
+

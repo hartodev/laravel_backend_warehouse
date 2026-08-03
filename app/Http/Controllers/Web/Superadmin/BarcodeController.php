@@ -71,3 +71,5 @@ class BarcodeController extends Controller
         return back()->with(['scan_result' => compact('product', 'stockInfo'), 'success' => 'Produk ditemukan.']);
     }
 }
+
+

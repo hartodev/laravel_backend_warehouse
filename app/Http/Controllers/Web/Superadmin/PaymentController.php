@@ -99,7 +99,7 @@ class PaymentController extends Controller
             ]);
         });
 
-        return redirect()->route('payments.show', $payment)
+        return redirect()->route('superadmin.payments.show', $payment)
             ->with('success', 'Pembayaran berhasil dicatat.');
     }
 
@@ -133,7 +133,7 @@ class PaymentController extends Controller
             ['bukti_file' => $buktiPath]
         ));
 
-        return redirect()->route('payments.show', $payment)
+        return redirect()->route('superadmin.payments.show', $payment)
             ->with('success', 'Pembayaran berhasil diupdate.');
     }
 
@@ -162,3 +162,5 @@ class PaymentController extends Controller
         return back()->with('success', 'Pembayaran berhasil diverifikasi.');
     }
 }
+
+

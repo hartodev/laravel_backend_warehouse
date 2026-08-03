@@ -142,7 +142,7 @@ class RequestController extends Controller
             );
         });
 
-        return redirect()->route('requests.index')->with('success', 'Permintaan disetujui final dan stok telah dikeluarkan.');
+        return redirect()->route('superadmin.requests.index')->with('success', 'Permintaan disetujui final dan stok telah dikeluarkan.');
     }
 
     public function reject(Request $httpRequest, StockRequest $request)
@@ -177,7 +177,7 @@ class RequestController extends Controller
             ['request_id' => $request->id, 'reason' => $httpRequest->reject_reason]
         );
 
-        return redirect()->route('requests.index')->with('success', 'Permintaan ditolak.');
+        return redirect()->route('superadmin.requests.index')->with('success', 'Permintaan ditolak.');
     }
 }
 

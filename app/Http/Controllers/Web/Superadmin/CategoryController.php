@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class CategoryController extends Controller
@@ -12,6 +13,8 @@ class CategoryController extends Controller
     public function index(Request $request)
     {
         $categories = Category::withCount('products')
+            // TAMBAHAN: eager load 'parent' untuk mencegah N+1 saat Blade akses $cat->parent
+            ->with('parent')
             ->when($request->search, fn($q) => $q->where(function ($q) use ($request) {
                 $q->where('name', 'like', "%{$request->search}%")
                   ->orWhere('slug', 'like', "%{$request->search}%");
@@ -41,21 +44,25 @@ class CategoryController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
-        $imagePath = null;
-        if ($request->hasFile('image')) {
-            $imagePath = ImageService::upload($request->file('image'), 'categories');
-        }
+        // TAMBAHAN: bungkus dalam transaction agar tidak ada orphan file
+        // jika create() gagal setelah upload berhasil.
+        DB::transaction(function () use ($request) {
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                $imagePath = ImageService::upload($request->file('image'), 'categories');
+            }
 
-        Category::create([
-            'name'      => $request->name,
-            'slug'      => $request->slug ?? \Str::slug($request->name),
-            'parent_id' => $request->parent_id,
-            'icon'      => $request->icon,
-            'image'     => $imagePath,
-            'is_active' => $request->boolean('is_active', true),
-        ]);
+            Category::create([
+                'name'      => $request->name,
+                'slug'      => $request->slug ?? \Str::slug($request->name),
+                'parent_id' => $request->parent_id,
+                'icon'      => $request->icon,
+                'image'     => $imagePath,
+                'is_active' => $request->boolean('is_active', true),
+            ]);
+        });
 
-        return redirect()->route('categories.index')
+        return redirect()->route('superadmin.categories.index')
             ->with('success', 'Kategori berhasil ditambahkan.');
     }
 
@@ -82,7 +89,8 @@ class CategoryController extends Controller
         $request->validate([
             'name'      => ['required', 'string', 'max:100', Rule::unique('categories')->ignore($category->id)],
             'slug'      => ['nullable', 'string', 'max:120', Rule::unique('categories')->ignore($category->id)],
-            'parent_id' => 'nullable|exists:categories,id',
+            // TAMBAHAN: cegah kategori dijadikan parent dari dirinya sendiri
+            'parent_id' => ['nullable', 'exists:categories,id', Rule::notIn([$category->id])],
             'icon'      => 'nullable|string|max:50',
             'image'     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'is_active' => 'nullable|boolean',
@@ -98,7 +106,7 @@ class CategoryController extends Controller
 
         $category->update($data);
 
-        return redirect()->route('categories.index')
+        return redirect()->route('superadmin.categories.index')
             ->with('success', 'Kategori berhasil diupdate.');
     }
 
@@ -118,7 +126,7 @@ class CategoryController extends Controller
 
         $category->delete();
 
-        return redirect()->route('categories.index')
+        return redirect()->route('superadmin.categories.index')
             ->with('success', 'Kategori berhasil dihapus.');
     }
 }

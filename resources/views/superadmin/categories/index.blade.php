@@ -84,8 +84,7 @@
                     <div class="flex items-center justify-end gap-1">
                         <a href="{{ route('superadmin.categories.edit', $cat) }}"
                             class="btn btn-secondary btn-sm">Edit</a>
-                        <button type="button" data-url="{{ route('categories.destroy', $cat) }}"
-                            data-name="{{ $cat->name }}" onclick="openDeleteModal(this)" class="btn btn-danger btn-sm">
+<button type="button" data-url="{{ route('superadmin.categories.destroy', $cat) }}"                            data-name="{{ $cat->name }}" onclick="openDeleteModal(this)" class="btn btn-danger btn-sm">
                             Hapus
                         </button>
                     </div>
@@ -147,3 +146,4 @@ function closeDeleteModal() {
 }
 </script>
 @endpush
+

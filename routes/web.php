@@ -53,13 +53,13 @@ Route::get('/', function () {
 Route::get('/login', [AuthWebController::class, 'showLogin'])->name('login');
 Route::get('/register', [AuthWebController::class, 'showRegister'])->name('register');
 
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthWebController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthWebController::class, 'login']);
+// Route::middleware('guest')->group(function () {
+//     Route::get('/login', [AuthWebController::class, 'showLogin'])->name('login');
+//     Route::post('/login', [AuthWebController::class, 'login']);
 
-    Route::get('/register', [AuthWebController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthWebController::class, 'register']);
-});
+//     Route::get('/register', [AuthWebController::class, 'showRegister'])->name('register');
+//     Route::post('/register', [AuthWebController::class, 'register']);
+// });
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthWebController::class, 'logout'])->name('logout');
@@ -374,8 +374,6 @@ Route::prefix('admin')
         Route::resource('sales-orders', SalesOrderController::class)->only(['index','create','store','show']);
         Route::patch('sales-orders/{salesOrder}/approve', [SalesOrderController::class, 'approve'])->name('sales-orders.approve');
         Route::patch('sales-orders/{salesOrder}/reject', [SalesOrderController::class, 'reject'])->name('sales-orders.reject');
-        Route::resource('stock-movements', StockMovementController::class)->only(['index','create','store']);
-        Route::resource('suppliers', SupplierController::class);
         Route::resource('user-requests', UserCreationRequestController::class)
             ->only(['index', 'create', 'store', 'show', 'destroy']);
         Route::resource('stock-transfers', AdminStockTransferController::class)->only(['index', 'create', 'store', 'show']);

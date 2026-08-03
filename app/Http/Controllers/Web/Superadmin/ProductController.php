@@ -182,3 +182,5 @@ class ProductController extends Controller
             ->with('success', "Produk '{$product->name}' berhasil {$status}.");
     }
 }
+
+

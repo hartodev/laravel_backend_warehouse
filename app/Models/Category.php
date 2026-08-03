@@ -16,7 +16,17 @@ class Category extends Model
 {
       use HasFactory, SoftDeletes;
 
-    protected $guarded = [];
+    // protected $guarded = [];
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'parent_id',
+        'icon',
+        'image',
+        'description',
+        'is_active',
+    ];
 
     protected $casts = [
         'is_active' => 'boolean',
@@ -42,3 +52,5 @@ class Category extends Model
         return $this->belongsTo(Category::class, 'parent_id');
     }
 }
+
+

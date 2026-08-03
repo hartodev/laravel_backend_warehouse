@@ -73,7 +73,7 @@ class SupplierController extends Controller
             'is_active'      => $request->boolean('is_active', true),
         ]);
 
-        return redirect()->route('suppliers.index')
+        return redirect()->route('superadmin.suppliers.index')
             ->with('success', 'Supplier berhasil ditambahkan.');
     }
 
@@ -124,7 +124,7 @@ public function update(Request $request, Supplier $supplier)
 
     $supplier->update($data);
 
-    return redirect()->route('suppliers.index')
+        return redirect()->route('superadmin.suppliers.index')
         ->with('success', 'Supplier berhasil diupdate.');
 }
     public function destroy(Supplier $supplier)
@@ -139,7 +139,7 @@ public function update(Request $request, Supplier $supplier)
 
         $supplier->delete();
 
-        return redirect()->route('suppliers.index')
+        return redirect()->route('superadmin.suppliers.index')
             ->with('success', 'Supplier berhasil dihapus.');
     }
 
@@ -150,3 +150,4 @@ public function update(Request $request, Supplier $supplier)
         return back()->with('success', $supplier->is_active ? 'Supplier diaktifkan.' : 'Supplier dinonaktifkan.');
     }
 }
+
