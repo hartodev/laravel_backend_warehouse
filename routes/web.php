@@ -51,7 +51,11 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/login', [AuthWebController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthWebController::class, 'login']);
+
 Route::get('/register', [AuthWebController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthWebController::class, 'register']);
+
 
 // Route::middleware('guest')->group(function () {
 //     Route::get('/login', [AuthWebController::class, 'showLogin'])->name('login');
