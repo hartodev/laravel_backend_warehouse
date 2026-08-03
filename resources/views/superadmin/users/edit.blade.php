@@ -13,7 +13,7 @@
     <a href="{{ route('superadmin.superadmin.users.index') }}" class="btn btn-secondary">Kembali</a>
 </div>
 
-<form method="POST" action="{{ route('users.update', $user) }}" class="space-y-5">
+<form method="POST" action="{{ route('superadmin.users.update', $user) }}" class="space-y-5">
     @csrf
     @method('PUT')
 
@@ -89,7 +89,7 @@
         <h3 class="page-title text-base mb-1">Reset Password</h3>
         <p class="text-sm text-gray-500 mb-4">Atur ulang password user ini secara manual.</p>
 
-        <form method="POST" action="{{ route('users.reset-password', $user) }}" class="flex flex-wrap items-end gap-3">
+        <form method="POST" action="{{ route('superadmin.users.reset-password', $user) }}" class="flex flex-wrap items-end gap-3">
             @csrf
             <div class="w-64">
                 <label class="form-label">Password Baru <span class="text-red-500">*</span></label>

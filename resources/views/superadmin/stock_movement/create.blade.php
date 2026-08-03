@@ -1,5 +1,5 @@
 {{-- stock_movements/create.blade.php --}}
-@extends('superadmin.layouts.app')
+@extends('layouts.app')
 @section('title', 'Catat Pergerakan Manual')
 @section('breadcrumb')
 <a href="{{ route('superadmin.stock-movements.index') }}" class="hover:text-primary-700">Pergerakan Stok</a>

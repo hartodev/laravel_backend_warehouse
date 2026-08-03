@@ -117,7 +117,7 @@ class BudgetRequestController extends Controller
         $totalEstimasi = $this->syncItems($budgetRequest, $validated['items']);
         $budgetRequest->update(['total_estimasi' => $totalEstimasi]);
 
-        return redirect()->route('superadmin.budget_requests.index')
+        return redirect()->route('superadmin.budget-requests.index')
             ->with('success', 'Pengajuan anggaran berhasil dibuat.');
     }
 
@@ -201,7 +201,7 @@ class BudgetRequestController extends Controller
 
         $budgetRequest->delete();
 
-        return redirect()->route('superadmin.budget_requests.index')
+        return redirect()->route('superadmin.budget-requests.index')
             ->with('success', 'Pengajuan berhasil dihapus.');
     }
 

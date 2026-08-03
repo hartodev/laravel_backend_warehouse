@@ -99,7 +99,7 @@
                         <button onclick="document.getElementById('reject-po-{{ $po->id }}').classList.remove('hidden')"
                             class="btn btn-danger btn-sm">Tolak</button>
                         @elseif($po->status === 'approved')
-                        <form method="POST" action="{{ route('purchase-orders.receive', $po) }}" class="inline">
+                        <form method="POST" action="{{ route('superadmin.purchase-orders.receive', $po) }}" class="inline">
                             @csrf
                             <button type="submit" class="btn btn-primary btn-sm">Terima Barang</button>
                         </form>
@@ -107,7 +107,7 @@
                     </div>
                     <x-confirm-modal :id="'reject-po-' . $po->id" title="Tolak Purchase Order?"
                         :message="'PO ' . $po->po_number . ' akan ditolak.'"
-                        :action="route('purchase-orders.reject', $po)" method="POST" confirm-label="Tolak PO"
+                        :action="route('superadmin.purchase-orders.reject', $po)" method="POST" confirm-label="Tolak PO"
                         confirm-class="btn-danger">
                         <div class="mt-3">
                             <label class="form-label">Alasan <span class="text-red-500">*</span></label>

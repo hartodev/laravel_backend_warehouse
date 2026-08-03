@@ -155,7 +155,7 @@
                 <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse inline-block"></span>
                 Anggaran Menunggu ({{ $pendingBudgets->count() }})
             </h3>
-            <a href="{{ route('superadmin.budget_requests.index', ['status' => 'pending']) }}"
+            <a href="{{ route('superadmin.budget-requests.index', ['status' => 'pending']) }}"
                 class="text-xs text-primary-700 hover:underline">Lihat semua →</a>
         </div>
         <div class="divide-y divide-gray-100 max-h-72 overflow-y-auto">

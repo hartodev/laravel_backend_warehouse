@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', $purchaseOrder->po_number)
 @section('breadcrumb')
-<a href="{{ route('purchase-orders.index') }}" class="hover:text-primary-700">Purchase Order</a>
+<a href="{{ route('superadmin.purchase-orders.index') }}" class="hover:text-primary-700">Purchase Order</a>
 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
 </svg>
@@ -26,14 +26,14 @@
         <button onclick="document.getElementById('delete-po').classList.remove('hidden')"
             class="btn-danger btn">Hapus</button>
         @elseif($purchaseOrder->status === 'pending')
-        <form method="POST" action="{{ route('purchase-orders.approve', $purchaseOrder) }}" class="inline">
+        <form method="POST" action="{{ route('superadmin.purchase-orders.approve', $purchaseOrder) }}" class="inline">
             @csrf
             <button type="submit" class="btn-success btn">Setujui PO</button>
         </form>
         <button onclick="document.getElementById('reject-po').classList.remove('hidden')"
             class="btn-danger btn">Tolak</button>
         @elseif($purchaseOrder->status === 'approved')
-        <form method="POST" action="{{ route('purchase-orders.receive', $purchaseOrder) }}" class="inline">
+        <form method="POST" action="{{ route('superadmin.purchase-orders.receive', $purchaseOrder) }}" class="inline">
             @csrf
             <button type="submit" class="btn-primary btn">✓ Terima Semua Barang</button>
         </form>
@@ -144,14 +144,14 @@
 
 {{-- Modals --}}
 <x-confirm-modal id="delete-po" title="Hapus PO?" :message="'PO '.$purchaseOrder->po_number.' akan dihapus permanen.'"
-    :action="route('purchase-orders.destroy', $purchaseOrder)" method="DELETE" confirm-label="Hapus PO" />
+    :action="route('superadmin.purchase-orders.destroy', $purchaseOrder)" method="DELETE" confirm-label="Hapus PO" />
 
 <div id="reject-po" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
         <div class="px-6 py-5 border-b">
             <h3 class="font-semibold">Tolak Purchase Order</h3>
         </div>
-        <form method="POST" action="{{ route('purchase-orders.reject', $purchaseOrder) }}">
+        <form method="POST" action="{{ route('superadmin.purchase-orders.reject', $purchaseOrder) }}">
             @csrf
             <div class="px-6 py-4 space-y-3">
                 <p class="text-sm text-gray-600">Berikan alasan penolakan PO ini.</p>

@@ -2,7 +2,7 @@
 
 @section('title', 'Buat Pengajuan Anggaran')
 @section('breadcrumb')
-<a href="{{ route('superadmin.budget_requests.index') }}">Pengajuan Anggaran</a>
+<a href="{{ route('superadmin.budget-requests.index') }}">Pengajuan Anggaran</a>
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
 </svg>
@@ -17,7 +17,7 @@
         <p class="text-sm text-gray-500 mt-1">Input manual pengajuan RAB sebagai Super Admin.</p>
     </div>
 
-    <form action="{{ route('budget-requests.store') }}" method="POST" @submit="return validateForm()">
+    <form action="{{ route('superadmin.budget-requests.store') }}" method="POST" @submit="return validateForm()">
         @csrf
 
         {{-- Info Umum --}}
@@ -166,7 +166,7 @@
         </div>
 
         <div class="flex gap-3 justify-end">
-            <a href="{{ route('superadmin.budget_requests.index') }}" class="btn btn-secondary">Batal</a>
+            <a href="{{ route('superadmin.budget-requests.index') }}" class="btn btn-secondary">Batal</a>
             <button type="submit" class="btn btn-primary">Simpan sebagai Draft</button>
         </div>
     </form>

@@ -24,7 +24,7 @@
     <div class="flex gap-2">
         @if($payment->status === 'pending')
         <a href="{{ route('superadmin.payments.edit', $payment) }}" class="btn-secondary btn">Edit</a>
-        <form method="POST" action="{{ route('payments.verify', $payment) }}" class="inline">@csrf<button
+        <form method="POST" action="{{ route('superadmin.payments.verify', $payment) }}" class="inline">@csrf<button
                 class="btn-success btn">✓ Verifikasi</button></form>
         @endif
     </div>

@@ -278,7 +278,7 @@
                 </p>
             </div>
         </div>
-        <form method="POST" action="{{ route('purchase-orders.destroy', $purchaseOrder) }}">
+        <form method="POST" action="{{ route('superadmin.purchase-orders.destroy', $purchaseOrder) }}">
             @csrf
             @method('DELETE')
             <div class="flex justify-end gap-2">

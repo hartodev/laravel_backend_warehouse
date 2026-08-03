@@ -3,7 +3,7 @@
 @section('title', 'Ajukan Revisi Anggaran')
 
 @section('breadcrumb')
-<a href="{{ route('superadmin.budget_revisions.index') }}" class="text-gray-500 hover:text-gray-700">Revisi Anggaran</a>
+<a href="{{ route('superadmin.budget-revisions.index') }}" class="text-gray-500 hover:text-gray-700">Revisi Anggaran</a>
 <span class="text-gray-400 mx-1">/</span>
 <span class="text-gray-700 font-medium">Ajukan Revisi</span>
 @endsection
@@ -113,7 +113,7 @@
     </div>
 
     <div class="flex justify-end gap-3">
-        <a href="{{ route('superadmin.budget_revisions.index') }}" class="btn btn-secondary">Batal</a>
+        <a href="{{ route('superadmin.budget-revisions.index') }}" class="btn btn-secondary">Batal</a>
         <button type="submit" class="btn btn-primary">Ajukan Revisi</button>
     </div>
 </form>

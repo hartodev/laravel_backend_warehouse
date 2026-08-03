@@ -18,6 +18,8 @@ use App\Http\Controllers\Web\Admin\StockOpnameController as AdminStockOpnameCont
 use App\Http\Controllers\Web\Admin\StockController as AdminStockController;
 use App\Http\Controllers\Web\Admin\StockMovementController as AdminStockMovementController;
 use App\Http\Controllers\Web\Admin\StockTransferController as AdminStockTransferController;
+use App\Http\Controllers\Web\Admin\StockReportController as AdminStockReportController;
+use App\Http\Controllers\Web\Admin\ProductSubmissionController as AdminProductSubmissionController;
 use App\Http\Controllers\Web\Superadmin\BarcodeController;
 use App\Http\Controllers\Web\Superadmin\BudgetRequestController;
 use App\Http\Controllers\Web\Superadmin\CashBookController;
@@ -378,18 +380,18 @@ Route::prefix('admin')
             ->only(['index', 'create', 'store', 'show', 'destroy']);
         Route::resource('stock-transfers', AdminStockTransferController::class)->only(['index', 'create', 'store', 'show']);
                     // ── Laporan Stok ─────────────────────────────────────────
-        Route::get('stock-reports', [\App\Http\Controllers\Web\Admin\StockReportController::class, 'index'])
+        Route::get('stock-reports', [AdminStockReportController::class, 'index'])
             ->name('stock-reports.index');
         Route::prefix('product-submissions')
             ->name('product-submissions.')
-            ->controller(\App\Http\Controllers\Web\Admin\ProductSubmissionController::class)
+            ->controller(AdminProductSubmissionController::class)
             ->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::get('{submission}', 'show')->name('show');
                 Route::patch('{submission}/approve', 'approve')->name('approve');
                 Route::patch('{submission}/reject', 'reject')->name('reject');
             });
- 
+
     });
 
 /*

@@ -1,4 +1,4 @@
-@extends('superadmin.layouts.app')
+@extends('layouts.app')
 @section('title', 'Ringkasan Stok')
 @section('breadcrumb')
 <a href="{{ route('superadmin.stock-reports.index') }}" class="hover:text-primary-700">Laporan Stok</a>

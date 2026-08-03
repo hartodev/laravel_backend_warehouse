@@ -44,7 +44,7 @@
                 </select>
             </div>
             <div class="flex gap-2">
-                <a href="{{ route('superadmin.budget_revisions.index') }}" class="btn btn-secondary text-sm">Reset</a>
+                <a href="{{ route('superadmin.budget-revisions.index') }}" class="btn btn-secondary text-sm">Reset</a>
                 <button type="submit" class="btn btn-primary text-sm">Filter</button>
             </div>
         </form>

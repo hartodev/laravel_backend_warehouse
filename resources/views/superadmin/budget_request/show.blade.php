@@ -2,7 +2,7 @@
 
 @section('title', 'Detail Pengajuan — ' . $budgetRequest->nomor_form)
 @section('breadcrumb')
-<a href="{{ route('superadmin.budget_requests.index') }}">Pengajuan Anggaran</a>
+<a href="{{ route('superadmin.budget-requests.index') }}">Pengajuan Anggaran</a>
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
 </svg>
@@ -25,7 +25,7 @@
             <p class="text-sm text-gray-500 mt-1">Diajukan oleh {{ $budgetRequest->user->name ?? '-' }} —
                 {{ $budgetRequest->divisi }}</p>
         </div>
-        <a href="{{ route('superadmin.budget_requests.index') }}" class="btn btn-secondary">
+        <a href="{{ route('superadmin.budget-requests.index') }}" class="btn btn-secondary">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
@@ -352,10 +352,10 @@
             @if (in_array($budgetRequest->status, ['draft', 'pending']))
             <div class="card">
                 <div class="card-body">
-                    <a href="{{ route('budget-requests.edit', $budgetRequest) }}"
+                    <a href="{{ route('superadmin.budget-requests.edit', $budgetRequest) }}"
                         class="btn btn-secondary w-full justify-center mb-2">Edit Pengajuan</a>
                     @if ($budgetRequest->status === 'draft')
-                    <form action="{{ route('budget-requests.destroy', $budgetRequest) }}" method="POST"
+                    <form action="{{ route('superadmin.budget-requests.destroy', $budgetRequest) }}" method="POST"
                         onsubmit="return confirm('Yakin ingin menghapus pengajuan ini?')">
                         @csrf
                         @method('DELETE')
@@ -375,7 +375,7 @@
 {{-- ═══════════════════════════════════════════════════════ --}}
 <div id="modal-approve" class="modal-backdrop hidden">
     <div class="modal-box">
-        <form action="{{ route('budget-requests.approve', $budgetRequest) }}" method="POST">
+        <form action="{{ route('superadmin.budget-requests.approve', $budgetRequest) }}" method="POST">
             @csrf
             <div class="p-5 border-b border-gray-100 dark:border-slate-700">
                 <p class="font-semibold text-gray-900 dark:text-white">Setujui Pengajuan Anggaran</p>
@@ -400,7 +400,7 @@
 {{-- Modal: Reject --}}
 <div id="modal-reject" class="modal-backdrop hidden">
     <div class="modal-box">
-        <form action="{{ route('budget-requests.reject', $budgetRequest) }}" method="POST">
+        <form action="{{ route('superadmin.budget-requests.reject', $budgetRequest) }}" method="POST">
             @csrf
             <div class="p-5 border-b border-gray-100 dark:border-slate-700">
                 <p class="font-semibold text-gray-900 dark:text-white">Tolak Pengajuan Anggaran</p>
@@ -423,7 +423,7 @@
 @if ($budgetRequest->status === 'approved')
 <div id="modal-realisasi" class="modal-backdrop hidden">
     <div class="modal-box">
-        <form action="{{ route('budget-requests.realisasi', $budgetRequest) }}" method="POST">
+        <form action="{{ route('superadmin.budget-requests.realisasi', $budgetRequest) }}" method="POST">
             @csrf
             <div class="p-5 border-b border-gray-100 dark:border-slate-700">
                 <p class="font-semibold text-gray-900 dark:text-white">Catat Realisasi Dana</p>

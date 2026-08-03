@@ -15,7 +15,7 @@
         <div class="card-header">
             <h2 class="font-semibold text-gray-900">Form Pencatatan Pembayaran</h2>
         </div>
-        <form method="POST" action="{{ route('payments.store') }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('superadmin.payments.store') }}" enctype="multipart/form-data">
             @csrf
             <div class="card-body space-y-4">
 

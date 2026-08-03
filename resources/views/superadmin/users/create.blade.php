@@ -13,7 +13,7 @@
     <a href="{{ route('superadmin.users.index') }}" class="btn btn-secondary">Kembali</a>
 </div>
 
-<form method="POST" action="{{ route('users.store') }}" class="space-y-5">
+<form method="POST" action="{{ route('superadmin.users.store') }}" class="space-y-5">
     @csrf
 
     <div class="card">

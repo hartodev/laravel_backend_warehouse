@@ -43,7 +43,7 @@
         <div class="card-header">
             <h2 class="font-semibold text-gray-900">Scan Barcode Produk</h2>
         </div>
-        <form method="POST" action="{{ route('barcodes.do-scan') }}">
+        <form method="POST" action="{{ route('superadmin.barcodes.do-scan') }}">
             @csrf
             <div class="card-body space-y-4">
                 <div>

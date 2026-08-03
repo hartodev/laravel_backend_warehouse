@@ -3,7 +3,7 @@
 @section('title', 'Edit Revisi Anggaran')
 
 @section('breadcrumb')
-    <a href="{{ route('superadmin.budget_revisions.index') }}" class="text-gray-500 hover:text-gray-700">Revisi Anggaran</a>
+    <a href="{{ route('superadmin.budget-revisions.index') }}" class="text-gray-500 hover:text-gray-700">Revisi Anggaran</a>
     <span class="text-gray-400 mx-1">/</span>
     <a href="{{ route('superadmin.budget-revisions.show', $budgetRevision) }}"
         class="text-gray-500 hover:text-gray-700">Detail</a>

@@ -71,7 +71,7 @@
     {{-- Filter --}}
     <div class="card">
         <div class="card-body">
-            <form method="GET" action="{{ route('budget_requests.index') }}"
+            <form method="GET" action="{{ route('superadmin.budget-requests.index') }}"
                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                 <div>
                     <label class="form-label">Status</label>
@@ -108,7 +108,7 @@
                 <div class="flex items-end gap-2">
                     <button type="submit" class="btn btn-primary w-full">Filter</button>
                     @if (request()->anyFilled(['status', 'jenis', 'urgensi', 'divisi']))
-                    <a href="{{ route('superadmin.budget_requests.index') }}" class="btn btn-secondary">Reset</a>
+                    <a href="{{ route('superadmin.budget-requests.index') }}" class="btn btn-secondary">Reset</a>
                     @endif
                 </div>
             </form>

@@ -3,7 +3,7 @@
 @section('title', 'Detail Revisi Anggaran')
 
 @section('breadcrumb')
-<a href="{{ route('superadmin.budget_revisions.index') }}" class="text-gray-500 hover:text-gray-700">Revisi Anggaran</a>
+<a href="{{ route('superadmin.budget-revisions.index') }}" class="text-gray-500 hover:text-gray-700">Revisi Anggaran</a>
 <span class="text-gray-400 mx-1">/</span>
 <span class="text-gray-700 font-medium">Detail</span>
 @endsection
@@ -34,7 +34,7 @@
         <button type="button" onclick="document.getElementById('modal-reject').classList.remove('hidden')"
             class="btn btn-danger text-sm">Tolak</button>
         @endif
-        <a href="{{ route('superadmin.budget_revisions.index') }}" class="btn btn-secondary text-sm">← Kembali</a>
+        <a href="{{ route('superadmin.budget-revisions.index') }}" class="btn btn-secondary text-sm">← Kembali</a>
     </div>
 </div>
 

@@ -88,7 +88,7 @@
                         <a href="{{ route('superadmin.payments.show', $p) }}"
                             class="btn btn-secondary btn-sm">Detail</a>
                         @if($p->status === 'pending')
-                        <form method="POST" action="{{ route('payments.verify', $p) }}" class="inline">@csrf<button
+                        <form method="POST" action="{{ route('superadmin.payments.verify', $p) }}" class="inline">@csrf<button
                                 class="btn btn-success btn-sm">Verifikasi</button></form>
                         @endif
                     </div>
