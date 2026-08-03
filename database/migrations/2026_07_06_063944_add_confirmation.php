@@ -113,4 +113,3 @@ return new class extends Migration
         ) DEFAULT 'pending'");
     }
 };
-

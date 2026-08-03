@@ -19,4 +19,3 @@ return new class extends Migration
         DB::statement("ALTER TABLE expense_reports MODIFY COLUMN status ENUM('draft','submitted','verified','rejected') DEFAULT 'draft'");
     }
 };
-

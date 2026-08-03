@@ -46,4 +46,3 @@ public function up(): void
         ) DEFAULT 'pending'");
     }
 };
-
