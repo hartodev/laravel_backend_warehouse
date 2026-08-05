@@ -106,7 +106,7 @@ class StockOpnameController extends Controller
                     'product_id'      => $stock->product_id,
                     'system_stock'    => $stock->quantity,
                     'physical_stock'  => $stock->quantity,
-                    'difference'      => 0,
+                    // 'difference'      => 0,
                 ]);
             }
 
@@ -136,7 +136,7 @@ class StockOpnameController extends Controller
 
                 $opnameItem->update([
                     'physical_stock' => $item['physical_stock'],
-                    'difference'     => $item['physical_stock'] - $opnameItem->system_stock,
+                    // 'difference'     => $item['physical_stock'] - $opnameItem->system_stock,
                 ]);
             }
 

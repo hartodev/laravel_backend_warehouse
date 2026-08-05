@@ -155,7 +155,7 @@
                                     <button
                                         onclick="document.getElementById('del-sup-{{ $sup->id }}').classList.add('hidden')"
                                         class="btn btn-secondary flex-1 justify-center">Batal</button>
-                                    <form method="POST" action="{{ route('suppliers.destroy', $sup) }}" class="flex-1">
+                                    <form method="POST" action="{{ route('superadmin.suppliers.destroy', $sup) }}" class="flex-1">
                                         @csrf @method('DELETE')
                                         <button type="submit"
                                             class="btn btn-danger w-full justify-center">Hapus</button>

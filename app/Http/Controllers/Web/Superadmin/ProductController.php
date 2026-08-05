@@ -91,7 +91,7 @@ class ProductController extends Controller
         Product::create($validated);
 
         return redirect()
-            ->route('products.index')
+            ->route('superadmin.products.index')
             ->with('success', "Produk '{$validated['name']}' berhasil ditambahkan.");
     }
 
@@ -147,7 +147,7 @@ class ProductController extends Controller
         $product->update($validated);
 
         return redirect()
-            ->route('products.index')
+            ->route('superadmin.products.index')
             ->with('success', "Produk '{$product->name}' berhasil diupdate.");
     }
 
@@ -164,7 +164,7 @@ class ProductController extends Controller
         $product->delete();
 
         return redirect()
-            ->route('products.index')
+            ->route('superadmin.products.index')
             ->with('success', "Produk '{$name}' berhasil dihapus.");
     }
 
@@ -178,7 +178,7 @@ class ProductController extends Controller
         $status = $product->is_active ? 'diaktifkan' : 'dinonaktifkan';
 
         return redirect()
-            ->route('products.index')
+            ->route('superadmin.products.index')
             ->with('success', "Produk '{$product->name}' berhasil {$status}.");
     }
 }

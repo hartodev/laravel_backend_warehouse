@@ -372,7 +372,7 @@ Route::prefix('admin')
             });
 
         // ── Stock Movement (riwayat, read-only) ────────────────
-        Route::get('stock-movements', [AdminStockMovementController::class, 'index'])->name('stock-movements.index');
+        // Route::get('stock-movements', [AdminStockMovementController::class, 'index'])->name('stock-movements.index');
         Route::resource('product-units', ProductUnitController::class)->except('show');
         Route::resource('warehouses', WarehouseController::class);
         Route::resource('sales-orders', SalesOrderController::class)->only(['index','create','store','show']);
@@ -403,3 +403,6 @@ Catatan penting soal urutan route:
   "products-for-scope" sebagai value {opname} dan salah route.
   Di atas sudah diurutkan dengan benar.
 */
+
+
+

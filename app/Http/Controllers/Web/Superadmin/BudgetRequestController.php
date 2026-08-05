@@ -109,7 +109,7 @@ class BudgetRequestController extends Controller
             'urgensi'           => $validated['urgensi'] ?? 'normal',
             'dampak_jika_tidak' => $validated['dampak_jika_tidak'] ?? null,
             'sumber_dana'       => $validated['sumber_dana'] ?? null,
-            'status'            => 'draft',
+            'status'            => 'pending_sa',
             'total_estimasi'    => 0,
             'total_realisasi'   => 0,
         ]);
@@ -145,7 +145,7 @@ class BudgetRequestController extends Controller
     // ─────────────────────────────────────────────────────────────
     public function edit(BudgetRequest $budgetRequest)
     {
-        if (! in_array($budgetRequest->status, ['draft', 'pending'])) {
+        if (! in_array($budgetRequest->status, ['draft', 'pending_sa'])) {
             return back()->with('error', 'Pengajuan yang sudah diproses tidak dapat diubah.');
         }
 
@@ -158,7 +158,7 @@ class BudgetRequestController extends Controller
     // ─────────────────────────────────────────────────────────────
     public function update(Request $request, BudgetRequest $budgetRequest)
     {
-        if (! in_array($budgetRequest->status, ['draft', 'pending'])) {
+        if ($budgetRequest->status !== 'pending_sa') {
             return back()->with('error', 'Pengajuan yang sudah diproses tidak dapat diubah.');
         }
 
@@ -345,6 +345,38 @@ class BudgetRequestController extends Controller
         }
 
         return $totalEstimasi;
+    }
+
+    public function submit(BudgetRequest $budgetRequest)
+    {
+        if ($budgetRequest->status !== 'draft') {
+            return back()->with('error', 'Hanya pengajuan berstatus "Draft" yang dapat diajukan di sini.');
+        }
+
+        DB::transaction(function () use ($budgetRequest) {
+            $budgetRequest->update([
+                'status'     => 'approved',
+                'finance_id' => auth()->id(),
+                'finance_at' => now(),
+            ]);
+
+            CashBookService::record([
+                'tanggal'           => now()->toDateString(),
+                'keterangan'        => "Alokasi RAB #{$budgetRequest->nomor_form} — {$budgetRequest->divisi}",
+                'jenis'             => 'alokasi_rab',
+                'jumlah_uang'       => $budgetRequest->total_estimasi,
+                'pihak'             => $budgetRequest->divisi,
+                'tipe'              => 'masuk',
+                'budget_request_id' => $budgetRequest->id,
+                'created_by'        => auth()->id(),
+                'catatan'           => 'Diajukan & disetujui otomatis (Super Admin sebagai pengaju).',
+            ]);
+        });
+
+        return redirect()
+            ->route('superadmin.budget-requests.show', $budgetRequest)
+            ->with('success', 'Pengajuan berhasil diajukan dan otomatis disetujui. Dana sebesar Rp ' .
+                number_format($budgetRequest->total_estimasi, 0, ',', '.') . ' telah dialokasikan.');
     }
 }
 

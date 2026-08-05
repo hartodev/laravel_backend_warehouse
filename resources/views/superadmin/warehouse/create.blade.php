@@ -14,7 +14,7 @@
         <div class="card-header">
             <h2 class="font-semibold text-gray-900">Tambah Gudang Baru</h2>
         </div>
-        <form method="POST" action="{{ route('warehouses.store') }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('superadmin.warehouses.store') }}" enctype="multipart/form-data">
             @csrf
             <div class="card-body space-y-5">
 

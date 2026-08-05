@@ -15,7 +15,7 @@
             <h2 class="font-semibold text-gray-900">Edit Gudang — {{ $warehouse->name }}</h2>
             <x-status-badge :status="$warehouse->is_active ? '1' : '0'" />
         </div>
-        <form method="POST" action="{{ route('warehouses.update', $warehouse) }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('superadmin.warehouses.update', $warehouse) }}" enctype="multipart/form-data">
             @csrf @method('PUT')
             <div class="card-body space-y-5">
 

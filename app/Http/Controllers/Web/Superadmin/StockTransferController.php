@@ -75,7 +75,7 @@ class StockTransferController extends Controller
                 'from_warehouse_id' => $request->from_warehouse_id,
                 'to_warehouse_id'   => $request->to_warehouse_id,
                 'requested_by'      => auth()->id(),
-                'status'            => 'pending',
+                'status'            => 'pending_approval',
                 'transfer_date'     => $request->transfer_date,
                 'expected_arrival'  => $request->expected_arrival,
                 'notes'             => $request->notes,

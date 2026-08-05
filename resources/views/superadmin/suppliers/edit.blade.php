@@ -13,7 +13,7 @@
     <a href="{{ route('superadmin.suppliers.index') }}" class="btn btn-secondary">Kembali</a>
 </div>
 
-<form method="POST" action="{{ route('suppliers.update', $supplier) }}" enctype="multipart/form-data" class="space-y-5">
+<form method="POST" action="{{ route('superadmin.suppliers.update', $supplier) }}" enctype="multipart/form-data" class="space-y-5">
     @csrf
     @method('PUT')
 

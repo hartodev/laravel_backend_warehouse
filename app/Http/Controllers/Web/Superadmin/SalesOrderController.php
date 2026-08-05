@@ -91,10 +91,11 @@ class SalesOrderController extends Controller
                 SalesOrderItem::create([
                     'sales_order_id' => $so->id,
                     'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'], // ← kolom DB: qty
-                    'harga' => $item['harga'], // ← kolom DB: harga
-                    'total' => $item['qty'] * $item['harga'], // ← kolom DB: total
-                    'notes' => $item['deskripsi'] ?? null,
+                    'quantity' => $item['qty'], // ← kolom DB: qty
+                    'unit_price'        => $item['harga'],
+                    'discount_percent'  => 0, // form kamu belum ada input ini, default 0 dulu
+                    'subtotal'          => $item['qty'] * $item['harga'],
+                    'description'       => $item['deskripsi'] ?? null,
                 ]);
             }
         });

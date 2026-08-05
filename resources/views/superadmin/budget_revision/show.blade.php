@@ -202,7 +202,7 @@
 <div id="modal-approve" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Setujui Revisi</h3>
-        <form method="POST" action="{{ route('budget-revisions.approve', $budgetRevision) }}">
+        <form method="POST" action="{{ route('superadmin.budget-revisions.approve', $budgetRevision) }}">
             @csrf
             <div class="mb-4">
                 <label class="form-label">Catatan (opsional)</label>

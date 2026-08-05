@@ -21,7 +21,7 @@
     </div>
     <div class="flex flex-wrap gap-2">
         @if($stockTransfer->status === 'pending_approval')
-        <form method="POST" action="{{ route('stock-transfers.approve', $stockTransfer) }}" class="inline">@csrf<button
+        <form method="POST" action="{{ route('superadmin.stock-transfers.approve', $stockTransfer) }}" class="inline">@csrf<button
                 class="btn-success btn">Setujui</button></form>
         <button onclick="document.getElementById('reject-modal').classList.remove('hidden')"
             class="btn-danger btn">Tolak</button>
@@ -179,7 +179,7 @@
         <div class="px-6 py-5 border-b">
             <h3 class="font-semibold">Tolak Transfer</h3>
         </div>
-        <form method="POST" action="{{ route('stock-transfers.reject', $stockTransfer) }}">
+        <form method="POST" action="{{ route('superadmin.stock-transfers.reject', $stockTransfer) }}">
             @csrf
             <div class="px-6 py-4 space-y-3">
                 <textarea name="reject_reason" rows="3" required class="form-textarea"
@@ -200,7 +200,7 @@
         <div class="px-6 py-5 border-b">
             <h3 class="font-semibold">Resolusi Selisih Barang</h3>
         </div>
-        <form method="POST" action="{{ route('stock-transfers.resolve-discrepancy', $stockTransfer) }}">
+        <form method="POST" action="{{ route('superadmin.stock-transfers.resolve-discrepancy', $stockTransfer) }}">
             @csrf
             <div class="px-6 py-4 space-y-3">
                 <div>

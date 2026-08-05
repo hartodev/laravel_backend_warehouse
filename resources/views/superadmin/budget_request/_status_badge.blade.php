@@ -1,14 +1,13 @@
 @php
-    $statusConfig = [
-        'draft' => ['label' => 'Draft', 'class' => 'badge-gray'],
-        'pending' => ['label' => 'Menunggu Admin', 'class' => 'badge-warning'],
-        'pending_sa' => ['label' => 'Menunggu Super Admin', 'class' => 'badge-info'],
-        'approved' => ['label' => 'Disetujui', 'class' => 'badge-success'],
-        'approved_revisi' => ['label' => 'Disetujui (Revisi)', 'class' => 'badge-success'],
-        'ditunda' => ['label' => 'Ditunda', 'class' => 'badge-purple'],
-        'ditolak' => ['label' => 'Ditolak', 'class' => 'badge-danger'],
+    $map = [
+        'draft'           => ['bg-gray-100', 'text-gray-600', 'Draft'],
+        'pending'         => ['bg-orange-100', 'text-orange-700', 'Menunggu Admin'],
+        'pending_sa'      => ['bg-blue-100', 'text-blue-700', 'Menunggu Super Admin'],
+        'approved'        => ['bg-green-100', 'text-green-700', 'Disetujui'],
+        'approved_revisi' => ['bg-teal-100', 'text-teal-700', 'Disetujui (Revisi)'],
+        'ditolak'         => ['bg-red-100', 'text-red-700', 'Ditolak'],
+        'ditunda'         => ['bg-purple-100', 'text-purple-700', 'Ditunda'],
     ];
-    $cfg = $statusConfig[$status] ?? ['label' => $status, 'class' => 'badge-gray'];
+    [$bg, $text, $label] = $map[$status] ?? ['bg-gray-100', 'text-gray-600', $status];
 @endphp
-
-<span class="badge {{ $cfg['class'] }}">{{ $cfg['label'] }}</span>
+<span class="px-2 py-0.5 rounded text-xs font-medium {{ $bg }} {{ $text }}">{{ $label }}</span>

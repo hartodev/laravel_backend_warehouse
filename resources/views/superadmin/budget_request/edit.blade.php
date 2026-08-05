@@ -10,6 +10,19 @@
 @endsection
 
 @section('content')
+
+@php
+    $editItems = $budgetRequest->items->map(function ($i) {
+        return [
+            'nama_item' => $i->nama_item,
+            'qty' => $i->qty,
+            'satuan' => $i->satuan,
+            'estimasi_biaya' => $i->estimasi_biaya,
+            'keterangan' => $i->keterangan,
+            'total' => $i->total,
+        ];
+    });
+@endphp
 <div class="max-w-4xl mx-auto space-y-6" x-data="budgetRequestEditForm()">
 
     <div>
@@ -159,15 +172,7 @@
 <script>
 function budgetRequestEditForm() {
     return {
-        items: @json(
-            $budgetRequest - > items - > map(fn($i) => [
-                'nama_item' => $i - > nama_item,
-                'qty' => $i - > qty,
-                'satuan' => $i - > satuan,
-                'estimasi_biaya' => $i - > estimasi_biaya,
-                'keterangan' => $i - > keterangan,
-                'total' => $i - > total,
-            ])),
+        items: {!! $editItems->toJson() !!},
         addItem() {
             this.items.push({
                 nama_item: '',

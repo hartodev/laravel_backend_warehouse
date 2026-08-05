@@ -26,7 +26,7 @@
 {{-- Filter --}}
 <div class="card mb-5">
     <div class="card-body">
-        <form method="GET" action="{{ route('budget_revisions.index') }}" class="flex flex-wrap gap-3 items-end">
+        <form method="GET" action="{{ route('superadmin.budget-revisions.index') }}" class="flex flex-wrap gap-3 items-end">
             <div>
                 <label class="form-label">Status</label>
                 <select name="status" class="form-select">

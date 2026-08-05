@@ -178,7 +178,7 @@
     <div class="flex gap-3">
         @if ($expenseReport->status !== 'verified')
         <a href="{{ route('superadmin.expense-reports.edit', $expenseReport) }}" class="btn-secondary btn">Edit</a>
-        <form method="POST" action="{{ route('expense-reports.verify', $expenseReport) }}" class="inline">
+        <form method="POST" action="{{ route('superadmin.expense-reports.verify', $expenseReport) }}" class="inline">
             @csrf
             <button type="submit" class="btn-primary btn"
                 onclick="return confirm('Verifikasi laporan ini?')">Verifikasi</button>
@@ -187,3 +187,4 @@
     </div>
 </div>
 @endsection
+

@@ -159,33 +159,15 @@
 <script>
 const productPrices = {
     @foreach($products as $p)
-    "{{ $p->id }}": {
-        {
-            $p - > selling_price ?? 0
-        }
-    },
+    "{{ $p->id }}": {{ $p->selling_price ?? 0 }},
     @endforeach
 };
 
 function soForm() {
     return {
-        rows: [{
-            product_id: '',
-            deskripsi: '',
-            qty: 1,
-            price: 0,
-            total: 0
-        }],
-        taxPercent: {
-            {
-                old('tax_percent', 0)
-            }
-        },
-        discount: {
-            {
-                old('discount_amount', 0)
-            }
-        },
+        rows: [{ product_id: '', deskripsi: '', qty: 1, price: 0, total: 0 }],
+        taxPercent: {{ old('tax_percent', 0) }},
+        discount: {{ old('discount_amount', 0) }},
         get subtotal() {
             return this.rows.reduce((s, r) => s + r.total, 0);
         },
@@ -196,13 +178,7 @@ function soForm() {
             return this.subtotal + this.tax - this.discount;
         },
         addRow() {
-            this.rows.push({
-                product_id: '',
-                deskripsi: '',
-                qty: 1,
-                price: 0,
-                total: 0
-            });
+            this.rows.push({ product_id: '', deskripsi: '', qty: 1, price: 0, total: 0 });
         },
         removeRow(i) {
             if (this.rows.length > 1) this.rows.splice(i, 1);

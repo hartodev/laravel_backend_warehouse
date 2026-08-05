@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-<form method="POST" action="{{ route('products.store') }}" enctype="multipart/form-data" x-data="productForm()">
+<form method="POST" action="{{ route('superadmin.products.store') }}" enctype="multipart/form-data" x-data="productForm()">
     @csrf
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">

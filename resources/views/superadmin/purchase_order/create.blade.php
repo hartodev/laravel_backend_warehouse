@@ -175,32 +175,15 @@
 <script>
 const productPrices = {
     @foreach($products as $p)
-    "{{ $p->id }}": {
-        {
-            $p - > purchase_price ?? 0
-        }
-    },
+    "{{ $p->id }}": {{ $p->purchase_price ?? 0 }},
     @endforeach
 };
 
 function poForm() {
     return {
-        rows: [{
-            product_id: '',
-            qty: 1,
-            price: 0,
-            total: 0
-        }],
-        taxPercent: {
-            {
-                old('tax_percent', 0)
-            }
-        },
-        discount: {
-            {
-                old('discount_amount', 0)
-            }
-        },
+        rows: [{ product_id: '', qty: 1, price: 0, total: 0 }],
+        taxPercent: {{ old('tax_percent', 0) }},
+        discount: {{ old('discount_amount', 0) }},
         get subtotal() {
             return this.rows.reduce((s, r) => s + r.total, 0);
         },
@@ -211,12 +194,7 @@ function poForm() {
             return this.subtotal + this.tax - this.discount;
         },
         addRow() {
-            this.rows.push({
-                product_id: '',
-                qty: 1,
-                price: 0,
-                total: 0
-            });
+            this.rows.push({ product_id: '', qty: 1, price: 0, total: 0 });
         },
         removeRow(idx) {
             if (this.rows.length > 1) this.rows.splice(idx, 1);
@@ -229,7 +207,8 @@ function poForm() {
             row.total = row.qty * row.price;
         },
         prepareSubmit() {
-            /* normal submit */ }
+            /* normal submit */
+        }
     };
 }
 </script>

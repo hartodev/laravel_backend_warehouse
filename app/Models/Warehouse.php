@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Warehouse extends Model
 {
-    use HasFactory,SoftDeletes;
+    use HasFactory, SoftDeletes;
 
-     protected $guarded = [];
+    protected $guarded = [];
 
     protected $casts = [
         'is_active' => 'boolean',
@@ -75,6 +75,6 @@ class Warehouse extends Model
 
     public function users()
     {
-        return $this->hasMany(Users::class);
+        return $this->hasMany(User::class);
     }
 }

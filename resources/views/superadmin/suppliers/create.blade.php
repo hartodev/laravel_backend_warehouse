@@ -11,7 +11,7 @@
 
 @section('content')
 <div class="max-w-3xl">
-    <form method="POST" action="{{ route('suppliers.store') }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('superadmin.suppliers.store') }}" enctype="multipart/form-data">
         @csrf
         <div class="space-y-5">
 

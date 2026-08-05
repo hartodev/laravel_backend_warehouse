@@ -136,7 +136,7 @@
 
     @if ($productSubmission->status === 'pending')
     <div class="flex gap-3">
-        <form method="POST" action="{{ route('product-submissions.approve', $productSubmission) }}" class="inline">
+        <form method="POST" action="{{ route('superadmin.product-submissions.approve', $productSubmission) }}" class="inline">
             @csrf
             <input type="hidden" name="review_note" value="">
             <button type="submit" class="btn-primary btn"
@@ -153,7 +153,7 @@
 <div id="reject-modal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
         <h3 class="font-semibold text-gray-900 mb-3">Tolak Pengajuan Produk</h3>
-        <form method="POST" action="{{ route('product-submissions.reject', $productSubmission) }}">
+        <form method="POST" action="{{ route('superadmin.product-submissions.reject', $productSubmission) }}">
             @csrf
             <label class="form-label">Catatan Penolakan <span class="text-red-500">*</span></label>
             <textarea name="review_note" rows="3" maxlength="500" class="form-textarea mb-4" required></textarea>
@@ -167,3 +167,5 @@
 </div>
 @endif
 @endsection
+
+

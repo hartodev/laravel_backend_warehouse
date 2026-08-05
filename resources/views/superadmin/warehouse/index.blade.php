@@ -71,7 +71,7 @@
 
                     <x-confirm-modal id="del-warehouse-{{ $warehouse->id }}" title="Hapus Gudang?"
                         message="Gudang {{ $warehouse->name }} akan dihapus permanen dan tidak bisa dikembalikan."
-                        :action="route('warehouses.destroy', $warehouse)" method="DELETE" confirm-text="Ya, Hapus"
+                        :action="route('superadmin.warehouses.destroy', $warehouse)" method="DELETE" confirm-text="Ya, Hapus"
                         confirm-class="btn-danger" />
                 </td>
             </tr>

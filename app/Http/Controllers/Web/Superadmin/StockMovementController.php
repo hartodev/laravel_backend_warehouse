@@ -83,7 +83,7 @@ class StockMovementController extends Controller
             ]);
         });
 
-        return redirect()->route('superadmin.stock-movement.index')
+        return redirect()->route('superadmin.stock-movements.index')
             ->with('success', 'Pergerakan stok berhasil dicatat.');
     }
 }
