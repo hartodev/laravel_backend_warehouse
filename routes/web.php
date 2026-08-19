@@ -42,6 +42,10 @@ use App\Http\Controllers\Web\Superadmin\UserController;
 use App\Http\Controllers\Web\Superadmin\UserCreationRequestController;
 use App\Http\Controllers\Web\Superadmin\WarehouseController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\LandingFaqController;
+use App\Http\Controllers\Admin\LandingFeatureController;
+use App\Http\Controllers\Admin\LandingStatController;
+use App\Http\Controllers\Admin\LandingTestimonialController;
 
 // ────────────────────────────────────────────────────────────
 //  PUBLIC / AUTH ROUTES
@@ -49,6 +53,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('frontend.landing');
 })->name('home');
+
+Route::resource('landing-stats', LandingStatController::class)->except(['show']);
+Route::resource('landing-testimonials', LandingTestimonialController::class)->except(['show']);
+Route::resource('landing-faqs', LandingFaqController::class)->except(['show']);
+Route::resource('landing-features', LandingFeatureController::class)->except(['show']);
+
 
 Route::get('/login', [AuthWebController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthWebController::class, 'login']);

@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet" />
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <link rel="stylesheet" href="frontend/css/style.css" />
+    <link rel="stylesheet" href="{{ asset('frontend/css/style.css') }}" />
 </head>
 
 <body>
@@ -27,85 +27,38 @@
     </div>
 
     <!-- Navbar -->
-    {{-- <nav class="navbar" id="navbar">
-        <div class="nav-container">
-            <a class="nav-logo" href="#home">
-                <div class="logo-icon">
-                    <i data-lucide="box"></i>
-                </div>
-                <span>StockFlow</span>
-            </a>
-
-            <div class="nav-links" id="navLinks">
-                <a href="#home" class="nav-link active">Home</a>
-                <a href="#features" class="nav-link">Features</a>
-                <a href="#dashboard" class="nav-link">Dashboard</a>
-                <a href="#benefits" class="nav-link">Benefits</a>
-                <a href="#faq" class="nav-link">FAQ</a>
-                <a href="#contact" class="nav-link">Contact</a>
-
-                            <div class="nav-actions">
-                <a href="{{ route('login') }}" class="btn-ghost">Login</a>
-                <a href="{{ route('register') }}" class="btn-primary ripple">Get Started</a>
-            </div>
-            </div>
-
-
-
-            <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
-                <i data-lucide="menu"></i>
-            </button>
-        </div>
-    </nav> --}}
-
     <nav class="navbar" id="navbar">
-
         <div class="nav-container">
-
             <a class="nav-logo" href="#home">
-
                 <div class="logo-icon">
-
                     <i data-lucide="box"></i>
-
                 </div>
-
                 <span>StockFlow</span>
-
             </a>
 
             <div class="nav-links" id="navLinks">
-
                 <a href="#home" class="nav-link active">Home</a>
-
                 <a href="#features" class="nav-link">Features</a>
-
                 <a href="#dashboard" class="nav-link">Dashboard</a>
-
                 <a href="#benefits" class="nav-link">Benefits</a>
-
                 <a href="#faq" class="nav-link">FAQ</a>
-
                 <a href="#contact" class="nav-link">Contact</a>
 
                 <div class="nav-actions-mobile">
-
                     <a href="{{ route('login') }}" class="btn-ghost">Login</a>
-
                     <a href="{{ route('register') }}" class="btn-primary ripple">Get Started</a>
-
                 </div>
+            </div>
 
+            <div class="nav-actions">
+                <a href="{{ route('login') }}" class="btn-ghost">Login</a>
+                <a href="{{ route('register') }}" class="btn-primary ripple">Get Started</a>
             </div>
 
             <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
-
                 <i data-lucide="menu"></i>
-
             </button>
-
         </div>
-
     </nav>
 
     <!-- Hero Section -->
@@ -130,11 +83,11 @@
                         laporan, serta aktivitas pengguna secara real-time.
                     </p>
                     <div class="hero-actions">
-                        <a href="#" class="btn-primary btn-lg ripple">
+                        <a href="{{ route('register') }}" class="btn-primary btn-lg ripple">
                             <i data-lucide="rocket"></i>
                             Start Free
                         </a>
-                        <a href="#" class="btn-outline btn-lg ripple">
+                        <a href="#contact" class="btn-outline btn-lg ripple">
                             <i data-lucide="play-circle"></i>
                             Book Demo
                         </a>
@@ -151,7 +104,6 @@
                 </div>
 
                 <div class="hero-visual fade-right" id="heroVisual">
-                    <!-- Dashboard Mockup -->
                     <div class="dashboard-mockup">
                         <div class="mockup-header">
                             <div class="mockup-dots">
@@ -163,7 +115,6 @@
                             </div>
                         </div>
                         <div class="mockup-body">
-                            <!-- Sidebar -->
                             <div class="mock-sidebar">
                                 <div class="mock-logo-sm">
                                     <div class="mock-logo-icon"></div>
@@ -178,9 +129,7 @@
                                     <div class="mock-nav-item"></div>
                                 </div>
                             </div>
-                            <!-- Main Content -->
                             <div class="mock-main">
-                                <!-- Stat Cards -->
                                 <div class="mock-stat-cards">
                                     <div class="mock-stat-card blue">
                                         <div class="mock-stat-icon"></div>
@@ -204,10 +153,7 @@
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- Charts Row -->
                                 <div class="mock-charts">
-                                    <!-- Bar Chart -->
                                     <div class="mock-chart-box">
                                         <div class="mock-chart-header">
                                             <div class="mock-chart-title"></div>
@@ -222,7 +168,6 @@
                                             <div class="bar b7"></div>
                                         </div>
                                     </div>
-                                    <!-- Pie Chart -->
                                     <div class="mock-chart-box small">
                                         <div class="mock-chart-header">
                                             <div class="mock-chart-title"></div>
@@ -237,8 +182,6 @@
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- Table -->
                                 <div class="mock-table-box">
                                     <div class="mock-table-header">
                                         <div class="mock-table-title"></div>
@@ -246,33 +189,22 @@
                                     </div>
                                     <div class="mock-table">
                                         <div class="mock-row header-row">
-                                            <div></div>
-                                            <div></div>
-                                            <div></div>
-                                            <div></div>
+                                            <div></div><div></div><div></div><div></div>
                                         </div>
                                         <div class="mock-row">
-                                            <div></div>
-                                            <div></div>
-                                            <div></div>
+                                            <div></div><div></div><div></div>
                                             <div class="status-badge green"></div>
                                         </div>
                                         <div class="mock-row">
-                                            <div></div>
-                                            <div></div>
-                                            <div></div>
+                                            <div></div><div></div><div></div>
                                             <div class="status-badge blue"></div>
                                         </div>
                                         <div class="mock-row">
-                                            <div></div>
-                                            <div></div>
-                                            <div></div>
+                                            <div></div><div></div><div></div>
                                             <div class="status-badge yellow"></div>
                                         </div>
                                         <div class="mock-row">
-                                            <div></div>
-                                            <div></div>
-                                            <div></div>
+                                            <div></div><div></div><div></div>
                                             <div class="status-badge green"></div>
                                         </div>
                                     </div>
@@ -281,7 +213,6 @@
                         </div>
                     </div>
 
-                    <!-- Floating Cards -->
                     <div class="floating-card fc1 float-1">
                         <div class="fc-icon green"><i data-lucide="trending-up"></i></div>
                         <div class="fc-info">
@@ -315,41 +246,29 @@
         </div>
     </section>
 
-    <!-- Stats Section -->
+    <!-- Stats Section (DINAMIS dari database) -->
     <section class="stats-section">
         <div class="container">
             <div class="stats-grid fade-up">
-                <div class="stat-item">
-                    <div class="stat-value" data-target="99.9" data-suffix="%" data-decimal="1">0</div>
-                    <div class="stat-label">Inventory Accuracy</div>
-                    <div class="stat-bar">
-                        <div class="stat-bar-fill" style="width: 99.9%"></div>
+                @foreach ($stats as $stat)
+                    <div class="stat-item">
+                        @if ($stat->is_static)
+                            <div class="stat-value stat-static">{{ $stat->static_value }}</div>
+                        @else
+                            <div class="stat-value"
+                                 data-target="{{ $stat->target }}"
+                                 data-suffix="{{ $stat->suffix }}"
+                                 data-decimal="{{ $stat->decimal_places }}">0</div>
+                        @endif
+                        <div class="stat-label">{{ $stat->label }}</div>
+                        <div class="stat-bar">
+                            <div class="stat-bar-fill" style="width: {{ $stat->bar_percentage }}%"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat-item">
-                    <div class="stat-value" data-target="10000" data-suffix="+" data-prefix="">0</div>
-                    <div class="stat-label">Transactions</div>
-                    <div class="stat-bar">
-                        <div class="stat-bar-fill" style="width: 80%"></div>
-                    </div>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat-item">
-                    <div class="stat-value" data-target="500" data-suffix="+">0</div>
-                    <div class="stat-label">Companies</div>
-                    <div class="stat-bar">
-                        <div class="stat-bar-fill" style="width: 65%"></div>
-                    </div>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat-item">
-                    <div class="stat-value stat-static">24/7</div>
-                    <div class="stat-label">Monitoring</div>
-                    <div class="stat-bar">
-                        <div class="stat-bar-fill" style="width: 100%"></div>
-                    </div>
-                </div>
+                    @if (!$loop->last)
+                        <div class="stat-divider"></div>
+                    @endif
+                @endforeach
             </div>
         </div>
     </section>
@@ -365,7 +284,6 @@
                 <div class="marquee-logo"><i data-lucide="shopping-cart"></i><span>Shopee</span></div>
                 <div class="marquee-logo"><i data-lucide="store"></i><span>Tokopedia</span></div>
                 <div class="marquee-logo"><i data-lucide="warehouse"></i><span>Mitra Gudang</span></div>
-                <!-- Duplicate for infinite scroll -->
                 <div class="marquee-logo"><i data-lucide="building-2"></i><span>Astra</span></div>
                 <div class="marquee-logo"><i data-lucide="droplets"></i><span>Pertamina</span></div>
                 <div class="marquee-logo"><i data-lucide="shopping-bag"></i><span>Indomaret</span></div>
@@ -376,7 +294,7 @@
         </div>
     </section>
 
-    <!-- Problem Section -->
+    <!-- Problem Section (tetap statis) -->
     <section class="problem-section section-pad">
         <div class="container">
             <div class="section-header fade-up">
@@ -422,7 +340,7 @@
         </div>
     </section>
 
-    <!-- Solution Section (Bento Grid) -->
+    <!-- Solution Section / Bento Grid (tetap statis) -->
     <section class="solution-section section-pad" id="features">
         <div class="container">
             <div class="section-header fade-up">
@@ -520,7 +438,7 @@
         </div>
     </section>
 
-    <!-- Feature Section -->
+    <!-- Feature Section (DINAMIS dari database) -->
     <section class="feature-section section-pad">
         <div class="container">
             <div class="section-header fade-up">
@@ -529,91 +447,18 @@
                 <p class="section-sub">Dirancang untuk efisiensi maksimal dengan pengalaman pengguna yang intuitif.</p>
             </div>
             <div class="feature-grid fade-up">
-                <div class="feature-card glow-blue">
-                    <div class="feature-icon blue"><i data-lucide="zap"></i></div>
-                    <h4>Real-time Sync</h4>
-                    <p>Data tersinkronisasi secara instan di semua perangkat dan lokasi.</p>
-                </div>
-                <div class="feature-card glow-cyan">
-                    <div class="feature-icon cyan"><i data-lucide="cloud"></i></div>
-                    <h4>Cloud-Based</h4>
-                    <p>Akses dari mana saja tanpa perlu instalasi server lokal yang rumit.</p>
-                </div>
-                <div class="feature-card glow-purple">
-                    <div class="feature-icon purple"><i data-lucide="smartphone"></i></div>
-                    <h4>Mobile App</h4>
-                    <p>Aplikasi mobile untuk operator gudang yang bekerja di lapangan.</p>
-                </div>
-                <div class="feature-card glow-green">
-                    <div class="feature-icon green"><i data-lucide="download"></i></div>
-                    <h4>Export Data</h4>
-                    <p>Export laporan ke Excel, PDF, CSV dengan satu klik mudah.</p>
-                </div>
-                <div class="feature-card glow-blue">
-                    <div class="feature-icon blue"><i data-lucide="brain-circuit"></i></div>
-                    <h4>AI Insights</h4>
-                    <p>Prediksi kebutuhan stok berdasarkan pola historis penjualan.</p>
-                </div>
-                <div class="feature-card glow-orange">
-                    <div class="feature-icon orange"><i data-lucide="link"></i></div>
-                    <h4>API Integration</h4>
-                    <p>Integrasi dengan marketplace, ERP, dan sistem akuntansi populer.</p>
-                </div>
-                <div class="feature-card glow-cyan">
-                    <div class="feature-icon cyan"><i data-lucide="git-merge"></i></div>
-                    <h4>Auto Reorder</h4>
-                    <p>Order otomatis saat stok mencapai batas minimum yang ditentukan.</p>
-                </div>
-                <div class="feature-card glow-purple">
-                    <div class="feature-icon purple"><i data-lucide="layers"></i></div>
-                    <h4>Batch Tracking</h4>
-                    <p>Kelola batch number dan lot tracking untuk produk perishable.</p>
-                </div>
-                <div class="feature-card glow-green">
-                    <div class="feature-icon green"><i data-lucide="map-pin"></i></div>
-                    <h4>Slot Locator</h4>
-                    <p>Temukan lokasi barang di gudang dengan sistem slot yang terstruktur.</p>
-                </div>
-                <div class="feature-card glow-blue">
-                    <div class="feature-icon blue"><i data-lucide="repeat"></i></div>
-                    <h4>Stock Opname</h4>
-                    <p>Proses stock opname digital yang efisien dan terdokumentasi dengan baik.</p>
-                </div>
-                <div class="feature-card glow-cyan">
-                    <div class="feature-icon cyan"><i data-lucide="truck"></i></div>
-                    <h4>Delivery Track</h4>
-                    <p>Pantau status pengiriman barang keluar secara real-time.</p>
-                </div>
-                <div class="feature-card glow-orange">
-                    <div class="feature-icon orange"><i data-lucide="tag"></i></div>
-                    <h4>Price Management</h4>
-                    <p>Kelola harga beli, jual, dan margin keuntungan setiap produk.</p>
-                </div>
-                <div class="feature-card glow-purple">
-                    <div class="feature-icon purple"><i data-lucide="calendar-check"></i></div>
-                    <h4>Expiry Alert</h4>
-                    <p>Notifikasi otomatis untuk produk yang mendekati tanggal kadaluarsa.</p>
-                </div>
-                <div class="feature-card glow-green">
-                    <div class="feature-icon green"><i data-lucide="lock"></i></div>
-                    <h4>Data Security</h4>
-                    <p>Enkripsi end-to-end dan backup otomatis untuk keamanan data bisnis.</p>
-                </div>
-                <div class="feature-card glow-blue">
-                    <div class="feature-icon blue"><i data-lucide="headphones"></i></div>
-                    <h4>24/7 Support</h4>
-                    <p>Tim support siap membantu Anda kapanpun dibutuhkan tanpa biaya tambahan.</p>
-                </div>
-                <div class="feature-card glow-cyan">
-                    <div class="feature-icon cyan"><i data-lucide="trending-up"></i></div>
-                    <h4>Growth Analytics</h4>
-                    <p>Pantau pertumbuhan bisnis dan identifikasi peluang optimasi inventori.</p>
-                </div>
+                @foreach ($features as $feature)
+                    <div class="feature-card glow-{{ $feature->color }}">
+                        <div class="feature-icon {{ $feature->color }}"><i data-lucide="{{ $feature->icon }}"></i></div>
+                        <h4>{{ $feature->title }}</h4>
+                        <p>{{ $feature->description }}</p>
+                    </div>
+                @endforeach
             </div>
         </div>
     </section>
 
-    <!-- Dashboard Preview Section -->
+    <!-- Dashboard Preview Section (tetap statis, mockup visual) -->
     <section class="dashboard-section section-pad" id="dashboard">
         <div class="container">
             <div class="section-header fade-up">
@@ -654,7 +499,6 @@
                             <div class="dp-menu-item"><i data-lucide="settings"></i><span>Settings</span></div>
                         </div>
                         <div class="dp-main">
-                            <!-- Stat Cards -->
                             <div class="dp-stat-cards">
                                 <div class="dp-stat-card">
                                     <div class="dp-stat-header">
@@ -693,8 +537,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Charts + Activity -->
                             <div class="dp-middle">
                                 <div class="dp-chart-main">
                                     <div class="dp-chart-head">
@@ -764,8 +606,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Table + Progress -->
                             <div class="dp-bottom">
                                 <div class="dp-order-table">
                                     <h4>Top Products</h4>
@@ -844,7 +684,7 @@
         </div>
     </section>
 
-    <!-- Workflow Section -->
+    <!-- Workflow Section (tetap statis) -->
     <section class="workflow-section section-pad">
         <div class="container">
             <div class="section-header fade-up">
@@ -919,7 +759,7 @@
         </div>
     </section>
 
-    <!-- Benefits Section -->
+    <!-- Benefits Section (tetap statis, angka narasi berbeda dari Stats section atas) -->
     <section class="benefits-section section-pad" id="benefits">
         <div class="container">
             <div class="section-header fade-up">
@@ -968,7 +808,7 @@
         </div>
     </section>
 
-    <!-- Testimonials Section -->
+    <!-- Testimonials Section (DINAMIS dari database) -->
     <section class="testimonial-section section-pad">
         <div class="container">
             <div class="section-header fade-up">
@@ -977,59 +817,29 @@
                 <p class="section-sub">Bergabung dengan ratusan perusahaan yang telah bertransformasi digital.</p>
             </div>
             <div class="testimonial-grid fade-up">
-                <div class="testimonial-card">
-                    <div class="testi-stars">
-                        <i data-lucide="star"></i><i data-lucide="star"></i><i data-lucide="star"></i>
-                        <i data-lucide="star"></i><i data-lucide="star"></i>
-                    </div>
-                    <p class="testi-quote">"StockFlow mengubah cara kami mengelola gudang secara fundamental. Akurasi
-                        stok kami naik dari 78% ke 99.7% hanya dalam 3 bulan implementasi. Luar biasa!"</p>
-                    <div class="testi-author">
-                        <div class="testi-avatar av-blue">BH</div>
-                        <div class="testi-info">
-                            <div class="testi-name">Budi Hartono</div>
-                            <div class="testi-role">Logistics Director · Astra Group</div>
+                @foreach ($testimonials as $t)
+                    <div class="testimonial-card {{ $t->is_featured ? 'featured-card' : '' }}">
+                        <div class="testi-stars">
+                            @for ($i = 0; $i < $t->rating; $i++)
+                                <i data-lucide="star"></i>
+                            @endfor
                         </div>
-                        <div class="testi-verified"><i data-lucide="badge-check"></i></div>
-                    </div>
-                </div>
-                <div class="testimonial-card featured-card">
-                    <div class="testi-stars">
-                        <i data-lucide="star"></i><i data-lucide="star"></i><i data-lucide="star"></i>
-                        <i data-lucide="star"></i><i data-lucide="star"></i>
-                    </div>
-                    <p class="testi-quote">"ROI positif terasa dalam 2 bulan pertama. Tim kami menghemat 4 jam per hari
-                        yang sebelumnya dihabiskan untuk update spreadsheet manual. Sangat direkomendasikan!"</p>
-                    <div class="testi-author">
-                        <div class="testi-avatar av-cyan">SR</div>
-                        <div class="testi-info">
-                            <div class="testi-name">Siti Rahayu</div>
-                            <div class="testi-role">Supply Chain Manager · Indomaret</div>
+                        <p class="testi-quote">"{{ $t->quote }}"</p>
+                        <div class="testi-author">
+                            <div class="testi-avatar av-{{ $t->avatar_color }}">{{ $t->initials }}</div>
+                            <div class="testi-info">
+                                <div class="testi-name">{{ $t->name }}</div>
+                                <div class="testi-role">{{ $t->role }}</div>
+                            </div>
+                            <div class="testi-verified"><i data-lucide="badge-check"></i></div>
                         </div>
-                        <div class="testi-verified"><i data-lucide="badge-check"></i></div>
                     </div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testi-stars">
-                        <i data-lucide="star"></i><i data-lucide="star"></i><i data-lucide="star"></i>
-                        <i data-lucide="star"></i><i data-lucide="star"></i>
-                    </div>
-                    <p class="testi-quote">"Dashboard real-time StockFlow memberikan visibilitas penuh atas 8 gudang
-                        kami di seluruh Indonesia. Support tim sangat responsif dan profesional!"</p>
-                    <div class="testi-author">
-                        <div class="testi-avatar av-purple">AW</div>
-                        <div class="testi-info">
-                            <div class="testi-name">Ahmad Wijaya</div>
-                            <div class="testi-role">COO · Mitra Gudang Indonesia</div>
-                        </div>
-                        <div class="testi-verified"><i data-lucide="badge-check"></i></div>
-                    </div>
-                </div>
+                @endforeach
             </div>
         </div>
     </section>
 
-    <!-- FAQ Section -->
+    <!-- FAQ Section (DINAMIS dari database) -->
     <section class="faq-section section-pad" id="faq">
         <div class="container">
             <div class="section-header fade-up">
@@ -1038,94 +848,17 @@
                 <p class="section-sub">Temukan jawaban atas pertanyaan umum tentang StockFlow.</p>
             </div>
             <div class="faq-grid fade-up">
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>Berapa lama proses implementasi StockFlow?</span>
-                        <div class="faq-icon"><i data-lucide="plus"></i></div>
-                    </button>
-                    <div class="faq-answer">
-                        <p>Proses implementasi StockFlow rata-rata membutuhkan 3-7 hari kerja tergantung kompleksitas
-                            bisnis Anda. Tim onboarding kami akan memandu setiap langkah, mulai dari migrasi data,
-                            konfigurasi sistem, hingga pelatihan tim.</p>
+                @foreach ($faqs as $faq)
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>{{ $faq->question }}</span>
+                            <div class="faq-icon"><i data-lucide="plus"></i></div>
+                        </button>
+                        <div class="faq-answer">
+                            <p>{{ $faq->answer }}</p>
+                        </div>
                     </div>
-                </div>
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>Apakah StockFlow bisa diintegrasikan dengan sistem yang sudah ada?</span>
-                        <div class="faq-icon"><i data-lucide="plus"></i></div>
-                    </button>
-                    <div class="faq-answer">
-                        <p>Ya, StockFlow menyediakan REST API yang terdokumentasi dengan baik dan sudah terintegrasi
-                            dengan 50+ platform populer seperti Shopee, Tokopedia, Lazada, SAP, Oracle, dan berbagai
-                            sistem akuntansi. Custom integration juga tersedia.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>Bagaimana keamanan data bisnis saya di StockFlow?</span>
-                        <div class="faq-icon"><i data-lucide="plus"></i></div>
-                    </button>
-                    <div class="faq-answer">
-                        <p>Data Anda dilindungi dengan enkripsi AES-256 end-to-end, backup otomatis setiap jam, dan
-                            infrastruktur ISO 27001. Server berlokasi di Indonesia dengan uptime SLA 99.9%. Kami juga
-                            menyediakan audit log lengkap untuk semua aktivitas.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>Apakah tersedia versi mobile untuk operator gudang?</span>
-                        <div class="faq-icon"><i data-lucide="plus"></i></div>
-                    </button>
-                    <div class="faq-answer">
-                        <p>Ya, StockFlow memiliki aplikasi mobile untuk iOS dan Android yang dirancang khusus untuk
-                            operator gudang. Fitur meliputi scan barcode, receive barang, picking, packing, dan stock
-                            count yang bisa digunakan secara offline.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>Berapa biaya langganan StockFlow?</span>
-                        <div class="faq-icon"><i data-lucide="plus"></i></div>
-                    </button>
-                    <div class="faq-answer">
-                        <p>StockFlow menawarkan berbagai paket yang fleksibel mulai dari Starter (Rp 500K/bulan) untuk
-                            bisnis kecil hingga Enterprise dengan harga custom untuk kebutuhan besar. Semua paket
-                            termasuk support 24/7 dan unlimited training. Trial gratis 14 hari tersedia.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>Apakah bisa mengelola multiple gudang dalam satu akun?</span>
-                        <div class="faq-icon"><i data-lucide="plus"></i></div>
-                    </button>
-                    <div class="faq-answer">
-                        <p>Tentu! Fitur Multi-Warehouse StockFlow memungkinkan Anda mengelola puluhan gudang di berbagai
-                            lokasi dari satu dashboard terpusat. Tersedia fitur transfer antar gudang, konsolidasi
-                            laporan, dan manajemen stok terpusat yang sangat mudah digunakan.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>Bagaimana proses migrasi data dari sistem lama?</span>
-                        <div class="faq-icon"><i data-lucide="plus"></i></div>
-                    </button>
-                    <div class="faq-answer">
-                        <p>Tim migrasi kami berpengalaman menangani data dari berbagai format: Excel, CSV, database SQL,
-                            maupun sistem WMS lainnya. Proses migrasi dilakukan secara bertahap dengan validasi di
-                            setiap tahap untuk memastikan tidak ada data yang hilang atau terduplikasi.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span>Apakah ada dukungan pelatihan untuk tim kami?</span>
-                        <div class="faq-icon"><i data-lucide="plus"></i></div>
-                    </button>
-                    <div class="faq-answer">
-                        <p>Ya! Setiap paket termasuk unlimited training session, dokumentasi lengkap, video tutorial,
-                            dan akses ke knowledge base kami. Kami juga menyediakan dedicated account manager untuk
-                            paket Business ke atas yang siap membantu tim Anda beradaptasi.</p>
-                    </div>
-                </div>
+                @endforeach
             </div>
         </div>
     </section>
@@ -1148,11 +881,11 @@
                         <div class="cta-feat"><i data-lucide="check-circle-2"></i><span>Migrasi data gratis</span></div>
                     </div>
                     <div class="cta-actions">
-                        <a href="#" class="btn-primary btn-xl ripple">
+                        <a href="{{ route('register') }}" class="btn-primary btn-xl ripple">
                             <i data-lucide="rocket"></i>
                             Start Free Trial
                         </a>
-                        <a href="#" class="btn-ghost-white btn-xl ripple">
+                        <a href="#contact" class="btn-ghost-white btn-xl ripple">
                             <i data-lucide="phone"></i>
                             Contact Sales
                         </a>
@@ -1264,7 +997,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 StockFlow Technologies, Inc. All rights reserved.</p>
+                <p>&copy; {{ date('Y') }} StockFlow Technologies, Inc. All rights reserved.</p>
                 <div class="footer-badges">
                     <div class="footer-badge"><i data-lucide="shield-check"></i> SOC 2 Type II</div>
                     <div class="footer-badge"><i data-lucide="lock"></i> ISO 27001</div>
@@ -1279,7 +1012,7 @@
         <i data-lucide="arrow-up"></i>
     </button>
 
-    <script src="frontend/js/script.js"></script>
+    <script src="{{ asset('frontend/js/script.js') }}"></script>
 </body>
 
 </html>
