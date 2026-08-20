@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Web\Landing;
 
 use App\Http\Controllers\Controller;
 use App\Models\LandingStat;
@@ -14,12 +14,12 @@ class LandingStatController extends Controller
     {
         $stats = LandingStat::ordered()->paginate(10);
 
-        return view('admin.landing-stats.index', compact('stats'));
+        return view('frontend.landing-stats.index', compact('stats'));
     }
 
     public function create(): View
     {
-        return view('admin.landing-stats.create');
+        return view('frontend.landing-stats.create');
     }
 
     public function store(Request $request): RedirectResponse
@@ -35,7 +35,7 @@ class LandingStatController extends Controller
 
     public function edit(LandingStat $landingStat): View
     {
-        return view('admin.landing-stats.edit', ['stat' => $landingStat]);
+        return view('frontend.landing-stats.edit', ['stat' => $landingStat]);
     }
 
     public function update(Request $request, LandingStat $landingStat): RedirectResponse

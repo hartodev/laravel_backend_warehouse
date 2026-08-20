@@ -992,6 +992,40 @@
                 </div>
             </div>
 
+            {{-- LANDING PAGE (route names WITHOUT 'superadmin.' prefix) --}}
+            <div class="group-label">Landing Page</div>
+
+            <div
+                x-data="{ open: {{ request()->routeIs('landing-stats*', 'landing-features*', 'landing-testimonials*', 'landing-faqs*') ? 'true' : 'false' }} }">
+                <div class="nav-item" @click="open = !open">
+                    <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span class="nav-text flex-1">Landing Page</span>
+                    <svg class="nav-text w-4 h-4 flex-shrink-0 transition-transform duration-200"
+                        :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <div class="sub-menu" :class="{ open }">
+                    @php
+                    $landingSubs = [
+                    ['route' => 'landing-stats.index', 'label' => 'Stats', 'base' => 'landing-stats'],
+                    ['route' => 'landing-features.index', 'label' => 'Fitur', 'base' => 'landing-features'],
+                    ['route' => 'landing-testimonials.index', 'label' => 'Testimoni', 'base' => 'landing-testimonials'],
+                    ['route' => 'landing-faqs.index', 'label' => 'FAQ', 'base' => 'landing-faqs'],
+                    ];
+                    @endphp
+                    @foreach ($landingSubs as $s)
+                    <a href="{{ route($s['route']) }}"
+                        class="sub-nav-item {{ request()->routeIs($s['base'] . '*') ? 'active' : '' }}">
+                        <span class="sub-dot"></span>
+                        <span>{{ $s['label'] }}</span>
+                    </a>
+                    @endforeach
+                </div>
+            </div>
             {{-- SISTEM (no 'superadmin.' prefix) --}}
             <div class="group-label">Sistem</div>
             @php
@@ -1316,4 +1350,3 @@
 </body>
 
 </html>
-

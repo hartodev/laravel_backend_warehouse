@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Web\Landing;
 
 use App\Http\Controllers\Controller;
 use App\Models\LandingFaq;
@@ -14,12 +14,12 @@ class LandingFaqController extends Controller
     {
         $faqs = LandingFaq::ordered()->paginate(10);
 
-        return view('admin.landing-faqs.index', compact('faqs'));
+        return view('frontend.landing-faqs.index', compact('faqs'));
     }
 
     public function create(): View
     {
-        return view('admin.landing-faqs.create');
+        return view('frontend.landing-faqs.create');
     }
 
     public function store(Request $request): RedirectResponse
@@ -35,7 +35,7 @@ class LandingFaqController extends Controller
 
     public function edit(LandingFaq $landingFaq): View
     {
-        return view('admin.landing-faqs.edit', ['faq' => $landingFaq]);
+        return view('frontend.landing-faqs.edit', ['faq' => $landingFaq]);
     }
 
     public function update(Request $request, LandingFaq $landingFaq): RedirectResponse

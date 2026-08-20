@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Web\Landing;
 
 use App\Http\Controllers\Controller;
 use App\Models\LandingTestimonial;
@@ -16,12 +16,12 @@ class LandingTestimonialController extends Controller
     {
         $testimonials = LandingTestimonial::ordered()->paginate(10);
 
-        return view('admin.landing-testimonials.index', compact('testimonials'));
+        return view('frontend.landing-testimonials.index', compact('testimonials'));
     }
 
     public function create(): View
     {
-        return view('admin.landing-testimonials.create', ['colors' => self::COLORS]);
+        return view('frontend.landing-testimonials.create', ['colors' => self::COLORS]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -31,13 +31,13 @@ class LandingTestimonialController extends Controller
         LandingTestimonial::create($data);
 
         return redirect()
-            ->route('admin.landing-testimonials.index')
+            ->route('landing-testimonials.index')
             ->with('success', 'Testimoni berhasil ditambahkan.');
     }
 
     public function edit(LandingTestimonial $landingTestimonial): View
     {
-        return view('admin.landing-testimonials.edit', [
+        return view('frontend.landing-testimonials.edit', [
             'testimonial' => $landingTestimonial,
             'colors'      => self::COLORS,
         ]);
@@ -50,7 +50,7 @@ class LandingTestimonialController extends Controller
         $landingTestimonial->update($data);
 
         return redirect()
-            ->route('admin.landing-testimonials.index')
+            ->route('landing-testimonials.index')
             ->with('success', 'Testimoni berhasil diperbarui.');
     }
 
@@ -59,7 +59,7 @@ class LandingTestimonialController extends Controller
         $landingTestimonial->delete();
 
         return redirect()
-            ->route('admin.landing-testimonials.index')
+            ->route('landing-testimonials.index')
             ->with('success', 'Testimoni berhasil dihapus.');
     }
 

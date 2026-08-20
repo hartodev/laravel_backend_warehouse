@@ -17,6 +17,6 @@ class LandingController extends Controller
         $faqs         = LandingFaq::active()->ordered()->get();
         $features     = LandingFeature::active()->ordered()->get();
 
-        return view('landing.index', compact('stats', 'testimonials', 'faqs', 'features'));
+        return view('frontend.landing.index', compact('stats', 'testimonials', 'faqs', 'features'));
     }
 }

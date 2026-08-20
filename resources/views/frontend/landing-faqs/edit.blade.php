@@ -1,0 +1,24 @@
+@extends('layouts.app')
+@section('title', 'Edit FAQ')
+@section('breadcrumb')
+<a href="{{ route('landing-faqs.index') }}" class="hover:text-primary-700">Landing Page - FAQ</a>
+<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+</svg>
+<span class="text-gray-700 font-medium">Edit</span>
+@endsection
+
+@section('content')
+<div class="max-w-2xl">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="font-semibold text-gray-900">Edit FAQ</h2>
+        </div>
+        <div class="card-body">
+            <form action="{{ route('landing-faqs.update', $faq) }}" method="POST">
+                @include('frontend.landing-faqs.form')
+            </form>
+        </div>
+    </div>
+</div>
+@endsection

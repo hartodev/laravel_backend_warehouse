@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Web\Landing;
 
 use App\Http\Controllers\Controller;
 use App\Models\LandingFeature;
@@ -16,12 +16,12 @@ class LandingFeatureController extends Controller
     {
         $features = LandingFeature::ordered()->paginate(10);
 
-        return view('admin.landing-features.index', compact('features'));
+        return view('frontend.landing-features.index', compact('features'));
     }
 
     public function create(): View
     {
-        return view('admin.landing-features.create', ['colors' => self::COLORS]);
+        return view('frontend.landing-features.create', ['colors' => self::COLORS]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -31,13 +31,13 @@ class LandingFeatureController extends Controller
         LandingFeature::create($data);
 
         return redirect()
-            ->route('admin.landing-features.index')
+            ->route('landing-features.index')
             ->with('success', 'Fitur berhasil ditambahkan.');
     }
 
     public function edit(LandingFeature $landingFeature): View
     {
-        return view('admin.landing-features.edit', [
+        return view('frontend.landing-features.edit', [
             'feature' => $landingFeature,
             'colors'  => self::COLORS,
         ]);
@@ -50,7 +50,7 @@ class LandingFeatureController extends Controller
         $landingFeature->update($data);
 
         return redirect()
-            ->route('admin.landing-features.index')
+            ->route('landing-features.index')
             ->with('success', 'Fitur berhasil diperbarui.');
     }
 
@@ -59,7 +59,7 @@ class LandingFeatureController extends Controller
         $landingFeature->delete();
 
         return redirect()
-            ->route('admin.landing-features.index')
+            ->route('landing-features.index')
             ->with('success', 'Fitur berhasil dihapus.');
     }
 

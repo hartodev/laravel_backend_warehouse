@@ -189,22 +189,33 @@
                                     </div>
                                     <div class="mock-table">
                                         <div class="mock-row header-row">
-                                            <div></div><div></div><div></div><div></div>
+                                            <div></div>
+                                            <div></div>
+                                            <div></div>
+                                            <div></div>
                                         </div>
                                         <div class="mock-row">
-                                            <div></div><div></div><div></div>
+                                            <div></div>
+                                            <div></div>
+                                            <div></div>
                                             <div class="status-badge green"></div>
                                         </div>
                                         <div class="mock-row">
-                                            <div></div><div></div><div></div>
+                                            <div></div>
+                                            <div></div>
+                                            <div></div>
                                             <div class="status-badge blue"></div>
                                         </div>
                                         <div class="mock-row">
-                                            <div></div><div></div><div></div>
+                                            <div></div>
+                                            <div></div>
+                                            <div></div>
                                             <div class="status-badge yellow"></div>
                                         </div>
                                         <div class="mock-row">
-                                            <div></div><div></div><div></div>
+                                            <div></div>
+                                            <div></div>
+                                            <div></div>
                                             <div class="status-badge green"></div>
                                         </div>
                                     </div>
@@ -251,23 +262,21 @@
         <div class="container">
             <div class="stats-grid fade-up">
                 @foreach ($stats as $stat)
-                    <div class="stat-item">
-                        @if ($stat->is_static)
-                            <div class="stat-value stat-static">{{ $stat->static_value }}</div>
-                        @else
-                            <div class="stat-value"
-                                 data-target="{{ $stat->target }}"
-                                 data-suffix="{{ $stat->suffix }}"
-                                 data-decimal="{{ $stat->decimal_places }}">0</div>
-                        @endif
-                        <div class="stat-label">{{ $stat->label }}</div>
-                        <div class="stat-bar">
-                            <div class="stat-bar-fill" style="width: {{ $stat->bar_percentage }}%"></div>
-                        </div>
-                    </div>
-                    @if (!$loop->last)
-                        <div class="stat-divider"></div>
+                <div class="stat-item">
+                    @if ($stat->is_static)
+                    <div class="stat-value stat-static">{{ $stat->static_value }}</div>
+                    @else
+                    <div class="stat-value" data-target="{{ $stat->target }}" data-suffix="{{ $stat->suffix }}"
+                        data-decimal="{{ $stat->decimal_places }}">0</div>
                     @endif
+                    <div class="stat-label">{{ $stat->label }}</div>
+                    <div class="stat-bar">
+                        <div class="stat-bar-fill" style="width: {{ $stat->bar_percentage }}%"></div>
+                    </div>
+                </div>
+                @if (!$loop->last)
+                <div class="stat-divider"></div>
+                @endif
                 @endforeach
             </div>
         </div>
@@ -448,11 +457,11 @@
             </div>
             <div class="feature-grid fade-up">
                 @foreach ($features as $feature)
-                    <div class="feature-card glow-{{ $feature->color }}">
-                        <div class="feature-icon {{ $feature->color }}"><i data-lucide="{{ $feature->icon }}"></i></div>
-                        <h4>{{ $feature->title }}</h4>
-                        <p>{{ $feature->description }}</p>
-                    </div>
+                <div class="feature-card glow-{{ $feature->color }}">
+                    <div class="feature-icon {{ $feature->color }}"><i data-lucide="{{ $feature->icon }}"></i></div>
+                    <h4>{{ $feature->title }}</h4>
+                    <p>{{ $feature->description }}</p>
+                </div>
                 @endforeach
             </div>
         </div>
@@ -818,22 +827,22 @@
             </div>
             <div class="testimonial-grid fade-up">
                 @foreach ($testimonials as $t)
-                    <div class="testimonial-card {{ $t->is_featured ? 'featured-card' : '' }}">
-                        <div class="testi-stars">
-                            @for ($i = 0; $i < $t->rating; $i++)
-                                <i data-lucide="star"></i>
+                <div class="testimonial-card {{ $t->is_featured ? 'featured-card' : '' }}">
+                    <div class="testi-stars">
+                        @for ($i = 0; $i < $t->rating; $i++)
+                            <i data-lucide="star"></i>
                             @endfor
-                        </div>
-                        <p class="testi-quote">"{{ $t->quote }}"</p>
-                        <div class="testi-author">
-                            <div class="testi-avatar av-{{ $t->avatar_color }}">{{ $t->initials }}</div>
-                            <div class="testi-info">
-                                <div class="testi-name">{{ $t->name }}</div>
-                                <div class="testi-role">{{ $t->role }}</div>
-                            </div>
-                            <div class="testi-verified"><i data-lucide="badge-check"></i></div>
-                        </div>
                     </div>
+                    <p class="testi-quote">"{{ $t->quote }}"</p>
+                    <div class="testi-author">
+                        <div class="testi-avatar av-{{ $t->avatar_color }}">{{ $t->initials }}</div>
+                        <div class="testi-info">
+                            <div class="testi-name">{{ $t->name }}</div>
+                            <div class="testi-role">{{ $t->role }}</div>
+                        </div>
+                        <div class="testi-verified"><i data-lucide="badge-check"></i></div>
+                    </div>
+                </div>
                 @endforeach
             </div>
         </div>
@@ -849,15 +858,15 @@
             </div>
             <div class="faq-grid fade-up">
                 @foreach ($faqs as $faq)
-                    <div class="faq-item">
-                        <button class="faq-question">
-                            <span>{{ $faq->question }}</span>
-                            <div class="faq-icon"><i data-lucide="plus"></i></div>
-                        </button>
-                        <div class="faq-answer">
-                            <p>{{ $faq->answer }}</p>
-                        </div>
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>{{ $faq->question }}</span>
+                        <div class="faq-icon"><i data-lucide="plus"></i></div>
+                    </button>
+                    <div class="faq-answer">
+                        <p>{{ $faq->answer }}</p>
                     </div>
+                </div>
                 @endforeach
             </div>
         </div>

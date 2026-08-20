@@ -46,16 +46,16 @@
 
                             <div class="nav-actions">
                 <a href="{{ route('login') }}" class="btn-ghost">Login</a>
-                <a href="{{ route('register') }}" class="btn-primary ripple">Get Started</a>
-            </div>
-            </div>
+    <a href="{{ route('register') }}" class="btn-primary ripple">Get Started</a>
+    </div>
+    </div>
 
 
 
-            <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
-                <i data-lucide="menu"></i>
-            </button>
-        </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <i data-lucide="menu"></i>
+    </button>
+    </div>
     </nav> --}}
 
     <nav class="navbar" id="navbar">

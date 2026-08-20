@@ -96,7 +96,7 @@
                 </a>
 
                 <div class="nav-section-title">Anggaran (RAB)</div>
-                <a href="{{ route('admin.budget_requests.index') }}"
+                <a href="{{ route('admin.budget-requests.index') }}"
                     class="nav-link {{ request()->routeIs('admin.budget-requests.*') ? 'active' : '' }}">
                     <i class="lucide-file-spreadsheet"></i> Review RAB Masuk
                 </a>
@@ -104,7 +104,7 @@
                     class="nav-link {{ request()->routeIs('admin.budget-verifications.*') ? 'active' : '' }}">
                     <i class="lucide-check-square"></i> Verifikasi Finance
                 </a>
-                <a href="{{ route('admin.budget_revisions.index') }}"
+                <a href="{{ route('admin.budget-revisions.index') }}"
                     class="nav-link {{ request()->routeIs('admin.budget-revisions.*') ? 'active' : '' }}">
                     <i class="lucide-refresh-cw"></i> Revisi Anggaran
                 </a>

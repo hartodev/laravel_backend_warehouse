@@ -42,17 +42,19 @@ use App\Http\Controllers\Web\Superadmin\UserController;
 use App\Http\Controllers\Web\Superadmin\UserCreationRequestController;
 use App\Http\Controllers\Web\Superadmin\WarehouseController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\LandingFaqController;
-use App\Http\Controllers\Admin\LandingFeatureController;
-use App\Http\Controllers\Admin\LandingStatController;
-use App\Http\Controllers\Admin\LandingTestimonialController;
+use App\Http\Controllers\Web\Landing\LandingFaqController;
+use App\Http\Controllers\Web\Landing\LandingFeatureController;
+use App\Http\Controllers\Web\Landing\LandingStatController;
+use App\Http\Controllers\Web\Landing\LandingTestimonialController;
 
 // ────────────────────────────────────────────────────────────
 //  PUBLIC / AUTH ROUTES
 // ────────────────────────────────────────────────────────────
-Route::get('/', function () {
-    return view('frontend.landing');
-})->name('home');
+// Route::get('/', function () {
+//     return view('frontend.landing');
+// })->name('home');
+
+Route::get('/', [App\Http\Controllers\Web\Landing\LandingController::class, 'index'])->name('landing.index');
 
 Route::resource('landing-stats', LandingStatController::class)->except(['show']);
 Route::resource('landing-testimonials', LandingTestimonialController::class)->except(['show']);
@@ -382,7 +384,7 @@ Route::prefix('admin')
             });
 
         // ── Stock Movement (riwayat, read-only) ────────────────
-        // Route::get('stock-movements', [AdminStockMovementController::class, 'index'])->name('stock-movements.index');
+        Route::get('stock-movements', [AdminStockMovementController::class, 'index'])->name('stock-movements.index');
         Route::resource('product-units', ProductUnitController::class)->except('show');
         Route::resource('warehouses', WarehouseController::class);
         Route::resource('sales-orders', SalesOrderController::class)->only(['index','create','store','show']);
@@ -403,6 +405,33 @@ Route::prefix('admin')
                 Route::patch('{submission}/approve', 'approve')->name('approve');
                 Route::patch('{submission}/reject', 'reject')->name('reject');
             });
+            Route::resource('payments', PaymentController::class);
+Route::post('payments/{payment}/verify', [PaymentController::class, 'verify'])->name('payments.verify');
+
+// ── Stock Movement (riwayat, read-only) — diaktifkan ────
+Route::get('stock-movements', [AdminStockMovementController::class, 'index'])->name('stock-movements.index');
+
+// ── Payments (reuse Superadmin controller) ───────────────
+Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+
+// ── Cash Books (reuse Superadmin controller) ─────────────
+Route::get('cash-books', [CashBookController::class, 'index'])->name('cash-books.index');
+
+// ── Budget Requests (reuse Superadmin controller) ────────
+Route::get('budget-requests', [BudgetRequestController::class, 'index'])->name('budget-requests.index');
+
+// ── Budget Verifications (reuse Superadmin controller) ───
+Route::get('budget-verifications', [\App\Http\Controllers\Web\Superadmin\BudgetVerificationController::class, 'index'])->name('budget-verifications.index');
+
+// ── Budget Revisions (reuse Superadmin controller) ───────
+Route::get('budget-revisions', [\App\Http\Controllers\Web\Superadmin\BudgetRevisionController::class, 'index'])->name('budget-revisions.index');
+
+// ── Expense Reports (reuse Superadmin controller) ────────
+Route::get('expense-reports', [ExpenseReportController::class, 'index'])->name('expense-reports.index');
+
+// ── Barcodes (reuse Superadmin controller) ───────────────
+Route::get('barcodes/scan', [BarcodeController::class, 'scan'])->name('barcodes.scan');
+Route::post('barcodes/scan', [BarcodeController::class, 'doScan'])->name('barcodes.do-scan');
 
     });
 
@@ -413,6 +442,3 @@ Catatan penting soal urutan route:
   "products-for-scope" sebagai value {opname} dan salah route.
   Di atas sudah diurutkan dengan benar.
 */
-
-
-
