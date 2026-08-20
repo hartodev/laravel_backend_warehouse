@@ -20,14 +20,14 @@ class StockReportController extends Controller
             ->when($request->date_to, fn($q) => $q->where('period_date', '<=', $request->date_to))
             ->orderByDesc('period_date')
             ->paginate($request->per_page ?? 20);
- 
+
         return response()->json(['success' => true, 'data' => $reports]);
     }
- 
+
     public function summary(Request $request): JsonResponse
     {
         $warehouseId = $request->warehouse_id;
- 
+
         $summary = \App\Models\Stock::with(['product:id,name,sku,unit,min_stock', 'warehouse:id,name,code'])
             ->when($warehouseId, fn($q) => $q->where('warehouse_id', $warehouseId))
             ->get()
@@ -40,10 +40,10 @@ class StockReportController extends Controller
                 'min_stock'   => $stock->product->min_stock,
                 'is_low'      => $stock->isLow(),
             ]);
- 
+
         return response()->json(['success' => true, 'data' => $summary]);
     }
- 
+
     public function byWarehouse(Request $request, Warehouse $warehouse): JsonResponse
     {
         $reports = StockReport::with('product:id,name,sku,unit')
@@ -53,7 +53,8 @@ class StockReportController extends Controller
             ->when($request->date_to, fn($q) => $q->where('period_date', '<=', $request->date_to))
             ->orderByDesc('period_date')
             ->paginate($request->per_page ?? 20);
- 
+
         return response()->json(['success' => true, 'data' => $reports]);
     }
 }
+

@@ -27,18 +27,18 @@ class ProductController extends Controller
             }))
             ->latest()
             ->paginate($request->per_page ?? 15);
- 
+
         return response()->json(['success' => true, 'data' => $products]);
     }
- 
+
     public function show(Product $product): JsonResponse
     {
         $product->load(['category:id,name,code', 'units'])
                 ->loadCount('stocks');
- 
+
         return response()->json(['success' => true, 'data' => $product]);
     }
- 
+
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -54,16 +54,16 @@ class ProductController extends Controller
             'is_active'      => 'nullable|boolean',
             'photo'          => ImageService::rules(),
         ]);
- 
+
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
         }
- 
+
         $photoPath = null;
         if ($request->hasFile('photo')) {
             $photoPath = ImageService::upload($request->file('photo'), 'products');
         }
- 
+
         $product = Product::create([
             'category_id'    => $request->category_id,
             'name'           => $request->name,
@@ -77,10 +77,10 @@ class ProductController extends Controller
             'is_active'      => $request->boolean('is_active', true),
             'photo'          => $photoPath,
         ]);
- 
+
         return response()->json(['success' => true, 'message' => 'Produk berhasil dibuat.', 'data' => $product->load('category:id,name')], 201);
     }
- 
+
     public function update(Request $request, Product $product): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -96,48 +96,48 @@ class ProductController extends Controller
             'is_active'      => 'nullable|boolean',
             'photo'          => ImageService::rules(),
         ]);
- 
+
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
         }
- 
+
         $data = $request->only('category_id', 'name', 'barcode', 'unit', 'min_stock', 'purchase_price', 'selling_price', 'description');
- 
+
         if ($request->has('sku')) $data['sku'] = strtoupper($request->sku);
         if ($request->has('is_active')) $data['is_active'] = $request->boolean('is_active');
         if ($request->hasFile('photo')) {
             $data['photo'] = ImageService::upload($request->file('photo'), 'products', $product->photo);
         }
- 
+
         $product->update($data);
- 
+
         return response()->json(['success' => true, 'message' => 'Produk berhasil diupdate.', 'data' => $product->fresh()->load('category:id,name')]);
     }
- 
+
     public function destroy(Product $product): JsonResponse
     {
         if ($product->stocks()->where('quantity', '>', 0)->exists()) {
             return response()->json(['success' => false, 'message' => 'Produk tidak dapat dihapus karena masih memiliki stok.'], 422);
         }
- 
+
         if ($product->photo) ImageService::delete($product->photo);
- 
+
         $product->delete();
- 
+
         return response()->json(['success' => true, 'message' => 'Produk berhasil dihapus.']);
     }
- 
+
     // GET /api/products/{product}/units
     public function units(Product $product): JsonResponse
     {
         return response()->json(['success' => true, 'data' => $product->units]);
     }
- 
+
     // GET /api/products/{product}/stocks
     public function stockByWarehouse(Product $product): JsonResponse
     {
         $stocks = $product->stocks()->with('warehouse:id,name,code')->get();
- 
+
         return response()->json([
             'success' => true,
             'data'    => [
@@ -149,3 +149,5 @@ class ProductController extends Controller
         ]);
     }
 }
+
+

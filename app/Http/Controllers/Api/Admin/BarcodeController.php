@@ -20,19 +20,19 @@ class BarcodeController extends Controller
             'warehouse_id'  => 'nullable|exists:warehouses,id',
             'device_info'   => 'nullable|string|max:255',
         ]);
- 
+
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
         }
- 
+
         // Cari produk berdasarkan barcode atau SKU
         $product = Product::where('barcode', $request->barcode_value)
                            ->orWhere('sku', $request->barcode_value)
                            ->with('stocks')
                            ->first();
- 
+
         $isFound = $product !== null;
- 
+
         // Catat log scan
         BarcodeLog::create([
             'user_id'       => auth()->id(),
@@ -43,14 +43,14 @@ class BarcodeController extends Controller
             'is_found'      => $isFound,
             'device_info'   => $request->device_info,
         ]);
- 
+
         if (! $isFound) {
             return response()->json([
                 'success' => false,
                 'message' => 'Produk tidak ditemukan untuk barcode: ' . $request->barcode_value,
             ], 404);
         }
- 
+
         // Ambil stok di gudang tertentu jika ada
         $stockInfo = null;
         if ($request->warehouse_id) {
@@ -60,7 +60,7 @@ class BarcodeController extends Controller
                 'quantity'     => $stock?->quantity ?? 0,
             ];
         }
- 
+
         return response()->json([
             'success' => true,
             'message' => 'Produk ditemukan.',
@@ -80,3 +80,5 @@ class BarcodeController extends Controller
         ]);
     }
 }
+
+

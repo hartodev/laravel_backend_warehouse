@@ -109,3 +109,4 @@ public function manualIn(Request $request): JsonResponse
     ]);
 }
 }
+

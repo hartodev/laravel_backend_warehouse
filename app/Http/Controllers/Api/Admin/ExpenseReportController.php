@@ -164,3 +164,4 @@ class ExpenseReportController extends Controller
         return response()->json(['success' => true, 'message' => 'Laporan berhasil diverifikasi.', 'data' => $er->fresh()]);
     }
 }
+

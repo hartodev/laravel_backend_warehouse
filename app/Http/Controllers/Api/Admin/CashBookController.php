@@ -18,18 +18,18 @@ class CashBookController extends Controller
             ->when($request->date_to, fn($q) => $q->whereDate('tanggal', '<=', $request->date_to))
             ->orderByDesc('tanggal')
             ->paginate($request->per_page ?? 20);
- 
+
         // Hitung total masuk & keluar
         $totalMasuk  = CashBook::where('type', 'masuk')
             ->when($request->date_from, fn($q) => $q->whereDate('tanggal', '>=', $request->date_from))
             ->when($request->date_to, fn($q) => $q->whereDate('tanggal', '<=', $request->date_to))
             ->sum('jumlah_uang');
- 
+
         $totalKeluar = CashBook::where('type', 'keluar')
             ->when($request->date_from, fn($q) => $q->whereDate('tanggal', '>=', $request->date_from))
             ->when($request->date_to, fn($q) => $q->whereDate('tanggal', '<=', $request->date_to))
             ->sum('jumlah_uang');
- 
+
         return response()->json([
             'success' => true,
             'summary' => [
@@ -40,14 +40,14 @@ class CashBookController extends Controller
             'data' => $books,
         ]);
     }
- 
+
     public function show(CashBook $book): JsonResponse
     {
         $book->load(['createdBy:id,name', 'verifiedBy:id,name', 'payment']);
- 
+
         return response()->json(['success' => true, 'data' => $book]);
     }
- 
+
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -58,14 +58,14 @@ class CashBookController extends Controller
             'keterangan'  => 'nullable|string',
             'tanggal'     => 'required|date',
         ]);
- 
+
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
         }
- 
+
         $count  = CashBook::whereYear('created_at', now()->year)->count() + 1;
         $number = ($request->type === 'masuk' ? 'KM' : 'KK') . '/' . now()->format('Y') . '/' . str_pad($count, 4, '0', STR_PAD_LEFT);
- 
+
         $book = CashBook::create([
             'no_bukti'    => $number,
             'created_by'  => auth()->id(),
@@ -76,18 +76,20 @@ class CashBookController extends Controller
             'keterangan'  => $request->keterangan,
             'tanggal'     => $request->tanggal,
         ]);
- 
+
         return response()->json(['success' => true, 'message' => 'Buku kas berhasil dicatat.', 'data' => $book], 201);
     }
- 
+
     public function update(Request $request, CashBook $book): JsonResponse
     {
         if ($book->verified_at) {
             return response()->json(['success' => false, 'message' => 'Buku kas yang sudah diverifikasi tidak dapat diubah.'], 422);
         }
- 
+
         $book->update($request->only('pihak', 'jumlah_uang', 'terbilang', 'keterangan', 'tanggal'));
- 
+
         return response()->json(['success' => true, 'message' => 'Buku kas berhasil diupdate.', 'data' => $book->fresh()]);
     }
 }
+
+

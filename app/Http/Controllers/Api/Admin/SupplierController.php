@@ -111,3 +111,4 @@ class SupplierController extends Controller
         return response()->json(['success' => true, 'message' => 'Supplier berhasil dihapus.']);
     }
 }
+

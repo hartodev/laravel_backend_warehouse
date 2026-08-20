@@ -25,17 +25,17 @@ class PaymentController extends Controller
             ->when($request->date_to, fn($q) => $q->whereDate('payment_date', '<=', $request->date_to))
             ->latest()
             ->paginate($request->per_page ?? 15);
- 
+
         return response()->json(['success' => true, 'data' => $payments]);
     }
- 
+
     public function show(Payment $payment): JsonResponse
     {
         $payment->load(['createdBy:id,name', 'verifiedBy:id,name', 'purchaseOrder:id,po_number', 'salesOrder:id,so_number', 'budgetRequest:id,nomor_form', 'cashBook']);
- 
+
         return response()->json(['success' => true, 'data' => $payment]);
     }
- 
+
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -57,20 +57,20 @@ class PaymentController extends Controller
             'keterangan'          => 'nullable|string',
             'bukti_file'          => ImageService::documentRules(),
         ]);
- 
+
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
         }
- 
+
         DB::transaction(function () use ($request, &$payment) {
             $count  = Payment::whereYear('created_at', now()->year)->count() + 1;
             $number = 'PAY/' . now()->format('Y') . '/' . str_pad($count, 4, '0', STR_PAD_LEFT);
- 
+
             $buktiPath = null;
             if ($request->hasFile('bukti_file')) {
                 $buktiPath = ImageService::upload($request->file('bukti_file'), 'payments');
             }
- 
+
             $payment = Payment::create([
                 'payment_number'     => $number,
                 'created_by'         => auth()->id(),
@@ -93,7 +93,7 @@ class PaymentController extends Controller
                 'bukti_file'         => $buktiPath,
                 'status'             => 'pending',
             ]);
- 
+
             // Auto buat cash book entry
             CashBook::create([
                 'no_bukti'    => 'CB-' . $number,
@@ -107,39 +107,39 @@ class PaymentController extends Controller
                 'tanggal'     => $request->payment_date,
             ]);
         });
- 
+
         return response()->json(['success' => true, 'message' => 'Pembayaran berhasil dicatat.', 'data' => $payment->load('cashBook')], 201);
     }
- 
+
     public function update(Request $request, Payment $payment): JsonResponse
     {
         if ($payment->status === 'verified') {
             return response()->json(['success' => false, 'message' => 'Pembayaran yang sudah diverifikasi tidak dapat diubah.'], 422);
         }
- 
+
         $buktiPath = $payment->bukti_file;
         if ($request->hasFile('bukti_file')) {
             $buktiPath = ImageService::upload($request->file('bukti_file'), 'payments', $payment->bukti_file);
         }
- 
+
         $payment->update(array_merge(
             $request->only('nominal', 'payment_date', 'diterima_dari', 'untuk_pembayaran', 'terbilang', 'nama_pengirim', 'bank_pengirim', 'nama_penerima', 'bank_penerima', 'no_rekening_tujuan', 'keterangan'),
             ['bukti_file' => $buktiPath]
         ));
- 
+
         return response()->json(['success' => true, 'message' => 'Pembayaran berhasil diupdate.', 'data' => $payment->fresh()]);
     }
- 
+
     public function destroy(Payment $payment): JsonResponse
     {
         if ($payment->status === 'verified') {
             return response()->json(['success' => false, 'message' => 'Pembayaran yang sudah diverifikasi tidak dapat dihapus.'], 422);
         }
- 
+
         if ($payment->bukti_file) ImageService::delete($payment->bukti_file);
         $payment->cashBook?->delete();
         $payment->delete();
- 
+
         return response()->json(['success' => true, 'message' => 'Pembayaran berhasil dihapus.']);
     }
 }

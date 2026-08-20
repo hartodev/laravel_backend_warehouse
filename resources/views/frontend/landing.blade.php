@@ -108,7 +108,7 @@
 
     </nav>
 
-    <!-- Hero Section -->
+    {{-- <!-- Hero Section -->
     <section class="hero" id="home">
         <div class="container">
             <div class="hero-content">
@@ -313,7 +313,126 @@
                 </div>
             </div>
         </div>
-    </section>
+    </section> --}}
+
+
+
+
+<!-- Hero Section (DINAMIS dari database) -->
+<section class="hero" id="home">
+    <div class="container">
+        <div class="hero-content">
+            <div class="hero-text fade-up">
+                <div class="badge">
+                    <span class="badge-dot"></span>
+                    ✨ {{ $hero->badge_text }}
+                </div>
+                <h1 class="hero-title">
+                    {{ $hero->title_line_1 }}<br />
+                    <span class="gradient-text">{{ $hero->title_line_1_highlight }}</span><br />
+                    {{ $hero->title_line_2 }}<br />
+                    <span class="gradient-text">{{ $hero->title_line_2_highlight }}</span><br />
+                    {{ $hero->title_line_3 }}<br />
+                    <span class="gradient-text">{{ $hero->title_line_3_highlight }}</span>
+                </h1>
+                <p class="hero-subtitle">
+                    {{ $hero->subtitle }}
+                </p>
+                <div class="hero-actions">
+                    <a href="{{ $hero->cta_primary_url }}" class="btn-primary btn-lg ripple">
+                        <i data-lucide="rocket"></i>
+                        {{ $hero->cta_primary_text }}
+                    </a>
+                    <a href="{{ $hero->cta_secondary_url }}" class="btn-outline btn-lg ripple">
+                        <i data-lucide="play-circle"></i>
+                        {{ $hero->cta_secondary_text }}
+                    </a>
+                </div>
+                <div class="hero-trust">
+                    <div class="trust-avatars">
+                        <div class="avatar av1"></div>
+                        <div class="avatar av2"></div>
+                        <div class="avatar av3"></div>
+                        <div class="avatar av4"></div>
+                    </div>
+                    <span class="trust-text"><strong>{{ $hero->trust_count }}</strong> {{ $hero->trust_text }}</span>
+                </div>
+            </div>
+
+            <div class="hero-visual fade-right" id="heroVisual">
+                {{-- Dashboard mockup ilustrasi tetap statis (dekorasi CSS, bukan data) --}}
+                <div class="dashboard-mockup">
+                    <div class="mockup-header">
+                        <div class="mockup-dots"><span></span><span></span><span></span></div>
+                        <div class="mockup-title-bar">StockFlow Dashboard</div>
+                        <div class="mockup-actions"><div class="mockup-avatar-sm"></div></div>
+                    </div>
+                    <div class="mockup-body">
+                        <div class="mock-sidebar">
+                            <div class="mock-logo-sm">
+                                <div class="mock-logo-icon"></div>
+                                <div class="mock-logo-text"></div>
+                            </div>
+                            <div class="mock-nav">
+                                <div class="mock-nav-item active"></div>
+                                <div class="mock-nav-item"></div>
+                                <div class="mock-nav-item"></div>
+                                <div class="mock-nav-item"></div>
+                                <div class="mock-nav-item"></div>
+                                <div class="mock-nav-item"></div>
+                            </div>
+                        </div>
+                        <div class="mock-main">
+                            <div class="mock-stat-cards">
+                                <div class="mock-stat-card blue"><div class="mock-stat-icon"></div><div class="mock-stat-info"><div class="mock-stat-num"></div><div class="mock-stat-label"></div></div></div>
+                                <div class="mock-stat-card green"><div class="mock-stat-icon"></div><div class="mock-stat-info"><div class="mock-stat-num"></div><div class="mock-stat-label"></div></div></div>
+                                <div class="mock-stat-card purple"><div class="mock-stat-icon"></div><div class="mock-stat-info"><div class="mock-stat-num"></div><div class="mock-stat-label"></div></div></div>
+                            </div>
+                            <div class="mock-charts">
+                                <div class="mock-chart-box">
+                                    <div class="mock-chart-header"><div class="mock-chart-title"></div></div>
+                                    <div class="mock-bar-chart">
+                                        <div class="bar b1"></div><div class="bar b2"></div><div class="bar b3"></div>
+                                        <div class="bar b4"></div><div class="bar b5"></div><div class="bar b6"></div><div class="bar b7"></div>
+                                    </div>
+                                </div>
+                                <div class="mock-chart-box small">
+                                    <div class="mock-chart-header"><div class="mock-chart-title"></div></div>
+                                    <div class="mock-pie">
+                                        <div class="pie-circle"></div>
+                                        <div class="pie-legend"><div class="pie-leg-item"></div><div class="pie-leg-item"></div><div class="pie-leg-item"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mock-table-box">
+                                <div class="mock-table-header"><div class="mock-table-title"></div><div class="mock-table-btn"></div></div>
+                                <div class="mock-table">
+                                    <div class="mock-row header-row"><div></div><div></div><div></div><div></div></div>
+                                    <div class="mock-row"><div></div><div></div><div></div><div class="status-badge green"></div></div>
+                                    <div class="mock-row"><div></div><div></div><div></div><div class="status-badge blue"></div></div>
+                                    <div class="mock-row"><div></div><div></div><div></div><div class="status-badge yellow"></div></div>
+                                    <div class="mock-row"><div></div><div></div><div></div><div class="status-badge green"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Floating cards (DINAMIS dari database) --}}
+                @php $floatAnim = ['float-1', 'float-2', 'float-3']; @endphp
+                @foreach ($heroHighlights as $highlight)
+                    <div class="floating-card fc{{ $loop->iteration }} {{ $floatAnim[$loop->index % 3] }}">
+                        <div class="fc-icon {{ $highlight->color }}"><i data-lucide="{{ $highlight->icon }}"></i></div>
+                        <div class="fc-info">
+                            <div class="fc-title">{{ $highlight->title }}</div>
+                            <div class="fc-sub">{{ $highlight->subtitle }}</div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+</section>
 
     <!-- Stats Section -->
     <section class="stats-section">
@@ -613,227 +732,152 @@
         </div>
     </section>
 
-    <!-- Dashboard Preview Section -->
-    <section class="dashboard-section section-pad" id="dashboard">
-        <div class="container">
-            <div class="section-header fade-up">
-                <div class="section-badge">Dashboard</div>
-                <h2 class="section-title">Dashboard Premium<br /><span class="gradient-text">Untuk Semua
-                        Kebutuhan</span></h2>
-                <p class="section-sub">Visualisasikan data gudang Anda dengan tampilan yang cantik dan informatif.</p>
-            </div>
-            <div class="dashboard-preview fade-up">
-                <div class="dp-window">
-                    <div class="dp-header">
-                        <div class="dp-dots"><span></span><span></span><span></span></div>
-                        <div class="dp-url">stockflow.app/dashboard</div>
-                        <div class="dp-actions">
-                            <div class="dp-search">
-                                <i data-lucide="search"></i>
-                                <span>Search...</span>
-                            </div>
-                            <div class="dp-notif"><i data-lucide="bell"></i><span class="notif-dot"></span></div>
-                            <div class="dp-profile">
-                                <div class="dp-avatar"></div>
-                                <div class="dp-profile-info">
-                                    <div class="dp-name">Admin User</div>
-                                    <div class="dp-role">Warehouse Manager</div>
-                                </div>
+
+<!-- Dashboard Preview Section (DINAMIS dari database) -->
+<section class="dashboard-section section-pad" id="dashboard">
+    <div class="container">
+        <div class="section-header fade-up">
+            <div class="section-badge">{{ $dashboardHeader->badge }}</div>
+            <h2 class="section-title">{{ $dashboardHeader->title_normal }}<br /><span class="gradient-text">{{ $dashboardHeader->title_gradient }}</span></h2>
+            <p class="section-sub">{{ $dashboardHeader->subtitle }}</p>
+        </div>
+
+        <div class="dashboard-preview fade-up">
+            <div class="dp-window">
+                <div class="dp-header">
+                    <div class="dp-dots"><span></span><span></span><span></span></div>
+                    <div class="dp-url">stockflow.app/dashboard</div>
+                    <div class="dp-actions">
+                        <div class="dp-search"><i data-lucide="search"></i><span>Search...</span></div>
+                        <div class="dp-notif"><i data-lucide="bell"></i><span class="notif-dot"></span></div>
+                        <div class="dp-profile">
+                            <div class="dp-avatar"></div>
+                            <div class="dp-profile-info">
+                                <div class="dp-name">Admin User</div>
+                                <div class="dp-role">Warehouse Manager</div>
                             </div>
                         </div>
                     </div>
-                    <div class="dp-body">
-                        <div class="dp-sidebar">
-                            <div class="dp-menu-item dp-active"><i
-                                    data-lucide="layout-dashboard"></i><span>Dashboard</span></div>
-                            <div class="dp-menu-item"><i data-lucide="package"></i><span>Inventory</span></div>
-                            <div class="dp-menu-item"><i data-lucide="truck"></i><span>Purchase Order</span></div>
-                            <div class="dp-menu-item"><i data-lucide="send"></i><span>Sales Order</span></div>
-                            <div class="dp-menu-item"><i data-lucide="users"></i><span>Suppliers</span></div>
-                            <div class="dp-menu-item"><i data-lucide="bar-chart-3"></i><span>Reports</span></div>
-                            <div class="dp-menu-item"><i data-lucide="settings"></i><span>Settings</span></div>
+                </div>
+                <div class="dp-body">
+                    <div class="dp-sidebar">
+                        <div class="dp-menu-item dp-active"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></div>
+                        <div class="dp-menu-item"><i data-lucide="package"></i><span>Inventory</span></div>
+                        <div class="dp-menu-item"><i data-lucide="truck"></i><span>Purchase Order</span></div>
+                        <div class="dp-menu-item"><i data-lucide="send"></i><span>Sales Order</span></div>
+                        <div class="dp-menu-item"><i data-lucide="users"></i><span>Suppliers</span></div>
+                        <div class="dp-menu-item"><i data-lucide="bar-chart-3"></i><span>Reports</span></div>
+                        <div class="dp-menu-item"><i data-lucide="settings"></i><span>Settings</span></div>
+                    </div>
+                    <div class="dp-main">
+                        {{-- Stat Cards (DINAMIS) --}}
+                        <div class="dp-stat-cards">
+                            @foreach ($dashboardStats as $stat)
+                                <div class="dp-stat-card">
+                                    <div class="dp-stat-header">
+                                        <span>{{ $stat->label }}</span>
+                                        <div class="dp-stat-icon {{ $stat->color }}"><i data-lucide="{{ $stat->icon }}"></i></div>
+                                    </div>
+                                    <div class="dp-stat-value">{{ $stat->value }}</div>
+                                    <div class="dp-stat-trend {{ $stat->trend_direction }}">
+                                        <i data-lucide="{{ $stat->trend_direction === 'up' ? 'trending-up' : 'trending-down' }}"></i>
+                                        {{ $stat->trend_text }}
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
-                        <div class="dp-main">
-                            <!-- Stat Cards -->
-                            <div class="dp-stat-cards">
-                                <div class="dp-stat-card">
-                                    <div class="dp-stat-header">
-                                        <span>Total Produk</span>
-                                        <div class="dp-stat-icon blue"><i data-lucide="package"></i></div>
-                                    </div>
-                                    <div class="dp-stat-value">12,847</div>
-                                    <div class="dp-stat-trend up"><i data-lucide="trending-up"></i> +12.5% bulan ini
-                                    </div>
-                                </div>
-                                <div class="dp-stat-card">
-                                    <div class="dp-stat-header">
-                                        <span>Transaksi Hari Ini</span>
-                                        <div class="dp-stat-icon green"><i data-lucide="activity"></i></div>
-                                    </div>
-                                    <div class="dp-stat-value">348</div>
-                                    <div class="dp-stat-trend up"><i data-lucide="trending-up"></i> +8.2% dari kemarin
+
+                        <div class="dp-middle">
+                            {{-- Sales chart tetap statis (ilustrasi SVG) --}}
+                            <div class="dp-chart-main">
+                                <div class="dp-chart-head">
+                                    <h4>Sales Chart</h4>
+                                    <div class="dp-chart-tabs">
+                                        <button class="active">7H</button>
+                                        <button>1B</button>
+                                        <button>3B</button>
                                     </div>
                                 </div>
-                                <div class="dp-stat-card">
-                                    <div class="dp-stat-header">
-                                        <span>Nilai Stok</span>
-                                        <div class="dp-stat-icon purple"><i data-lucide="dollar-sign"></i></div>
-                                    </div>
-                                    <div class="dp-stat-value">Rp 4.2M</div>
-                                    <div class="dp-stat-trend up"><i data-lucide="trending-up"></i> +5.1% minggu ini
-                                    </div>
-                                </div>
-                                <div class="dp-stat-card">
-                                    <div class="dp-stat-header">
-                                        <span>Stok Rendah</span>
-                                        <div class="dp-stat-icon orange"><i data-lucide="alert-triangle"></i></div>
-                                    </div>
-                                    <div class="dp-stat-value">23</div>
-                                    <div class="dp-stat-trend down"><i data-lucide="trending-down"></i> Butuh perhatian
-                                    </div>
+                                <div class="dp-line-chart">
+                                    <svg viewBox="0 0 400 100" preserveAspectRatio="none">
+                                        <defs>
+                                            <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.3" />
+                                                <stop offset="100%" stop-color="#3B82F6" stop-opacity="0" />
+                                            </linearGradient>
+                                        </defs>
+                                        <path d="M0,80 C40,60 80,70 120,45 C160,20 200,50 240,35 C280,20 320,55 360,25 L400,20 L400,100 L0,100 Z" fill="url(#lineGrad)" />
+                                        <path d="M0,80 C40,60 80,70 120,45 C160,20 200,50 240,35 C280,20 320,55 360,25 L400,20" fill="none" stroke="#3B82F6" stroke-width="2" />
+                                        <circle cx="120" cy="45" r="3" fill="#3B82F6" />
+                                        <circle cx="240" cy="35" r="3" fill="#3B82F6" />
+                                        <circle cx="360" cy="25" r="3" fill="#3B82F6" />
+                                    </svg>
                                 </div>
                             </div>
 
-                            <!-- Charts + Activity -->
-                            <div class="dp-middle">
-                                <div class="dp-chart-main">
-                                    <div class="dp-chart-head">
-                                        <h4>Sales Chart</h4>
-                                        <div class="dp-chart-tabs">
-                                            <button class="active">7H</button>
-                                            <button>1B</button>
-                                            <button>3B</button>
-                                        </div>
-                                    </div>
-                                    <div class="dp-line-chart">
-                                        <svg viewBox="0 0 400 100" preserveAspectRatio="none">
-                                            <defs>
-                                                <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.3" />
-                                                    <stop offset="100%" stop-color="#3B82F6" stop-opacity="0" />
-                                                </linearGradient>
-                                            </defs>
-                                            <path
-                                                d="M0,80 C40,60 80,70 120,45 C160,20 200,50 240,35 C280,20 320,55 360,25 L400,20 L400,100 L0,100 Z"
-                                                fill="url(#lineGrad)" />
-                                            <path
-                                                d="M0,80 C40,60 80,70 120,45 C160,20 200,50 240,35 C280,20 320,55 360,25 L400,20"
-                                                fill="none" stroke="#3B82F6" stroke-width="2" />
-                                            <circle cx="120" cy="45" r="3" fill="#3B82F6" />
-                                            <circle cx="240" cy="35" r="3" fill="#3B82F6" />
-                                            <circle cx="360" cy="25" r="3" fill="#3B82F6" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div class="dp-activity">
-                                    <h4>Recent Activity</h4>
-                                    <div class="dp-act-list">
+                            {{-- Recent Activity (DINAMIS) --}}
+                            <div class="dp-activity">
+                                <h4>Recent Activity</h4>
+                                <div class="dp-act-list">
+                                    @foreach ($dashboardActivities as $activity)
                                         <div class="dp-act-item">
-                                            <div class="dp-act-icon green"><i data-lucide="arrow-down-to-line"></i>
-                                            </div>
+                                            <div class="dp-act-icon {{ $activity->color }}"><i data-lucide="{{ $activity->icon }}"></i></div>
                                             <div class="dp-act-info">
-                                                <div class="dp-act-title">Barang Masuk #PO-2847</div>
-                                                <div class="dp-act-time">2 menit lalu</div>
+                                                <div class="dp-act-title">{{ $activity->title }}</div>
+                                                <div class="dp-act-time">{{ $activity->time_text }}</div>
                                             </div>
-                                            <div class="dp-act-val green">+48</div>
+                                            <div class="dp-act-val {{ $activity->value_color }}">{{ $activity->value_text }}</div>
                                         </div>
-                                        <div class="dp-act-item">
-                                            <div class="dp-act-icon blue"><i data-lucide="arrow-up-from-line"></i></div>
-                                            <div class="dp-act-info">
-                                                <div class="dp-act-title">Barang Keluar #SO-1293</div>
-                                                <div class="dp-act-time">15 menit lalu</div>
-                                            </div>
-                                            <div class="dp-act-val orange">-24</div>
-                                        </div>
-                                        <div class="dp-act-item">
-                                            <div class="dp-act-icon purple"><i data-lucide="refresh-cw"></i></div>
-                                            <div class="dp-act-info">
-                                                <div class="dp-act-title">Stock Opname #OP-091</div>
-                                                <div class="dp-act-time">1 jam lalu</div>
-                                            </div>
-                                            <div class="dp-act-val purple">✓</div>
-                                        </div>
-                                        <div class="dp-act-item">
-                                            <div class="dp-act-icon orange"><i data-lucide="alert-circle"></i></div>
-                                            <div class="dp-act-info">
-                                                <div class="dp-act-title">Stok Rendah: SKU-0091</div>
-                                                <div class="dp-act-time">3 jam lalu</div>
-                                            </div>
-                                            <div class="dp-act-val orange">!</div>
-                                        </div>
-                                    </div>
+                                    @endforeach
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Table + Progress -->
-                            <div class="dp-bottom">
-                                <div class="dp-order-table">
-                                    <h4>Top Products</h4>
-                                    <table>
-                                        <thead>
+                        <div class="dp-bottom">
+                            {{-- Top Products (DINAMIS) --}}
+                            <div class="dp-order-table">
+                                <h4>Top Products</h4>
+                                <table>
+                                    <thead>
+                                        <tr><th>Produk</th><th>SKU</th><th>Stock</th><th>Status</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($dashboardProducts as $product)
                                             <tr>
-                                                <th>Produk</th>
-                                                <th>SKU</th>
-                                                <th>Stock</th>
-                                                <th>Status</th>
+                                                <td>{{ $product->name }}</td>
+                                                <td>{{ $product->sku }}</td>
+                                                <td>{{ $product->stock }}</td>
+                                                <td>
+                                                    @if ($product->status === 'normal')
+                                                        <span class="badge-status green">Normal</span>
+                                                    @elseif ($product->status === 'low')
+                                                        <span class="badge-status orange">Low</span>
+                                                    @else
+                                                        <span class="badge-status red">Critical</span>
+                                                    @endif
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>Laptop Asus X15</td>
-                                                <td>LPT-001</td>
-                                                <td>248</td>
-                                                <td><span class="badge-status green">Normal</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Monitor Dell 24"</td>
-                                                <td>MNT-002</td>
-                                                <td>132</td>
-                                                <td><span class="badge-status green">Normal</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Keyboard Mech</td>
-                                                <td>KBD-003</td>
-                                                <td>12</td>
-                                                <td><span class="badge-status orange">Low</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Headset Sony</td>
-                                                <td>AUD-004</td>
-                                                <td>3</td>
-                                                <td><span class="badge-status red">Critical</span></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div class="dp-pie-box">
-                                    <h4>Stock Chart</h4>
-                                    <div class="dp-donut">
-                                        <svg viewBox="0 0 100 100">
-                                            <circle cx="50" cy="50" r="38" fill="none" stroke="#1E293B"
-                                                stroke-width="14" />
-                                            <circle cx="50" cy="50" r="38" fill="none" stroke="#3B82F6"
-                                                stroke-width="14" stroke-dasharray="100 139.6" stroke-dashoffset="35"
-                                                transform="rotate(-90 50 50)" />
-                                            <circle cx="50" cy="50" r="38" fill="none" stroke="#06B6D4"
-                                                stroke-width="14" stroke-dasharray="60 179.6" stroke-dashoffset="-65"
-                                                transform="rotate(-90 50 50)" />
-                                            <circle cx="50" cy="50" r="38" fill="none" stroke="#8B5CF6"
-                                                stroke-width="14" stroke-dasharray="39.6 200" stroke-dashoffset="-125"
-                                                transform="rotate(-90 50 50)" />
-                                            <text x="50" y="47" text-anchor="middle" fill="white" font-size="10"
-                                                font-weight="700">12.8K</text>
-                                            <text x="50" y="58" text-anchor="middle" fill="#94a3b8" font-size="6">Total
-                                                SKU</text>
-                                        </svg>
-                                        <div class="donut-legend">
-                                            <div class="donut-leg-item"><span
-                                                    class="leg-dot blue"></span><span>Elektronik 40%</span></div>
-                                            <div class="donut-leg-item"><span
-                                                    class="leg-dot cyan"></span><span>Peralatan 25%</span></div>
-                                            <div class="donut-leg-item"><span
-                                                    class="leg-dot purple"></span><span>Lainnya 35%</span></div>
-                                        </div>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {{-- Stock chart (donut) tetap statis (ilustrasi SVG) --}}
+                            <div class="dp-pie-box">
+                                <h4>Stock Chart</h4>
+                                <div class="dp-donut">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle cx="50" cy="50" r="38" fill="none" stroke="#1E293B" stroke-width="14" />
+                                        <circle cx="50" cy="50" r="38" fill="none" stroke="#3B82F6" stroke-width="14" stroke-dasharray="100 139.6" stroke-dashoffset="35" transform="rotate(-90 50 50)" />
+                                        <circle cx="50" cy="50" r="38" fill="none" stroke="#06B6D4" stroke-width="14" stroke-dasharray="60 179.6" stroke-dashoffset="-65" transform="rotate(-90 50 50)" />
+                                        <circle cx="50" cy="50" r="38" fill="none" stroke="#8B5CF6" stroke-width="14" stroke-dasharray="39.6 200" stroke-dashoffset="-125" transform="rotate(-90 50 50)" />
+                                        <text x="50" y="47" text-anchor="middle" fill="white" font-size="10" font-weight="700">12.8K</text>
+                                        <text x="50" y="58" text-anchor="middle" fill="#94a3b8" font-size="6">Total SKU</text>
+                                    </svg>
+                                    <div class="donut-legend">
+                                        <div class="donut-leg-item"><span class="leg-dot blue"></span><span>Elektronik 40%</span></div>
+                                        <div class="donut-leg-item"><span class="leg-dot cyan"></span><span>Peralatan 25%</span></div>
+                                        <div class="donut-leg-item"><span class="leg-dot purple"></span><span>Lainnya 35%</span></div>
                                     </div>
                                 </div>
                             </div>
@@ -842,7 +886,9 @@
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
+
 
     <!-- Workflow Section -->
     <section class="workflow-section section-pad">

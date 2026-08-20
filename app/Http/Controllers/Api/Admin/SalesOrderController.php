@@ -25,17 +25,17 @@ class SalesOrderController extends Controller
             ->when($request->date_to, fn($q) => $q->whereDate('order_date', '<=', $request->date_to))
             ->latest()
             ->paginate($request->per_page ?? 15);
- 
+
         return response()->json(['success' => true, 'data' => $sos]);
     }
- 
+
     public function show(SalesOrder $so): JsonResponse
     {
         $so->load(['warehouse:id,name,code', 'createdBy:id,name', 'approvedBy:id,name', 'items.product:id,name,sku,unit', 'payments']);
- 
+
         return response()->json(['success' => true, 'data' => $so]);
     }
- 
+
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -54,21 +54,21 @@ class SalesOrderController extends Controller
             'items.*.harga'         => 'required|numeric|min:0',
             'items.*.deskripsi'     => 'nullable|string',
         ]);
- 
+
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
         }
- 
+
         DB::transaction(function () use ($request, &$so) {
             $count    = SalesOrder::whereYear('created_at', now()->year)->count() + 1;
             $soNumber = 'SO/' . now()->format('Y') . '/' . str_pad($count, 4, '0', STR_PAD_LEFT);
- 
+
             $subtotal = collect($request->items)->sum(fn($i) => $i['qty'] * $i['harga']);
             $taxPercent     = $request->tax_percent ?? 0;
             $taxAmount      = $subtotal * ($taxPercent / 100);
             $discountAmount = $request->discount_amount ?? 0;
             $totalAmount    = $subtotal + $taxAmount - $discountAmount;
- 
+
             $so = SalesOrder::create([
                 'so_number'       => $soNumber,
                 'warehouse_id'    => $request->warehouse_id,
@@ -86,7 +86,7 @@ class SalesOrderController extends Controller
                 'discount_amount' => $discountAmount,
                 'total_amount'    => $totalAmount,
             ]);
- 
+
             foreach ($request->items as $item) {
                 SalesOrderItem::create([
                     'sales_order_id' => $so->id,
@@ -98,30 +98,30 @@ class SalesOrderController extends Controller
                 ]);
             }
         });
- 
+
         return response()->json(['success' => true, 'message' => 'Sales Order berhasil dibuat.', 'data' => $so->load(['items.product:id,name,sku'])], 201);
     }
- 
+
     public function update(Request $request, SalesOrder $so): JsonResponse
     {
         if (! in_array($so->status, ['draft', 'confirmed'])) {
             return response()->json(['success' => false, 'message' => 'SO yang sudah diproses tidak dapat diubah.'], 422);
         }
- 
+
         $so->update($request->only('customer_name', 'customer_address', 'payment_method', 'order_date', 'due_date', 'keterangan', 'discount_amount'));
- 
+
         return response()->json(['success' => true, 'message' => 'Sales Order berhasil diupdate.', 'data' => $so->fresh()]);
     }
- 
+
     public function destroy(SalesOrder $so): JsonResponse
     {
         if ($so->status !== 'draft') {
             return response()->json(['success' => false, 'message' => 'Hanya SO draft yang dapat dihapus.'], 422);
         }
- 
+
         $so->items()->delete();
         $so->delete();
- 
+
         return response()->json(['success' => true, 'message' => 'Sales Order berhasil dihapus.']);
     }
 }

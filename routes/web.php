@@ -61,13 +61,13 @@ Route::resource('landing-testimonials', LandingTestimonialController::class)->ex
 Route::resource('landing-faqs', LandingFaqController::class)->except(['show']);
 Route::resource('landing-features', LandingFeatureController::class)->except(['show']);
 
+Route::post('/contact', [LandingContactController::class, 'store'])->name('landing.contact.store');
 
 Route::get('/login', [AuthWebController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthWebController::class, 'login']);
 
 Route::get('/register', [AuthWebController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthWebController::class, 'register']);
-
 
 // Route::middleware('guest')->group(function () {
 //     Route::get('/login', [AuthWebController::class, 'showLogin'])->name('login');
@@ -92,7 +92,6 @@ Route::prefix('user-requests')
         Route::post('/{userRequest}/reject', 'reject')->name('reject');
     });
 
-
 // ══════════════════════════════════════════════════════════════
 //  SUPERADMIN WEB PANEL
 //  Semua route di bawah ini berprefix nama 'superadmin.'
@@ -102,7 +101,6 @@ Route::prefix('superadmin')
     ->name('superadmin.')
     ->middleware(['auth', 'role:super_admin'])
     ->group(function () {
-
         // ── Dashboard ───────────────────────────────────────
         // NB: sebelumnya ditulis manual ->name('superadmin.dashboard').
         // Sekarang grup sudah punya ->name('superadmin.'), jadi cukup 'dashboard'
@@ -118,8 +116,7 @@ Route::prefix('superadmin')
 
         // ── Master: Products ─────────────────────────────────
         Route::resource('products', ProductController::class);
-         Route::patch('products/{product}/toggle-active', [ProductController::class, 'toggleActive'])
-            ->name('products.toggle-active');
+    Route::patch('products/{product}/toggle-active', [ProductController::class, 'toggleActive'])->name('products.toggle-active');
 
         // ── Master: Users ─────────────────────────────────────
         Route::resource('users', UserController::class);
@@ -165,9 +162,8 @@ Route::prefix('superadmin')
                 Route::post('/reject', 'reject')->name('reject');
             });
 
-        // ── Stock Transfers ────────────────────────────────────
-        Route::resource('stock-transfers', StockTransferController::class)
-            ->only(['index', 'create', 'store', 'show']);
+    // ── Stock Transfers ────────────────────────────────────
+    Route::resource('stock-transfers', StockTransferController::class)->only(['index', 'create', 'store', 'show']);
 
         Route::prefix('stock-transfers/{stockTransfer}')
             ->name('stock-transfers.')
@@ -275,6 +271,15 @@ Route::prefix('superadmin')
                 Route::get('/', 'index')->name('index');
                 Route::get('/{activityLog}', 'show')->name('show');
             });
+
+        Route::get('landing-leads', [LandingContactLeadController::class, 'index'])->name('landing-leads.index');
+        Route::get('landing-leads/{landingLead}', [LandingContactLeadController::class, 'show'])->name('landing-leads.show');
+        Route::put('landing-leads/{landingLead}', [LandingContactLeadController::class, 'update'])->name('landing-leads.update');
+        Route::delete('landing-leads/{landingLead}', [LandingContactLeadController::class, 'destroy'])->name('landing-leads.destroy');
+
+        Route::resource('landing-benefits', LandingBenefitController::class)->except(['show']);
+
+        Route::resource('landing-workflow-steps', LandingWorkflowStepController::class)->except(['show']);
     });
 
 // ──────────────────────────────────────────────────────────────
@@ -298,7 +303,6 @@ Route::prefix('superadmin')
 //  cuma mem-prefix URL, bukan nama route — sudah diperbaiki).
 // ──────────────────────────────────────────────────────────────
 
-
 // ══════════════════════════════════════════════════════════════
 //  ADMIN PANEL
 //  Sekarang dibungkus penuh: URL diprefix '/admin', nama route
@@ -319,8 +323,7 @@ Route::prefix('admin')
     ->name('admin.')
     ->middleware(['auth', 'role:admin,super_admin'])
     ->group(function () {
-
-      Route::get('/dashboard', [\App\Http\Controllers\Web\Admin\AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\Web\Admin\AdminDashboardController::class, 'index'])->name('dashboard');
         // ── Master: Suppliers / Categories / Products ────────
         // NB: sekarang pakai controller khusus dari namespace
         // App\Http\Controllers\Web\Admin\... (bukan lagi berbagi
@@ -340,12 +343,9 @@ Route::prefix('admin')
         Route::resource('categories', AdminCategoryController::class)->except('show');
         Route::resource('products', AdminProductController::class);
 
-        Route::post('products/{product}/units', [ProductUnitController::class, 'store'])
-            ->name('products.units.store');
-        Route::put('products/{product}/units/{unit}', [ProductUnitController::class, 'update'])
-            ->name('products.units.update');
-        Route::delete('products/{product}/units/{unit}', [ProductUnitController::class, 'destroy'])
-            ->name('products.units.destroy');
+    Route::post('products/{product}/units', [ProductUnitController::class, 'store'])->name('products.units.store');
+    Route::put('products/{product}/units/{unit}', [ProductUnitController::class, 'update'])->name('products.units.update');
+    Route::delete('products/{product}/units/{unit}', [ProductUnitController::class, 'destroy'])->name('products.units.destroy');
 
         // ── Purchase Order ────────────────────────────────────
         Route::prefix('purchase-orders')
@@ -387,15 +387,13 @@ Route::prefix('admin')
         Route::get('stock-movements', [AdminStockMovementController::class, 'index'])->name('stock-movements.index');
         Route::resource('product-units', ProductUnitController::class)->except('show');
         Route::resource('warehouses', WarehouseController::class);
-        Route::resource('sales-orders', SalesOrderController::class)->only(['index','create','store','show']);
+    Route::resource('sales-orders', SalesOrderController::class)->only(['index', 'create', 'store', 'show']);
         Route::patch('sales-orders/{salesOrder}/approve', [SalesOrderController::class, 'approve'])->name('sales-orders.approve');
         Route::patch('sales-orders/{salesOrder}/reject', [SalesOrderController::class, 'reject'])->name('sales-orders.reject');
-        Route::resource('user-requests', UserCreationRequestController::class)
-            ->only(['index', 'create', 'store', 'show', 'destroy']);
+    Route::resource('user-requests', UserCreationRequestController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
         Route::resource('stock-transfers', AdminStockTransferController::class)->only(['index', 'create', 'store', 'show']);
-                    // ── Laporan Stok ─────────────────────────────────────────
-        Route::get('stock-reports', [AdminStockReportController::class, 'index'])
-            ->name('stock-reports.index');
+    // ── Laporan Stok ─────────────────────────────────────────
+    Route::get('stock-reports', [AdminStockReportController::class, 'index'])->name('stock-reports.index');
         Route::prefix('product-submissions')
             ->name('product-submissions.')
             ->controller(AdminProductSubmissionController::class)
@@ -405,34 +403,33 @@ Route::prefix('admin')
                 Route::patch('{submission}/approve', 'approve')->name('approve');
                 Route::patch('{submission}/reject', 'reject')->name('reject');
             });
-            Route::resource('payments', PaymentController::class);
-Route::post('payments/{payment}/verify', [PaymentController::class, 'verify'])->name('payments.verify');
+    Route::resource('payments', PaymentController::class);
+    Route::post('payments/{payment}/verify', [PaymentController::class, 'verify'])->name('payments.verify');
 
-// ── Stock Movement (riwayat, read-only) — diaktifkan ────
-Route::get('stock-movements', [AdminStockMovementController::class, 'index'])->name('stock-movements.index');
+    // ── Stock Movement (riwayat, read-only) — diaktifkan ────
+    Route::get('stock-movements', [AdminStockMovementController::class, 'index'])->name('stock-movements.index');
 
-// ── Payments (reuse Superadmin controller) ───────────────
-Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+    // ── Payments (reuse Superadmin controller) ───────────────
+    Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
 
-// ── Cash Books (reuse Superadmin controller) ─────────────
-Route::get('cash-books', [CashBookController::class, 'index'])->name('cash-books.index');
+    // ── Cash Books (reuse Superadmin controller) ─────────────
+    Route::get('cash-books', [CashBookController::class, 'index'])->name('cash-books.index');
 
-// ── Budget Requests (reuse Superadmin controller) ────────
-Route::get('budget-requests', [BudgetRequestController::class, 'index'])->name('budget-requests.index');
+    // ── Budget Requests (reuse Superadmin controller) ────────
+    Route::get('budget-requests', [BudgetRequestController::class, 'index'])->name('budget-requests.index');
 
-// ── Budget Verifications (reuse Superadmin controller) ───
-Route::get('budget-verifications', [\App\Http\Controllers\Web\Superadmin\BudgetVerificationController::class, 'index'])->name('budget-verifications.index');
+    // ── Budget Verifications (reuse Superadmin controller) ───
+    Route::get('budget-verifications', [\App\Http\Controllers\Web\Superadmin\BudgetVerificationController::class, 'index'])->name('budget-verifications.index');
 
-// ── Budget Revisions (reuse Superadmin controller) ───────
-Route::get('budget-revisions', [\App\Http\Controllers\Web\Superadmin\BudgetRevisionController::class, 'index'])->name('budget-revisions.index');
+    // ── Budget Revisions (reuse Superadmin controller) ───────
+    Route::get('budget-revisions', [\App\Http\Controllers\Web\Superadmin\BudgetRevisionController::class, 'index'])->name('budget-revisions.index');
 
-// ── Expense Reports (reuse Superadmin controller) ────────
-Route::get('expense-reports', [ExpenseReportController::class, 'index'])->name('expense-reports.index');
+    // ── Expense Reports (reuse Superadmin controller) ────────
+    Route::get('expense-reports', [ExpenseReportController::class, 'index'])->name('expense-reports.index');
 
-// ── Barcodes (reuse Superadmin controller) ───────────────
-Route::get('barcodes/scan', [BarcodeController::class, 'scan'])->name('barcodes.scan');
-Route::post('barcodes/scan', [BarcodeController::class, 'doScan'])->name('barcodes.do-scan');
-
+    // ── Barcodes (reuse Superadmin controller) ───────────────
+    Route::get('barcodes/scan', [BarcodeController::class, 'scan'])->name('barcodes.scan');
+    Route::post('barcodes/scan', [BarcodeController::class, 'doScan'])->name('barcodes.do-scan');
     });
 
 /*

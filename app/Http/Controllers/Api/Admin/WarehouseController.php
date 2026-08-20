@@ -158,3 +158,5 @@ class WarehouseController extends Controller
         ]);
     }
 }
+
+
