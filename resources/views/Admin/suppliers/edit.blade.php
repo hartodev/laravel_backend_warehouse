@@ -2,7 +2,9 @@
 @section('title', 'Edit Supplier')
 @section('content')
 
-<div class="admin-page-head"><h2>Edit Supplier · {{ $supplier->name }}</h2></div>
+<div class="admin-page-head">
+    <h2>Edit Supplier · {{ $supplier->name }}</h2>
+</div>
 
 <form action="{{ route('admin.suppliers.update', $supplier) }}" method="POST">
     @csrf

@@ -2,7 +2,9 @@
 @section('title', 'Tambah Supplier')
 @section('content')
 
-<div class="admin-page-head"><h2>Tambah Supplier</h2></div>
+<div class="admin-page-head">
+    <h2>Tambah Supplier</h2>
+</div>
 
 <form action="{{ route('admin.suppliers.store') }}" method="POST">
     @csrf
