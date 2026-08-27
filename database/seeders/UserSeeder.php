@@ -10,6 +10,15 @@ use Faker\Factory as Faker;
 
 class UserSeeder extends Seeder
 {
+    protected \Faker\Generator $faker;
+    protected \Faker\Generator $fakerId;
+
+    public function __construct()
+    {
+        $this->faker = Faker::create();
+        $this->fakerId = Faker::create('id_ID');
+    }
+
     /**
      * Seed users + user_profiles.
      * Butuh warehouses & suppliers sudah ada (MasterDataSeeder jalan duluan)
@@ -71,7 +80,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
                 'password' => Hash::make('password'),
                 'is_active' => true,
-                'phone' => fake('id_ID')->phoneNumber(),
+                'phone' => $this->fakerId->phoneNumber(),
                 'remember_token' => Str::random(60),
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -82,15 +91,15 @@ class UserSeeder extends Seeder
         foreach ($warehouseIds as $warehouseId) {
             foreach (range(1, 2) as $i) {
                 $rows[] = [
-                    'name' => fake('id_ID')->name(),
-                    'email' => fake()->unique()->safeEmail(),
+                    'name' => $this->fakerId->name(),
+                    'email' => $this->faker->unique()->safeEmail(),
                     'email_verified_at' => now(),
                     'password' => Hash::make('password'),
-                    'role' => fake()->randomElement(['staff', 'warehouse_keeper']),
-                    'is_active' => fake()->boolean(90),
+                    'role' => $this->faker->randomElement(['staff', 'warehouse_keeper']),
+                    'is_active' => $this->faker->boolean(90),
                     'warehouse_id' => $warehouseId,
                     'supplier_id' => null,
-                    'phone' => fake('id_ID')->phoneNumber(),
+                    'phone' => $this->fakerId->phoneNumber(),
                     'remember_token' => Str::random(60),
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -99,17 +108,17 @@ class UserSeeder extends Seeder
         }
 
         foreach ($supplierIds as $supplierId) {
-            if (fake()->boolean(60)) {
+            if ($this->faker->boolean(60)) {
                 $rows[] = [
-                    'name' => fake('id_ID')->name(),
-                    'email' => fake()->unique()->safeEmail(),
+                    'name' => $this->fakerId->name(),
+                    'email' => $this->faker->unique()->safeEmail(),
                     'email_verified_at' => now(),
                     'password' => Hash::make('password'),
                     'role' => 'supplier',
                     'is_active' => true,
                     'warehouse_id' => null,
                     'supplier_id' => $supplierId,
-                    'phone' => fake('id_ID')->phoneNumber(),
+                    'phone' => $this->fakerId->phoneNumber(),
                     'remember_token' => Str::random(60),
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -120,15 +129,15 @@ class UserSeeder extends Seeder
         // 'user' biasa & 'partner' tambahan
         foreach (range(1, 5) as $i) {
             $rows[] = [
-                'name' => fake('id_ID')->name(),
-                'email' => fake()->unique()->safeEmail(),
+                'name' => $this->fakerId->name(),
+                'email' => $this->faker->unique()->safeEmail(),
                 'email_verified_at' => now(),
                 'password' => Hash::make('password'),
-                'role' => fake()->randomElement(['user', 'partner']),
-                'is_active' => fake()->boolean(85),
+                'role' => $this->faker->randomElement(['user', 'partner']),
+                'is_active' => $this->faker->boolean(85),
                 'warehouse_id' => null,
                 'supplier_id' => null,
-                'phone' => fake('id_ID')->phoneNumber(),
+                'phone' => $this->fakerId->phoneNumber(),
                 'remember_token' => Str::random(60),
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -145,16 +154,16 @@ class UserSeeder extends Seeder
         $userIds = DB::table('users')->pluck('id')->all();
 
         // Bukan semua user wajib punya profile, mirip kondisi real
-        $withProfile = fake()->randomElements($userIds, (int) (count($userIds) * 0.7));
+        $withProfile = $this->faker->randomElements($userIds, (int) (count($userIds) * 0.7));
 
         $rows = [];
         foreach ($withProfile as $userId) {
             $rows[] = [
                 'user_id' => $userId,
-                'phone' => fake('id_ID')->phoneNumber(),
-                'address' => fake('id_ID')->address(),
-                'city' => fake('id_ID')->city(),
-                'province' => fake('id_ID')->state(),
+                'phone' => $this->fakerId->phoneNumber(),
+                'address' => $this->fakerId->address(),
+                'city' => $this->fakerId->city(),
+                'province' => $this->fakerId->state(),
                 'photo' => null,
                 'created_at' => now(),
                 'updated_at' => now(),
