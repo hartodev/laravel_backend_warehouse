@@ -92,14 +92,16 @@
                         <a href="{{ route('superadmin.purchase-orders.show', $po) }}"
                             class="btn btn-secondary btn-sm">Detail</a>
                         @if ($po->status === 'pending')
-                        <form method="POST" action="{{ route('purchase-orders.approve', $po) }}" class="inline">
+                        <form method="POST" action="{{ route('superadmin.purchase-orders.approve', $po) }}"
+                            class="inline">
                             @csrf
                             <button type="submit" class="btn btn-success btn-sm">Setujui</button>
                         </form>
                         <button onclick="document.getElementById('reject-po-{{ $po->id }}').classList.remove('hidden')"
                             class="btn btn-danger btn-sm">Tolak</button>
                         @elseif($po->status === 'approved')
-                        <form method="POST" action="{{ route('superadmin.purchase-orders.receive', $po) }}" class="inline">
+                        <form method="POST" action="{{ route('superadmin.purchase-orders.receive', $po) }}"
+                            class="inline">
                             @csrf
                             <button type="submit" class="btn btn-primary btn-sm">Terima Barang</button>
                         </form>

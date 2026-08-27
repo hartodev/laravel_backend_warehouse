@@ -47,7 +47,8 @@
                 {{-- Users: Admin hanya boleh LIHAT, tidak ada tombol tambah/edit/hapus di view --}}
                 <a href="{{ route('admin.user-requests.index') }}"
                     class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                    <i class="lucide-users"></i> Pengguna <span class="badge bg-secondary-subtle text-secondary ms-1"
+                    <i class="lucide-users"></i> Pengguna
+                    <span class="badge bg-secondary-subtle text-secondary ms-1"
                         style="font-size:.6rem;">read-only</span>
                 </a>
 
@@ -86,19 +87,19 @@
                     class="nav-link {{ request()->routeIs('admin.sales-orders.*') ? 'active' : '' }}">
                     <i class="lucide-send"></i> Sales Order
                 </a>
+
+                <div class="nav-section-title">Finance</div>
                 <a href="{{ route('admin.payments.index') }}"
                     class="nav-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}">
                     <i class="lucide-credit-card"></i> Pembayaran
                 </a>
-                <a href="{{ route('admin.cash-books.index') }}"
+                <a href="{{ route('admin.cashbook.index') }}"
                     class="nav-link {{ request()->routeIs('admin.cash-books.*') ? 'active' : '' }}">
                     <i class="lucide-book-open"></i> Buku Kas
                 </a>
-
-                <div class="nav-section-title">Anggaran (RAB)</div>
                 <a href="{{ route('admin.budget-requests.index') }}"
                     class="nav-link {{ request()->routeIs('admin.budget-requests.*') ? 'active' : '' }}">
-                    <i class="lucide-file-spreadsheet"></i> Review RAB Masuk
+                    <i class="lucide-file-text"></i> Review RAB Masuk
                 </a>
                 <a href="{{ route('admin.budget-verifications.index') }}"
                     class="nav-link {{ request()->routeIs('admin.budget-verifications.*') ? 'active' : '' }}">
@@ -112,11 +113,9 @@
                     class="nav-link {{ request()->routeIs('admin.expense-reports.*') ? 'active' : '' }}">
                     <i class="lucide-receipt"></i> Laporan Realisasi
                 </a>
-
-                <div class="nav-section-title">Barcode</div>
                 <a href="{{ route('admin.barcodes.scan') }}"
                     class="nav-link {{ request()->routeIs('admin.barcodes.*') ? 'active' : '' }}">
-                    <i class="lucide-scan-barcode"></i> Scan Barcode
+                    <i class="lucide-scan-line"></i> Scan Barcode
                 </a>
             </nav>
         </aside>

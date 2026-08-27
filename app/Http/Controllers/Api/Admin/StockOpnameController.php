@@ -615,5 +615,3 @@ class StockOpnameController extends Controller
 //         return response()->json(['success' => true, 'message' => 'Opname dikembalikan untuk perbaikan.', 'data' => $opname->fresh()]);
 //     }
 // }
-
-

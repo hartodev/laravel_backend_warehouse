@@ -168,5 +168,3 @@ class ProductSubmissionController extends Controller
         return response()->json(['success' => true, 'message' => 'Pengajuan produk ditolak.', 'data' => $submission->fresh()]);
     }
 }
-
-

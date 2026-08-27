@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class CashBook extends Model
 {
     use HasFactory;
-     protected $guarded = [];
+    protected $guarded = [];
 
     protected $casts = [
         'jumlah_uang' => 'decimal:2',
@@ -31,8 +31,6 @@ class CashBook extends Model
         return $this->belongsTo(User::class, 'verified_by');
     }
 
-    // ── Helpers ──────────────────────────────────────────────
     public function isMasuk(): bool  { return $this->type === 'masuk'; }
     public function isKeluar(): bool { return $this->type === 'keluar'; }
-
 }

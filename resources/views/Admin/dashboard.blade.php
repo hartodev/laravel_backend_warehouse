@@ -2,264 +2,225 @@
 @section('title', 'Dashboard')
 @section('content')
 
-<div class="mb-6">
-    <h1 class="text-xl font-bold text-gray-900">Dashboard</h1>
-    <p class="text-sm text-gray-500">Selamat datang, {{ auth()->user()->name }}.
-        {{ now()->isoFormat('dddd, D MMMM Y') }}
-    </p>
+<div class="admin-page-head">
+    <h2>Dashboard</h2>
 </div>
 
-{{-- Stats Utama --}}
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    <div class="stat-card">
-        <div class="stat-icon bg-blue-50 text-blue-600">📦</div>
-        <div>
-            <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['total_products']) }}</p>
-            <p class="text-sm text-gray-500">Produk Aktif</p>
-        </div>
+@if(session('success'))
+<div class="admin-alert admin-alert-success"><i class="lucide-check-circle"></i> {{ session('success') }}</div>
+@endif
+@if(session('error'))
+<div class="admin-alert admin-alert-error"><i class="lucide-alert-circle"></i> {{ session('error') }}</div>
+@endif
+
+<div class="admin-form-grid" style="grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;">
+    <div class="admin-card admin-card-pad">
+        <p class="admin-label">Produk Aktif</p>
+        <p style="font-size:26px;font-weight:700;margin:4px 0 0;">{{ $stats['total_products'] }}</p>
     </div>
-    <div class="stat-card">
-        <div class="stat-icon bg-indigo-50 text-indigo-600">🏭</div>
-        <div>
-            <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['total_warehouses']) }}</p>
-            <p class="text-sm text-gray-500">Gudang Aktif</p>
-        </div>
+    <div class="admin-card admin-card-pad">
+        <p class="admin-label">Gudang Aktif</p>
+        <p style="font-size:26px;font-weight:700;margin:4px 0 0;">{{ $stats['total_warehouses'] }}</p>
     </div>
-    <div class="stat-card">
-        <div class="stat-icon bg-purple-50 text-purple-600">🤝</div>
-        <div>
-            <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['total_suppliers']) }}</p>
-            <p class="text-sm text-gray-500">Supplier Aktif</p>
-        </div>
+    <div class="admin-card admin-card-pad">
+        <p class="admin-label">Supplier Aktif</p>
+        <p style="font-size:26px;font-weight:700;margin:4px 0 0;">{{ $stats['total_suppliers'] }}</p>
     </div>
 </div>
 
-{{-- Transaksi bulan ini --}}
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-    <div class="stat-card bg-blue-600 text-white rounded-xl">
-        <div class="stat-icon bg-white/20 text-white">🛒</div>
-        <div>
-            <p class="text-2xl font-bold">Rp {{ number_format($monthlyFinance['total_po'] / 1000000, 1) }}M</p>
-            <p class="text-sm opacity-80">Total PO Bulan Ini</p>
+<div class="admin-form-grid" style="grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px;">
+    <div class="admin-card admin-card-pad">
+        <p class="admin-label">Total PO Bulan Ini</p>
+        <p style="font-size:20px;font-weight:700;margin:4px 0 0;">Rp
+            {{ number_format($monthlyFinance['total_po'] ?? 0, 0, ',', '.') }}</p>
+    </div>
+    <div class="admin-card admin-card-pad">
+        <p class="admin-label">Total SO Bulan Ini</p>
+        <p style="font-size:20px;font-weight:700;margin:4px 0 0;">Rp
+            {{ number_format($monthlyFinance['total_so'] ?? 0, 0, ',', '.') }}</p>
+    </div>
+</div>
+
+<div class="admin-form-grid" style="grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+    <div class="admin-card admin-card-pad">
+        <h3 style="margin-top:0;">Stok Menipis</h3>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Produk</th>
+                        <th>Gudang</th>
+                        <th>Qty</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($lowStocks as $stock)
+                    <tr>
+                        <td>{{ $stock->product->name ?? '-' }} <span
+                                class="cell-muted">({{ $stock->product->sku ?? '-' }})</span></td>
+                        <td class="cell-muted">{{ $stock->warehouse->name ?? '-' }}</td>
+                        <td class="cell-mono">{{ $stock->quantity }} / {{ $stock->product->min_stock ?? 0 }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="3" class="cell-empty">Tidak ada stok menipis.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
-    <div class="stat-card bg-green-600 text-white rounded-xl">
-        <div class="stat-icon bg-white/20 text-white">💰</div>
-        <div>
-            <p class="text-2xl font-bold">Rp {{ number_format($monthlyFinance['total_so'] / 1000000, 1) }}M</p>
-            <p class="text-sm opacity-80">Total SO Bulan Ini</p>
+
+    <div class="admin-card admin-card-pad">
+        <h3 style="margin-top:0;">Nilai Stok per Gudang</h3>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Gudang</th>
+                        <th>Nilai Stok</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($stockValueByWarehouse as $wh)
+                    <tr>
+                        <td>{{ $wh->name }}</td>
+                        <td class="cell-mono">Rp {{ number_format($wh->stock_value ?? 0, 0, ',', '.') }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="2" class="cell-empty">Belum ada data.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
-{{-- Chart + Low Stock --}}
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-    {{-- Chart Pergerakan Stok --}}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="font-semibold text-gray-900">Pergerakan Stok 7 Hari</h3>
-        </div>
-        <div class="card-body">
-            <canvas id="movementChart" height="200"></canvas>
+<div class="admin-form-grid" style="grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px;">
+    <div class="admin-card admin-card-pad">
+        <h3 style="margin-top:0;">PO Pending</h3>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>No. PO</th>
+                        <th>Supplier</th>
+                        <th>Gudang</th>
+                        <th class="cell-actions">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($pendingPOs as $po)
+                    <tr>
+                        <td class="cell-mono">{{ $po->po_number }}</td>
+                        <td>{{ $po->supplier->name ?? '-' }}</td>
+                        <td class="cell-muted">{{ $po->warehouse->name ?? '-' }}</td>
+                        <td class="cell-actions"><a href="{{ route('admin.purchase-orders.show', $po) }}"
+                                class="admin-link">Detail</a></td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" class="cell-empty">Tidak ada PO pending.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
-    {{-- Nilai Stok per Gudang --}}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="font-semibold text-gray-900">Nilai Stok per Gudang</h3>
-        </div>
-        <div class="card-body">
-            <canvas id="warehouseChart" height="200"></canvas>
+    <div class="admin-card admin-card-pad">
+        <h3 style="margin-top:0;">SO Pending</h3>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>No. SO</th>
+                        <th>Gudang</th>
+                        <th class="cell-actions">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($pendingSOs as $so)
+                    <tr>
+                        <td class="cell-mono">{{ $so->so_number }}</td>
+                        <td class="cell-muted">{{ $so->warehouse->name ?? '-' }}</td>
+                        <td class="cell-actions"><a href="{{ route('admin.sales-orders.show', $so) }}"
+                                class="admin-link">Detail</a></td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="3" class="cell-empty">Tidak ada SO pending.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
-{{-- Tabel-tabel alert --}}
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-
-    {{-- Stok Menipis --}}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="font-semibold text-gray-900 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse inline-block"></span>
-                Stok Menipis ({{ $lowStocks->count() }})
-            </h3>
-            <a href="{{ route('admin.stocks.low-stock') }}" class="text-xs text-primary-700 hover:underline">Lihat
-                semua
-                →</a>
-        </div>
-        <div class="divide-y divide-gray-100 max-h-72 overflow-y-auto">
-            @forelse($lowStocks as $stock)
-            <div class="px-4 py-3 flex items-center justify-between gap-3 hover:bg-gray-50">
-                <div class="min-w-0">
-                    <p class="text-sm font-medium text-gray-900 truncate">{{ $stock->product->name }}</p>
-                    <p class="text-xs text-gray-400">{{ $stock->warehouse->name }} · {{ $stock->product->unit }}
-                    </p>
-                </div>
-                <div class="text-right flex-shrink-0">
-                    <p class="text-sm font-bold text-red-600">{{ $stock->quantity }}</p>
-                    <p class="text-xs text-gray-400">min: {{ $stock->product->min_stock }}</p>
-                </div>
-            </div>
-            @empty
-            <div class="px-4 py-8 text-center text-sm text-gray-400">Semua stok normal ✓</div>
-            @endforelse
-        </div>
-    </div>
-
-    {{-- PO Pending --}}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="font-semibold text-gray-900 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse inline-block"></span>
-                PO Menunggu Persetujuan ({{ $pendingPOs->count() }})
-            </h3>
-            <a href="{{ route('admin.purchase-orders.index', ['status' => 'pending']) }}"
-                class="text-xs text-primary-700 hover:underline">Lihat semua →</a>
-        </div>
-        <div class="divide-y divide-gray-100 max-h-72 overflow-y-auto">
-            @forelse($pendingPOs as $po)
-            <div class="px-4 py-3 flex items-center justify-between gap-3 hover:bg-gray-50">
-                <div class="min-w-0">
-                    <a href="{{ route('admin.purchase-orders.show', $po) }}"
-                        class="text-sm font-mono font-medium text-primary-700 hover:underline">{{ $po->po_number }}</a>
-                    <p class="text-xs text-gray-400">{{ $po->supplier->name }} → {{ $po->warehouse->name }}</p>
-                </div>
-                <p class="text-sm font-semibold flex-shrink-0">Rp {{ number_format($po->total_amount) }}</p>
-            </div>
-            @empty
-            <div class="px-4 py-8 text-center text-sm text-gray-400">Tidak ada PO pending</div>
-            @endforelse
+<div class="admin-form-grid" style="grid-template-columns:repeat(2,1fr);gap:16px;">
+    <div class="admin-card admin-card-pad">
+        <h3 style="margin-top:0;">Transfer Aktif</h3>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>No. Transfer</th>
+                        <th>Dari → Ke</th>
+                        <th>Status</th>
+                        <th class="cell-actions">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($activeTransfers as $t)
+                    <tr>
+                        <td class="cell-mono">{{ $t->transfer_number }}</td>
+                        <td class="cell-muted">{{ $t->fromWarehouse->name ?? '-' }} → {{ $t->toWarehouse->name ?? '-' }}
+                        </td>
+                        <td><span class="admin-badge admin-badge-info">{{ $t->status }}</span></td>
+                        <td class="cell-actions"><a href="{{ route('admin.stock-transfers.show', $t) }}"
+                                class="admin-link">Detail</a></td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" class="cell-empty">Tidak ada transfer aktif.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
-    {{-- SO Pending --}}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="font-semibold text-gray-900 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse inline-block"></span>
-                SO Menunggu Persetujuan ({{ $pendingSOs->count() }})
-            </h3>
-            <a href="{{ route('admin.sales-orders.index', ['status' => 'pending']) }}"
-                class="text-xs text-primary-700 hover:underline">Lihat semua →</a>
-        </div>
-        <div class="divide-y divide-gray-100 max-h-72 overflow-y-auto">
-            @forelse($pendingSOs as $so)
-            <div class="px-4 py-3 flex items-center justify-between gap-3 hover:bg-gray-50">
-                <div class="min-w-0">
-                    <a href="{{ route('admin.sales-orders.show', $so) }}"
-                        class="text-sm font-mono font-medium text-primary-700 hover:underline">{{ $so->so_number }}</a>
-                    <p class="text-xs text-gray-400">{{ $so->warehouse->name }}</p>
-                </div>
-                <p class="text-sm font-semibold flex-shrink-0">Rp {{ number_format($so->total_amount) }}</p>
-            </div>
-            @empty
-            <div class="px-4 py-8 text-center text-sm text-gray-400">Tidak ada SO pending</div>
-            @endforelse
-        </div>
-    </div>
-
-    {{-- Transfer & Opname --}}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="font-semibold text-gray-900">Transfer & Opname Aktif</h3>
-        </div>
-        <div class="divide-y divide-gray-100 max-h-72 overflow-y-auto">
-            @forelse($activeTransfers->merge($pendingOpnames) as $item)
-            <div class="px-4 py-3 flex items-center justify-between gap-3 hover:bg-gray-50">
-                @if ($item instanceof \App\Models\StockTransfer)
-                <div class="min-w-0">
-                    <a href="{{ route('admin.stock-transfers.show', $item) }}"
-                        class="text-xs font-mono text-primary-700 hover:underline">{{ $item->transfer_number }}</a>
-                    <p class="text-xs text-gray-500">{{ $item->fromWarehouse->name }} →
-                        {{ $item->toWarehouse->name }}</p>
-                </div>
-                <x-status-badge :status="$item->status" />
-                @else
-                <div class="min-w-0">
-                    <a href="{{ route('admin.stock-opnames.show', $item) }}"
-                        class="text-xs font-mono text-primary-700 hover:underline">{{ $item->opname_number }}</a>
-                    <p class="text-xs text-gray-500">{{ $item->warehouse->name }}</p>
-                </div>
-                <x-status-badge :status="$item->status" />
-                @endif
-            </div>
-            @empty
-            <div class="px-4 py-8 text-center text-sm text-gray-400">Tidak ada aktivitas aktif</div>
-            @endforelse
+    <div class="admin-card admin-card-pad">
+        <h3 style="margin-top:0;">Opname Menunggu Persetujuan</h3>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>No. Opname</th>
+                        <th>Gudang</th>
+                        <th class="cell-actions">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($pendingOpnames as $op)
+                    <tr>
+                        <td class="cell-mono">{{ $op->opname_number }}</td>
+                        <td class="cell-muted">{{ $op->warehouse->name ?? '-' }}</td>
+                        <td class="cell-actions"><a href="{{ route('admin.stock-opnames.show', $op) }}"
+                                class="admin-link">Detail</a></td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="3" class="cell-empty">Tidak ada opname pending.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 @endsection
-
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-const movementData = @json($movementChart);
-const labels = movementData.map(d => {
-    const date = new Date(d.date);
-    return date.toLocaleDateString('id-ID', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short'
-    });
-});
-
-// Pergerakan Stok Chart
-new Chart(document.getElementById('movementChart'), {
-    type: 'bar',
-    data: {
-        labels,
-        datasets: [{
-                label: 'Masuk',
-                data: movementData.map(d => d.total_in),
-                backgroundColor: 'rgba(34,197,94,0.7)',
-                borderRadius: 4
-            },
-            {
-                label: 'Keluar',
-                data: movementData.map(d => d.total_out),
-                backgroundColor: 'rgba(239,68,68,0.7)',
-                borderRadius: 4
-            },
-        ]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'top'
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-});
-
-// Nilai Stok per Gudang
-const warehouseData = @json($stockValueByWarehouse);
-new Chart(document.getElementById('warehouseChart'), {
-    type: 'doughnut',
-    data: {
-        labels: warehouseData.map(w => w.name),
-        datasets: [{
-            data: warehouseData.map(w => w.stock_value ?? 0),
-            backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'],
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'right'
-            }
-        }
-    }
-});
-</script>
-@endpush

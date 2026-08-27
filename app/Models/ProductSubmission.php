@@ -69,4 +69,14 @@ class ProductSubmission extends Model
     public function isPending(): bool  { return $this->status === 'pending'; }
     public function isApproved(): bool { return $this->status === 'approved'; }
     public function isRejected(): bool { return $this->status === 'rejected'; }
+
+    public function submittedBy()
+{
+    return $this->belongsTo(User::class, 'submitted_by');
+}
+
+public function reviewedBy()
+{
+    return $this->belongsTo(User::class, 'reviewed_by');
+}
 }

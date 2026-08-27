@@ -1,67 +1,55 @@
 @extends('layouts.admin')
-@section('title', 'Detail Pengajuan User')
+@section('title', 'Detail User')
 @section('content')
 
-<div class="flex items-center justify-between mb-6">
-    <div>
-        <h1 class="text-xl font-bold text-gray-900">{{ $userRequest->name }}</h1>
-        <p class="text-sm text-gray-500">Diajukan {{ $userRequest->created_at->format('d M Y, H:i') }}</p>
-    </div>
-    <span class="badge
-        @if($userRequest->status === 'approved') badge-success
-        @elseif($userRequest->status === 'rejected') badge-danger
-        @else badge-warning
-        @endif">
-        {{ ucfirst($userRequest->status) }}
-    </span>
-</div>
-
-<div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-    <div class="card p-4">
-        <p class="text-xs text-gray-500 mb-1">Email</p>
-        <p class="text-sm font-semibold text-gray-900">{{ $userRequest->email }}</p>
-    </div>
-    <div class="card p-4">
-        <p class="text-xs text-gray-500 mb-1">No. Telepon</p>
-        <p class="text-sm font-semibold text-gray-900">{{ $userRequest->phone ?? '-' }}</p>
-    </div>
-    <div class="card p-4">
-        <p class="text-xs text-gray-500 mb-1">Role</p>
-        <p class="text-sm font-semibold text-gray-900 capitalize">{{ str_replace('_', ' ', $userRequest->role) }}</p>
-    </div>
-    <div class="card p-4">
-        <p class="text-xs text-gray-500 mb-1">Divisi</p>
-        <p class="text-sm font-semibold text-gray-900">{{ $userRequest->division ?? '-' }}</p>
-    </div>
-</div>
-
-<div class="card p-4 mb-5">
-    <p class="text-xs text-gray-500 mb-1">Alasan Pengajuan</p>
-    <p class="text-sm text-gray-700">{{ $userRequest->reason }}</p>
-</div>
-
-@if($userRequest->status === 'rejected' && $userRequest->rejection_reason)
-<div class="card p-4 mb-5 border border-red-100 bg-red-50">
-    <p class="text-xs text-red-500 mb-1">Alasan Penolakan dari Superadmin</p>
-    <p class="text-sm text-red-700">{{ $userRequest->rejection_reason }}</p>
-</div>
-@endif
-
-@if($userRequest->status === 'approved')
-<div class="card p-4 mb-5 border border-green-100 bg-green-50">
-    <p class="text-sm text-green-700">✓ Akun user sudah dibuat oleh Superadmin.</p>
-</div>
-@endif
-
-<div class="flex justify-between">
-    <a href="{{ route('admin.user-requests.index') }}" class="btn btn-secondary">← Kembali</a>
-
-    @if($userRequest->status === 'pending')
-    <form action="{{ route('admin.user-requests.destroy', $userRequest) }}" method="POST"
-        onsubmit="return confirm('Batalkan pengajuan ini?')">
-        @csrf @method('DELETE')
-        <button type="submit" class="btn btn-danger">Batalkan Pengajuan</button>
-    </form>
+<div class="admin-page-head">
+    <h2>{{ $user->name }}</h2>
+    @if($user->is_active)
+    <span class="admin-badge admin-badge-success">Aktif</span>
+    @else
+    <span class="admin-badge admin-badge-muted">Nonaktif</span>
     @endif
+</div>
+
+@if(session('success'))
+<div class="admin-alert admin-alert-success"><i class="lucide-check-circle"></i> {{ session('success') }}</div>
+@endif
+@if(session('error'))
+<div class="admin-alert admin-alert-error"><i class="lucide-alert-circle"></i> {{ session('error') }}</div>
+@endif
+
+<div class="admin-detail-grid" style="margin-bottom:20px;">
+    @if($user->profile?->photo)
+    <div class="admin-detail-item" style="grid-column:span 2;">
+        <img src="{{ asset('storage/'.$user->profile->photo) }}" alt="{{ $user->name }}" style="max-height:120px;border-radius:8px;">
+    </div>
+    @endif
+    <div class="admin-detail-item"><p class="admin-label">Email</p><p>{{ $user->email }}</p></div>
+    <div class="admin-detail-item"><p class="admin-label">Role</p><p>{{ ucwords(str_replace('_', ' ', $user->role)) }}</p></div>
+    <div class="admin-detail-item"><p class="admin-label">Telepon</p><p>{{ $user->profile->phone ?? '-' }}</p></div>
+    <div class="admin-detail-item"><p class="admin-label">Alamat</p><p>{{ $user->profile->address ?? '-' }}</p></div>
+</div>
+
+<div class="admin-card" style="padding:16px;margin-bottom:20px;">
+    <p class="admin-label" style="margin-bottom:10px;">Reset Password</p>
+    <form action="{{ route('admin.users.reset-password', $user) }}" method="POST">
+        @csrf @method('PATCH')
+        <div class="admin-form-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:12px;max-width:480px;">
+            <div>
+                <label class="admin-label">Password Baru</label>
+                <input type="password" name="password" required class="admin-input">
+            </div>
+            <div>
+                <label class="admin-label">Konfirmasi Password</label>
+                <input type="password" name="password_confirmation" required class="admin-input">
+            </div>
+        </div>
+        <button type="submit" class="btn-outline">Reset Password</button>
+    </form>
+</div>
+
+<div class="admin-action-panel" style="display:flex;justify-content:space-between;">
+    <a href="{{ route('admin.users.index') }}" class="btn-secondary">← Kembali</a>
+    <a href="{{ route('admin.users.edit', $user) }}" class="btn-primary ripple">Edit</a>
 </div>
 @endsection

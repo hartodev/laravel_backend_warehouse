@@ -2,94 +2,85 @@
 @section('title', 'Detail Sales Order')
 @section('content')
 
-<div class="flex items-center justify-between mb-6">
-    <div>
-        <h1 class="text-xl font-bold text-gray-900 font-mono">{{ $salesOrder->so_number }}</h1>
-        <p class="text-sm text-gray-500">Dibuat {{ $salesOrder->created_at->format('d M Y, H:i') }}</p>
-    </div>
-    <x-status-badge :status="$salesOrder->status" />
+@php
+$badgeMap = ['draft'=>'admin-badge-muted','confirmed'=>'admin-badge-info','processed'=>'admin-badge-warning','completed'=>'admin-badge-success','cancelled'=>'admin-badge-danger'];
+@endphp
+
+<div class="admin-page-head">
+    <h2>SO {{ $salesOrder->so_number }}</h2>
+    <span class="admin-badge {{ $badgeMap[$salesOrder->status] ?? 'admin-badge-muted' }}">{{ ucfirst($salesOrder->status) }}</span>
 </div>
 
 @if(session('success'))
-<div class="mb-4 p-3 rounded-lg bg-green-50 text-green-700 text-sm">{{ session('success') }}</div>
+<div class="admin-alert admin-alert-success"><i class="lucide-check-circle"></i> {{ session('success') }}</div>
+@endif
+@if(session('error'))
+<div class="admin-alert admin-alert-error"><i class="lucide-alert-circle"></i> {{ session('error') }}</div>
 @endif
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
-    <div class="card p-4">
-        <p class="text-xs text-gray-500 mb-1">Customer</p>
-        <p class="text-sm font-semibold text-gray-900">{{ $salesOrder->customer_name }}</p>
-    </div>
-    <div class="card p-4">
-        <p class="text-xs text-gray-500 mb-1">Gudang</p>
-        <p class="text-sm font-semibold text-gray-900">{{ $salesOrder->warehouse->name ?? '-' }}</p>
-    </div>
-    <div class="card p-4">
-        <p class="text-xs text-gray-500 mb-1">Total</p>
-        <p class="text-sm font-semibold text-gray-900">Rp {{ number_format($salesOrder->total_amount) }}</p>
-    </div>
+<div class="admin-detail-grid" style="margin-bottom:20px;">
+    <div class="admin-detail-item"><p class="admin-label">Customer</p><p>{{ $salesOrder->customer_name }}</p></div>
+    <div class="admin-detail-item"><p class="admin-label">Alamat</p><p>{{ $salesOrder->customer_address ?? '-' }}</p></div>
+    <div class="admin-detail-item"><p class="admin-label">Gudang</p><p>{{ $salesOrder->warehouse->name ?? '-' }}</p></div>
+    <div class="admin-detail-item"><p class="admin-label">Metode Pembayaran</p><p>{{ ucfirst($salesOrder->payment_method) }}</p></div>
+    <div class="admin-detail-item"><p class="admin-label">Tanggal Order</p><p>{{ \Illuminate\Support\Carbon::parse($salesOrder->order_date)->format('d M Y') }}</p></div>
+    <div class="admin-detail-item"><p class="admin-label">Jatuh Tempo</p><p>{{ $salesOrder->due_date ? \Illuminate\Support\Carbon::parse($salesOrder->due_date)->format('d M Y') : '-' }}</p></div>
+    <div class="admin-detail-item"><p class="admin-label">Dibuat Oleh</p><p>{{ $salesOrder->createdBy->name ?? '-' }}</p></div>
+    @if($salesOrder->approvedBy)
+    <div class="admin-detail-item"><p class="admin-label">Disetujui Oleh</p><p>{{ $salesOrder->approvedBy->name }}</p></div>
+    @endif
+    @if($salesOrder->notes)
+    <div class="admin-detail-item" style="grid-column:span 2;"><p class="admin-label">Catatan</p><p>{{ $salesOrder->notes }}</p></div>
+    @endif
 </div>
 
-<div class="card mb-5">
-    <div class="card-header">
-        <h3 class="font-semibold text-gray-900">Item Pesanan</h3>
-    </div>
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
-                <tr>
-                    <th class="px-4 py-3 text-left">Produk</th>
-                    <th class="px-4 py-3 text-right">Qty</th>
-                    <th class="px-4 py-3 text-right">Harga</th>
-                    <th class="px-4 py-3 text-right">Subtotal</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse($salesOrder->items as $item)
-                <tr>
-                    <td class="px-4 py-3">{{ $item->product->name ?? '-' }}</td>
-                    <td class="px-4 py-3 text-right">{{ $item->quantity }}</td>
-                    <td class="px-4 py-3 text-right">Rp {{ number_format($item->price) }}</td>
-                    <td class="px-4 py-3 text-right font-medium">Rp {{ number_format($item->quantity * $item->price) }}
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="4" class="px-4 py-8 text-center text-gray-400">Tidak ada item</td>
-                </tr>
-                @endforelse
-            </tbody>
-            <tfoot>
-                <tr class="bg-gray-50 font-semibold">
-                    <td colspan="3" class="px-4 py-3 text-right">Total</td>
-                    <td class="px-4 py-3 text-right">Rp {{ number_format($salesOrder->total_amount) }}</td>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
+<div class="admin-card admin-table-wrap" style="margin-bottom:12px;">
+    <table class="admin-table">
+        <thead>
+            <tr><th>Produk</th><th>Qty</th><th>Harga Satuan</th><th>Diskon</th><th>Subtotal</th></tr>
+        </thead>
+        <tbody>
+            @foreach($salesOrder->items as $item)
+            <tr>
+                <td>{{ $item->product->name ?? '-' }} <span class="cell-muted cell-mono">({{ $item->product->sku ?? '-' }})</span></td>
+                <td class="cell-mono">{{ $item->quantity }} {{ $item->product->unit ?? '' }}</td>
+                <td class="cell-mono">Rp{{ number_format($item->unit_price, 0, ',', '.') }}</td>
+                <td class="cell-mono">{{ $item->discount_percent }}%</td>
+                <td class="cell-mono">Rp{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
 </div>
 
-@if($salesOrder->notes)
-<div class="card p-4 mb-5">
-    <p class="text-xs text-gray-500 mb-1">Catatan</p>
-    <p class="text-sm text-gray-700">{{ $salesOrder->notes }}</p>
+<div class="admin-detail-grid" style="margin-bottom:20px;max-width:320px;margin-left:auto;">
+    <div class="admin-detail-item"><p class="admin-label">Subtotal</p><p>Rp{{ number_format($salesOrder->subtotal, 0, ',', '.') }}</p></div>
+    <div class="admin-detail-item"><p class="admin-label">Pajak ({{ $salesOrder->tax_percent }}%)</p><p>Rp{{ number_format($salesOrder->tax_amount, 0, ',', '.') }}</p></div>
+    <div class="admin-detail-item"><p class="admin-label">Diskon</p><p>Rp{{ number_format($salesOrder->discount_amount, 0, ',', '.') }}</p></div>
+    <div class="admin-detail-item"><p class="admin-label"><strong>Total</strong></p><p><strong>Rp{{ number_format($salesOrder->total_amount, 0, ',', '.') }}</strong></p></div>
+</div>
+
+@if($salesOrder->payments->isNotEmpty())
+<div class="admin-card admin-table-wrap" style="margin-bottom:20px;">
+    <table class="admin-table">
+        <thead><tr><th>Tanggal</th><th>Metode</th><th>Jumlah</th></tr></thead>
+        <tbody>
+            @foreach($salesOrder->payments as $payment)
+            <tr>
+                <td class="cell-muted">{{ $payment->created_at->format('d M Y') }}</td>
+                <td class="cell-muted">{{ $payment->payment_method ?? '-' }}</td>
+                <td class="cell-mono">Rp{{ number_format($payment->amount ?? 0, 0, ',', '.') }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
 </div>
 @endif
 
-<div class="flex justify-between items-center">
-    <a href="{{ route('admin.sales-orders.index') }}" class="btn btn-secondary">← Kembali</a>
-
-    @if($salesOrder->status === 'pending')
-    <div class="flex gap-2">
-        <form action="{{ route('admin.sales-orders.reject', $salesOrder) }}" method="POST"
-            onsubmit="return confirm('Tolak sales order ini?')">
-            @csrf @method('PATCH')
-            <button type="submit" class="btn btn-danger">Tolak</button>
-        </form>
-        <form action="{{ route('admin.sales-orders.approve', $salesOrder) }}" method="POST">
-            @csrf @method('PATCH')
-            <button type="submit" class="btn btn-primary">Setujui</button>
-        </form>
-    </div>
+<div class="admin-action-panel" style="display:flex;justify-content:space-between;">
+    <a href="{{ route('admin.sales-orders.index') }}" class="btn-secondary">← Kembali</a>
+    @if(in_array($salesOrder->status, ['draft','confirmed']))
+    <a href="{{ route('admin.sales-orders.edit', $salesOrder) }}" class="btn-primary ripple">Edit</a>
     @endif
 </div>
 @endsection

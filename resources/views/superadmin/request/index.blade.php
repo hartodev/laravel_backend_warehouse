@@ -69,7 +69,7 @@
                     </div>
                     <x-confirm-modal :id="'rej-req-'.$req->id" title="Tolak Request?"
                         :message="'Request dari '.($req->user->name ?? '—').' akan ditolak.'"
-                        :action="route('requests.reject', $req)" method="POST" confirm-text="Tolak"
+                        :action="route('superadmin.requests.reject', $req)" method="POST" confirm-text="Tolak"
                         confirm-class="btn-danger">
                         <div class="mt-3"><label class="form-label">Alasan <span
                                     class="text-red-500">*</span></label><textarea name="reject_reason" rows="2"

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Superadmin;
+namespace App\Http\Controllers\Web\Superadmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\LandingContactLead;

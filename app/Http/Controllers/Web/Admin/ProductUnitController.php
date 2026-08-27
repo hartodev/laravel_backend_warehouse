@@ -7,9 +7,16 @@ use App\Models\Product;
 use App\Models\ProductUnit;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 
 class ProductUnitController extends Controller
 {
+    // ── GET /admin/products/{product}/units ───────────────────
+    public function index(Product $product): JsonResponse
+    {
+        return response()->json(['success' => true, 'data' => $product->units]);
+    }
+
     // ── POST /admin/products/{product}/units ─────────────────
     public function store(Request $request, Product $product): RedirectResponse
     {

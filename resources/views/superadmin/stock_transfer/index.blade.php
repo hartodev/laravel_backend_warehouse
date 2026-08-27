@@ -74,7 +74,8 @@
                         <a href="{{ route('superadmin.stock-transfers.show', $t) }}"
                             class="btn btn-secondary btn-sm">Detail</a>
                         @if($t->status === 'pending_approval')
-                        <form method="POST" action="{{ route('stock-transfers.approve', $t) }}" class="inline">
+                        <form method="POST" action="{{ route('superadmin.stock-transfers.approve', $t) }}"
+                            class="inline">
                             @csrf <button class="btn btn-success btn-sm">Setujui</button>
                         </form>
                         @endif

@@ -80,7 +80,8 @@
                     <a href="{{ route('superadmin.stock-opnames.show', $opname) }}"
                         class="btn btn-secondary btn-sm">Detail</a>
                     @if($opname->status === 'pending_approval')
-                    <form method="POST" action="{{ route('stock-opnames.approve', $opname) }}" class="inline">
+                    <form method="POST" action="{{ route('superadmin.stock-opnames.approve', $opname) }}"
+                        class="inline">
                         @csrf
                         <button type="submit" class="btn btn-success btn-sm">Setujui</button>
                     </form>

@@ -91,5 +91,3 @@ class CashBookController extends Controller
         return response()->json(['success' => true, 'message' => 'Buku kas berhasil diupdate.', 'data' => $book->fresh()]);
     }
 }
-
-

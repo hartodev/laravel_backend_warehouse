@@ -149,4 +149,3 @@ class BudgetVerificationController extends Controller
         return response()->json(['success' => true, 'message' => 'Verifikasi berhasil diupdate.', 'data' => $bv->fresh()]);
     }
 }
-

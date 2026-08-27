@@ -1,77 +1,59 @@
 @extends('layouts.admin')
-@section('title', 'Ajukan User Baru')
+@section('title', 'Tambah User')
 @section('content')
 
-<div class="mb-6">
-    <h1 class="text-xl font-bold text-gray-900">Ajukan User Baru</h1>
-    <p class="text-sm text-gray-500">Isi data user, pengajuan akan direview oleh Superadmin sebelum akun dibuat.</p>
-</div>
+<div class="admin-page-head"><h2>Tambah User</h2></div>
 
 @if ($errors->any())
-<div class="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">
-    <ul class="list-disc list-inside">
-        @foreach ($errors->all() as $error)
-        <li>{{ $error }}</li>
-        @endforeach
-    </ul>
+<div class="admin-alert admin-alert-error">
+    @foreach ($errors->all() as $error)<div>{{ $error }}</div>@endforeach
 </div>
 @endif
 
-<div class="card max-w-2xl">
-    <div class="card-body p-5">
-        <form action="{{ route('admin.user-requests.store') }}" method="POST">
-            @csrf
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-                    <input type="text" name="name" value="{{ old('name') }}" required
-                        class="w-full rounded-lg border-gray-300 text-sm focus:border-primary-500 focus:ring-primary-500">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" name="email" value="{{ old('email') }}" required
-                        class="w-full rounded-lg border-gray-300 text-sm focus:border-primary-500 focus:ring-primary-500">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">No. Telepon</label>
-                    <input type="text" name="phone" value="{{ old('phone') }}"
-                        class="w-full rounded-lg border-gray-300 text-sm focus:border-primary-500 focus:ring-primary-500">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                    <select name="role" required
-                        class="w-full rounded-lg border-gray-300 text-sm focus:border-primary-500 focus:ring-primary-500">
-                        <option value="">-- Pilih Role --</option>
-                        <option value="staff" @selected(old('role')==='staff' )>Staff</option>
-                        <option value="warehouse_keeper" @selected(old('role')==='warehouse_keeper' )>Warehouse Keeper
-                        </option>
-                        <option value="admin" @selected(old('role')==='admin' )>Admin</option>
-                    </select>
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Divisi / Departemen</label>
-                    <input type="text" name="division" value="{{ old('division') }}"
-                        class="w-full rounded-lg border-gray-300 text-sm focus:border-primary-500 focus:ring-primary-500">
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Alasan Pengajuan</label>
-                    <textarea name="reason" rows="4" required
-                        placeholder="Contoh: pegawai baru divisi gudang, menggantikan staff resign, dll"
-                        class="w-full rounded-lg border-gray-300 text-sm focus:border-primary-500 focus:ring-primary-500">{{ old('reason') }}</textarea>
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
-                <a href="{{ route('admin.user-requests.index') }}" class="btn btn-secondary">Batal</a>
-                <button type="submit" class="btn btn-primary">Kirim Pengajuan</button>
-            </div>
-        </form>
+<form action="{{ route('admin.users.store') }}" method="POST" enctype="multipart/form-data">
+    @csrf
+    <div class="admin-form-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:20px;">
+        <div>
+            <label class="admin-label">Nama</label>
+            <input type="text" name="name" value="{{ old('name') }}" required class="admin-input">
+        </div>
+        <div>
+            <label class="admin-label">Email</label>
+            <input type="email" name="email" value="{{ old('email') }}" required class="admin-input">
+        </div>
+        <div>
+            <label class="admin-label">Password</label>
+            <input type="password" name="password" required class="admin-input">
+        </div>
+        <div>
+            <label class="admin-label">Konfirmasi Password</label>
+            <input type="password" name="password_confirmation" required class="admin-input">
+        </div>
+        <div>
+            <label class="admin-label">Role</label>
+            <select name="role" required class="admin-select">
+                <option value="">Pilih Role</option>
+                <option value="super_admin" @selected(old('role')==='super_admin')>Super Admin</option>
+                <option value="admin" @selected(old('role')==='admin')>Admin</option>
+                <option value="user" @selected(old('role')==='user')>User</option>
+            </select>
+        </div>
+        <div>
+            <label class="admin-label">Telepon</label>
+            <input type="text" name="phone" value="{{ old('phone') }}" class="admin-input">
+        </div>
+        <div style="grid-column:span 2;">
+            <label class="admin-label">Alamat</label>
+            <textarea name="address" class="admin-textarea">{{ old('address') }}</textarea>
+        </div>
+        <div>
+            <label class="admin-label">Foto</label>
+            <input type="file" name="photo" accept="image/*" class="admin-input">
+        </div>
     </div>
-</div>
+    <div class="admin-form-actions" style="justify-content:flex-end;">
+        <a href="{{ route('admin.users.index') }}" class="btn-secondary">Batal</a>
+        <button type="submit" class="btn-primary ripple">Simpan</button>
+    </div>
+</form>
 @endsection

@@ -15,6 +15,7 @@ class BarcodeLog extends Model
     protected $casts = [
         'is_found'   => 'boolean',
         'scanned_at' => 'datetime',
+        'created_at' => 'datetime',
     ];
 
     public function user()

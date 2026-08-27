@@ -127,6 +127,67 @@ class PurchaseOrderController extends Controller
         return view('admin.purchase-orders.show', compact('po'));
     }
 
+    // ── PUT /admin/purchase-orders/{po} ───────────────────────
+    public function update(Request $request, PurchaseOrder $po): RedirectResponse
+    {
+        if (! in_array($po->status, ['draft', 'pending'])) {
+            return back()->with('error', 'PO yang sudah diproses tidak dapat diubah.');
+        }
+
+        $po->update($request->only('expected_date', 'payment_term', 'notes', 'tax_percent', 'discount_amount'));
+
+        return redirect()->route('admin.purchase-orders.show', $po)
+            ->with('success', 'Purchase Order berhasil diupdate.');
+    }
+
+    // ── DELETE /admin/purchase-orders/{po} ────────────────────
+    public function destroy(PurchaseOrder $po): RedirectResponse
+    {
+        if (! in_array($po->status, ['draft', 'pending'])) {
+            return back()->with('error', 'Hanya PO draft/pending yang dapat dihapus.');
+        }
+
+        $po->items()->delete();
+        $po->delete();
+
+        return redirect()->route('admin.purchase-orders.index')
+            ->with('success', 'Purchase Order berhasil dihapus.');
+    }
+
+    // ── POST /admin/purchase-orders/{po}/approve ──────────────
+    public function approve(PurchaseOrder $po): RedirectResponse
+    {
+        if ($po->status !== 'pending') {
+            return back()->with('error', 'Hanya PO pending yang dapat disetujui.');
+        }
+
+        $po->update(['status' => 'approved', 'approved_by' => auth()->id(), 'approved_at' => now()]);
+
+        return redirect()->route('admin.purchase-orders.show', $po)
+            ->with('success', 'Purchase Order disetujui.');
+    }
+
+    // ── POST /admin/purchase-orders/{po}/reject ───────────────
+    public function reject(Request $request, PurchaseOrder $po): RedirectResponse
+    {
+        if ($po->status !== 'pending') {
+            return back()->with('error', 'Hanya PO pending yang dapat ditolak.');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'reject_reason' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $po->update(['status' => 'cancelled', 'reject_reason' => $request->reject_reason]);
+
+        return redirect()->route('admin.purchase-orders.show', $po)
+            ->with('success', 'Purchase Order ditolak.');
+    }
+
     // ── POST /admin/purchase-orders/{po}/receive ──────────────
     public function receive(Request $request, PurchaseOrder $po): RedirectResponse
     {

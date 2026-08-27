@@ -88,5 +88,3 @@ class CategoryController extends Controller
         return response()->json(['success' => true, 'message' => 'Kategori berhasil dihapus.']);
     }
 }
-
-

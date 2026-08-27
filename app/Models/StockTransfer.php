@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class StockTransfer extends Model
 {
@@ -114,7 +116,9 @@ class StockTransfer extends Model
         return $this->hasMany(StockMovement::class, 'reference_id')
             ->where('reference_type', 'stock_transfer');
     }
+
+    public function confirmedBy(): BelongsTo
+{
+    return $this->belongsTo(User::class, 'confirmed_by');
 }
-
-
-
+}

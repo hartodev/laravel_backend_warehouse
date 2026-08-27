@@ -1,107 +1,208 @@
 @extends('layouts.admin')
-
-@section('title', $opname->opname_number)
-
+@section('title', 'Detail Stock Opname')
 @section('content')
-    <div class="admin-page-head">
-        <h2>{{ $opname->opname_number }}</h2>
-        <a href="{{ route('admin.stock-opnames.index') }}" class="btn-ghost">← Kembali</a>
+
+@php
+$badgeMap =
+['draft'=>'admin-badge-muted','in_progress'=>'admin-badge-warning','pending_approval'=>'admin-badge-info','approved'=>'admin-badge-success'];
+$labelMap = ['draft'=>'Draft','in_progress'=>'Sedang Berjalan','pending_approval'=>'Menunggu
+Persetujuan','approved'=>'Disetujui'];
+@endphp
+
+<div class="admin-page-head">
+    <h2>Opname {{ $opname->opname_number }}</h2>
+    <span
+        class="admin-badge {{ $badgeMap[$opname->status] ?? 'admin-badge-muted' }}">{{ $labelMap[$opname->status] ?? ucfirst($opname->status) }}</span>
+</div>
+
+@if(session('success'))
+<div class="admin-alert admin-alert-success"><i class="lucide-check-circle"></i> {{ session('success') }}</div>
+@endif
+@if(session('error'))
+<div class="admin-alert admin-alert-error"><i class="lucide-alert-circle"></i> {{ session('error') }}</div>
+@endif
+@if ($errors->any())
+<div class="admin-alert admin-alert-error">
+    @foreach ($errors->all() as $error)<div>{{ $error }}</div>@endforeach
+</div>
+@endif
+@if($opname->reject_reason && $opname->status === 'in_progress')
+<div class="admin-alert admin-alert-error"><i class="lucide-alert-circle"></i> Dikembalikan oleh Super Admin:
+    {{ $opname->reject_reason }}</div>
+@endif
+
+<div class="admin-detail-grid" style="margin-bottom:20px;">
+    <div class="admin-detail-item">
+        <p class="admin-label">Gudang</p>
+        <p>{{ $opname->warehouse->name ?? '-' }}</p>
     </div>
-
-    @if (session('success'))
-        <div class="admin-alert admin-alert-success"><i data-lucide="check-circle"></i> {{ session('success') }}</div>
-    @endif
-    @if (session('error'))
-        <div class="admin-alert admin-alert-error"><i data-lucide="alert-circle"></i> {{ session('error') }}</div>
-    @endif
-    @if ($errors->any())
-        <div class="admin-alert admin-alert-error">
-            <ul style="margin:0;padding-left:18px;">@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
-        </div>
-    @endif
-
-    <div class="admin-card admin-card-pad" style="margin-bottom:20px;">
-        <div class="admin-detail-grid">
-            <div class="admin-detail-item">
-                <div class="label">Status</div>
-                <div class="value"><span class="admin-badge admin-badge-{{ $opname->status }}">{{ ucwords(str_replace('_', ' ', $opname->status)) }}</span></div>
-            </div>
-            <div class="admin-detail-item"><div class="label">Gudang</div><div class="value">{{ $opname->warehouse->name }} ({{ $opname->warehouse->code }})</div></div>
-            <div class="admin-detail-item"><div class="label">Tanggal Opname</div><div class="value">{{ \Carbon\Carbon::parse($opname->opname_date)->format('d M Y') }}</div></div>
-            <div class="admin-detail-item"><div class="label">Scope</div><div class="value">{{ ucfirst($opname->scope) }}</div></div>
-            <div class="admin-detail-item"><div class="label">Dibuat Oleh</div><div class="value">{{ $opname->createdBy->name ?? '-' }}</div></div>
-        </div>
-        @if ($opname->notes)
-            <p class="text-muted" style="margin-top:16px;"><strong style="color:var(--text-primary);">Catatan:</strong> {{ $opname->notes }}</p>
-        @endif
-        @if ($opname->reject_reason)
-            <div class="admin-alert admin-alert-warning" style="margin-top:16px;">
-                <strong>Dikembalikan Super Admin:</strong>&nbsp;{{ $opname->reject_reason }} — mohon perbaiki dan selesaikan kembali.
-            </div>
-        @endif
+    <div class="admin-detail-item">
+        <p class="admin-label">Tanggal Opname</p>
+        <p>{{ \Illuminate\Support\Carbon::parse($opname->opname_date)->format('d M Y') }}</p>
     </div>
+    <div class="admin-detail-item">
+        <p class="admin-label">Scope</p>
+        <p>{{ ucfirst($opname->scope) }}</p>
+    </div>
+    <div class="admin-detail-item">
+        <p class="admin-label">Dibuat Oleh</p>
+        <p>{{ $opname->createdBy->name ?? '-' }}</p>
+    </div>
+    @if($opname->notes)
+    <div class="admin-detail-item" style="grid-column:span 2;">
+        <p class="admin-label">Catatan</p>
+        <p>{{ $opname->notes }}</p>
+    </div>
+    @endif
+</div>
 
-    @php $editable = in_array($opname->status, ['draft', 'in_progress']); @endphp
+@if($opname->status === 'draft')
+<form action="{{ route('admin.stock-opnames.start', $opname) }}" method="POST" style="margin-bottom:20px;">
+    @csrf
+    <button type="submit" class="btn-primary ripple">Mulai Hitung Fisik</button>
+</form>
+@endif
 
-    <form method="POST" action="{{ route('admin.stock-opnames.complete', $opname) }}" class="admin-card admin-card-pad">
+@if(in_array($opname->status, ['draft', 'in_progress']))
+<form id="progress-form">
+    @csrf
+    <div class="admin-card admin-table-wrap" style="margin-bottom:12px;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Produk</th>
+                    <th>SKU</th>
+                    <th>Stok Sistem</th>
+                    <th>Stok Fisik</th>
+                    <th>Selisih</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($opname->items as $item)
+                <tr>
+                    <td>{{ $item->product->name ?? '-' }}</td>
+                    <td class="cell-mono">{{ $item->product->sku ?? '-' }}</td>
+                    <td class="cell-mono">{{ $item->system_stock }} {{ $item->product->unit ?? '' }}</td>
+                    <td>
+                        <input type="hidden" name="items[{{ $loop->index }}][product_id]"
+                            value="{{ $item->product_id }}">
+                        <input type="number" min="0" name="items[{{ $loop->index }}][physical_stock]"
+                            value="{{ $item->physical_stock }}" class="admin-input physical-input"
+                            data-system="{{ $item->system_stock }}" style="max-width:120px;">
+                    </td>
+                    <td class="cell-mono diff-cell">{{ $item->difference ?? '-' }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    <button type="button" class="btn-outline" id="save-progress-btn">Simpan Progress</button>
+    <button type="button" class="btn-primary ripple" id="complete-btn">Selesaikan Opname</button>
+</form>
+
+<script>
+document.querySelectorAll('.physical-input').forEach(input => {
+    input.addEventListener('input', function() {
+        const system = parseInt(this.dataset.system, 10) || 0;
+        const physical = parseInt(this.value, 10);
+        const cell = this.closest('tr').querySelector('.diff-cell');
+        cell.textContent = isNaN(physical) ? '-' : (physical - system);
+    });
+});
+
+function submitOpnameForm(url, method) {
+    const form = document.getElementById('progress-form');
+    const target = document.createElement('form');
+    target.method = 'POST';
+    target.action = url;
+
+    // Salin SEMUA input dari form asli (termasuk _token CSRF dan items[])
+    form.querySelectorAll('input, select, textarea').forEach(field => {
+        const clone = field.cloneNode(true);
+        target.appendChild(clone);
+    });
+
+    if (method !== 'POST') {
+        const methodField = document.createElement('input');
+        methodField.type = 'hidden';
+        methodField.name = '_method';
+        methodField.value = method;
+        target.appendChild(methodField);
+    }
+
+    document.body.appendChild(target);
+    target.submit();
+}
+
+document.getElementById('save-progress-btn').addEventListener('click', function() {
+    submitOpnameForm(@json(route('admin.stock-opnames.save-progress', $opname)), 'POST');
+});
+document.getElementById('complete-btn').addEventListener('click', function() {
+    submitOpnameForm(@json(route('admin.stock-opnames.complete', $opname)), 'POST');
+});
+</script>
+@else
+<div class="admin-card admin-table-wrap" style="margin-bottom:20px;">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Produk</th>
+                <th>SKU</th>
+                <th>Stok Sistem</th>
+                <th>Stok Fisik</th>
+                <th>Selisih</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($opname->items as $item)
+            <tr>
+                <td>{{ $item->product->name ?? '-' }}</td>
+                <td class="cell-mono">{{ $item->product->sku ?? '-' }}</td>
+                <td class="cell-mono">{{ $item->system_stock }} {{ $item->product->unit ?? '' }}</td>
+                <td class="cell-mono">{{ $item->physical_stock ?? '-' }}</td>
+                <td class="cell-mono">
+                    @if($item->difference === null) - @elseif($item->difference == 0) <span
+                        class="admin-badge admin-badge-success">0</span>
+                    @else <span
+                        class="admin-badge admin-badge-warning">{{ $item->difference > 0 ? '+' : '' }}{{ $item->difference }}</span>
+                    @endif
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+@endif
+
+@if($opname->status === 'pending_approval')
+<div class="admin-card" style="padding:16px;margin-bottom:20px;">
+    <p class="admin-label" style="margin-bottom:10px;">Persetujuan Super Admin</p>
+    <div style="display:flex;gap:10px;">
+        <form action="{{ route('admin.stock-opnames.approve', $opname) }}" method="POST"
+            onsubmit="return confirm('Setujui opname ini? Stok akan disesuaikan otomatis.');">
+            @csrf
+            <button type="submit" class="btn-primary ripple">Setujui &amp; Sesuaikan Stok</button>
+        </form>
+        <button type="button" class="btn-secondary"
+            onclick="document.getElementById('opname-reject-form').classList.toggle('hidden')">Kembalikan</button>
+    </div>
+    <form id="opname-reject-form" action="{{ route('admin.stock-opnames.reject', $opname) }}" method="POST"
+        class="hidden" style="margin-top:12px;">
         @csrf
-
-        <div class="admin-section-title">Worksheet Hitung Fisik</div>
-
-        <div class="admin-table-wrap" style="border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:16px;">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Produk</th>
-                        <th>Stok Sistem</th>
-                        <th style="width:160px">Stok Fisik</th>
-                        <th>Selisih</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($opname->items as $item)
-                        <tr>
-                            <td>{{ $item->product->name }} <span class="cell-muted">({{ $item->product->sku }})</span></td>
-                            <td>{{ $item->system_stock }} {{ $item->product->unit }}</td>
-                            <td>
-                                <input type="hidden" name="items[{{ $loop->index }}][product_id]" value="{{ $item->product_id }}">
-                                @if ($editable)
-                                    <input type="number" name="items[{{ $loop->index }}][physical_stock]" min="0"
-                                           value="{{ old("items.$loop->index.physical_stock", $item->physical_stock) }}"
-                                           class="admin-input">
-                                @else
-                                    {{ $item->physical_stock ?? '-' }} {{ $item->product->unit }}
-                                @endif
-                            </td>
-                            <td style="{{ $item->difference && $item->difference != 0 ? 'color:var(--accent-red);font-weight:600;' : '' }}">
-                                {{ $item->difference ?? '-' }}
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-
-        @if ($editable)
-            <div style="display:flex;gap:10px;">
-                <button type="submit" formaction="{{ route('admin.stock-opnames.save-progress', $opname) }}" formmethod="POST" class="btn-ghost">
-                    Simpan Progress
-                </button>
-                <button type="submit" formaction="{{ route('admin.stock-opnames.complete', $opname) }}" formmethod="POST" class="btn-primary ripple">
-                    Selesaikan &amp; Ajukan Persetujuan
-                </button>
-            </div>
-            <p class="text-muted" style="margin-top:10px;">
-                "Simpan Progress" bisa dipakai berkali-kali tanpa perlu semua baris terisi.
-                "Selesaikan" membutuhkan semua baris stok fisik terisi dan akan mengirim opname untuk disetujui Super Admin.
-            </p>
-        @elseif ($opname->status === 'draft')
-            <form method="POST" action="{{ route('admin.stock-opnames.start', $opname) }}">
-                @csrf
-                <button class="btn-primary ripple">Mulai Opname</button>
-            </form>
-        @else
-            <p class="text-muted">Worksheet sudah final, tidak dapat diedit lagi.</p>
-        @endif
+        <label class="admin-label">Alasan Pengembalian</label>
+        <textarea name="reject_reason" required maxlength="500" class="admin-textarea"></textarea>
+        <button type="submit" class="btn-primary ripple" style="margin-top:8px;">Kirim</button>
     </form>
+</div>
+@endif
+
+<div class="admin-action-panel" style="margin-top:20px;">
+    <a href="{{ route('admin.stock-opnames.index') }}" class="btn-secondary">← Kembali</a>
+</div>
+
+<style>
+.hidden {
+    display: none;
+}
+</style>
 @endsection

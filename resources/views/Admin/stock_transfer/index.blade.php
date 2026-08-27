@@ -1,91 +1,97 @@
 @extends('layouts.admin')
-
 @section('title', 'Transfer Stok')
-@section('page-title', 'Transfer Stok Antar Gudang')
+@section('content')
+
+<div class="admin-page-head">
+    <h2>Transfer Stok</h2>
+    <a href="{{ route('admin.stock-transfers.create') }}" class="btn-primary ripple"><i class="lucide-plus"></i> Buat
+        Transfer</a>
+</div>
+
+@if(session('success'))
+<div class="admin-alert admin-alert-success"><i class="lucide-check-circle"></i> {{ session('success') }}</div>
+@endif
+@if(session('error'))
+<div class="admin-alert admin-alert-error"><i class="lucide-alert-circle"></i> {{ session('error') }}</div>
+@endif
 
 @php
-$statusColor = [
-'pending_confirmation' => 'secondary',
-'pending_approval' => 'warning',
-'approved' => 'info',
-'in_transit' => 'primary',
-'received' => 'success',
-'discrepancy' => 'danger',
-'rejected' => 'danger',
-'cancelled' => 'secondary',
-];
-$statusLabel = [
+// Dipindahkan ke sini (dari dalam @foreach langsung) supaya ekspresi
+// Blade tetap sederhana dan tidak rawan "Malformed @foreach statement"
+// akibat array literal panjang / line-break di tengah string.
+$statusOptions = [
 'pending_confirmation' => 'Menunggu Konfirmasi',
 'pending_approval' => 'Menunggu Approval',
 'approved' => 'Disetujui',
-'in_transit' => 'Dalam Perjalanan',
-'received' => 'Diterima',
+'in_transit' => 'Dalam Pengiriman',
 'discrepancy' => 'Selisih',
+'received' => 'Diterima',
 'rejected' => 'Ditolak',
 'cancelled' => 'Dibatalkan',
 ];
+
+$badgeMap = [
+'pending_confirmation' => 'admin-badge-muted',
+'pending_approval' => 'admin-badge-warning',
+'approved' => 'admin-badge-info',
+'in_transit' => 'admin-badge-info',
+'discrepancy' => 'admin-badge-danger',
+'received' => 'admin-badge-success',
+'rejected' => 'admin-badge-danger',
+'cancelled' => 'admin-badge-muted',
+];
+
+// labelMap sama isinya dengan statusOptions, jadi cukup pakai satu variabel saja
+$labelMap = $statusOptions;
 @endphp
 
-@section('content')
-<div class="card-panel">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="d-flex gap-2">
-            <a href="{{ route('admin.stock-transfers.index') }}"
-                class="btn btn-sm {{ !request('status') ? 'btn-primary' : 'btn-outline-secondary' }}">Semua</a>
-            @foreach ($statusLabel as $key => $label)
-            <a href="{{ route('admin.stock-transfers.index', ['status' => $key]) }}"
-                class="btn btn-sm {{ request('status') === $key ? 'btn-primary' : 'btn-outline-secondary' }}">{{ $label }}</a>
-            @endforeach
-        </div>
-        <a href="{{ route('admin.stock-transfers.create') }}" class="btn btn-primary btn-sm">
-            <i class="lucide-plus"></i> Buat Request Transfer
-        </a>
-    </div>
+<form method="GET" class="admin-filter-bar">
+    <select name="status" class="admin-select" style="max-width:220px;">
+        <option value="">Semua Status</option>
+        @foreach($statusOptions as $val => $label)
+        <option value="{{ $val }}" @selected(request('status')===$val)>{{ $label }}</option>
+        @endforeach
+    </select>
+    <button class="btn-outline">Filter</button>
+</form>
 
-    <div class="table-responsive">
-        <table class="table align-middle">
-            <thead>
-                <tr>
-                    <th>No. Transfer</th>
-                    <th>Dari</th>
-                    <th>Ke</th>
-                    <th>Diminta Oleh</th>
-                    <th>Tgl Transfer</th>
-                    <th>Status</th>
-                    <th class="text-end">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($transfers as $transfer)
-                <tr>
-                    <td class="fw-medium">{{ $transfer->transfer_number }}</td>
-                    <td>{{ $transfer->fromWarehouse->name ?? '-' }}</td>
-                    <td>{{ $transfer->toWarehouse->name ?? '-' }}</td>
-                    <td class="text-muted small">{{ $transfer->requestedBy->name ?? '-' }}</td>
-                    <td class="text-muted small">
-                        {{ \Illuminate\Support\Carbon::parse($transfer->transfer_date)->format('d M Y') }}</td>
-                    <td>
-                        <span
-                            class="badge-status bg-{{ $statusColor[$transfer->status] ?? 'secondary' }}-subtle text-{{ $statusColor[$transfer->status] ?? 'secondary' }}">
-                            {{ $statusLabel[$transfer->status] ?? $transfer->status }}
-                        </span>
-                    </td>
-                    <td class="text-end">
-                        <a href="{{ route('admin.stock-transfers.show', $transfer) }}"
-                            class="btn btn-sm btn-outline-secondary">
-                            <i class="lucide-eye"></i> Detail
-                        </a>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="7" class="text-center text-muted py-4">Belum ada transfer stok.</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    <div class="mt-3">{{ $transfers->links() }}</div>
+<div class="admin-card admin-table-wrap">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>No. Transfer</th>
+                <th>Dari</th>
+                <th>Ke</th>
+                <th>Diminta Oleh</th>
+                <th>Tgl. Transfer</th>
+                <th>Status</th>
+                <th class="cell-actions">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($transfers as $transfer)
+            <tr>
+                <td class="cell-mono">{{ $transfer->transfer_number }}</td>
+                <td class="cell-muted">{{ $transfer->fromWarehouse->name ?? '-' }}</td>
+                <td class="cell-muted">{{ $transfer->toWarehouse->name ?? '-' }}</td>
+                <td class="cell-muted">{{ $transfer->requestedBy->name ?? '-' }}</td>
+                <td class="cell-muted">
+                    {{ \Illuminate\Support\Carbon::parse($transfer->transfer_date)->format('d M Y') }}</td>
+                <td><span
+                        class="admin-badge {{ $badgeMap[$transfer->status] ?? 'admin-badge-muted' }}">{{ $labelMap[$transfer->status] ?? ucfirst($transfer->status) }}</span>
+                </td>
+                <td class="cell-actions">
+                    <a href="{{ route('admin.stock-transfers.show', $transfer) }}" class="admin-link">Detail</a>
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="7" class="cell-empty">Belum ada transfer stok.</td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
 </div>
+
+<div class="admin-pagination">{{ $transfers->appends(request()->query())->links() }}</div>
 @endsection

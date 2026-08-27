@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\ImageService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -33,7 +34,7 @@ class ProductController extends Controller
 
         $categories = Category::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.product.index', compact('products', 'categories'));
+        return view('admin.products.index', compact('products', 'categories'));
     }
 
     // ── GET /admin/products/create ───────────────────────────
@@ -41,7 +42,7 @@ class ProductController extends Controller
     {
         $categories = Category::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.product.create', compact('categories'));
+        return view('admin.products.create', compact('categories'));
     }
 
     // ── POST /admin/products ─────────────────────────────────
@@ -91,7 +92,7 @@ class ProductController extends Controller
         $product->load(['category:id,name,code', 'units'])
                 ->load(['stocks.warehouse:id,name,code']);
 
-        return view('admin.product.show', compact('product'));
+        return view('admin.products.show', compact('product'));
     }
 
     // ── GET /admin/products/{product}/edit ───────────────────
@@ -99,7 +100,7 @@ class ProductController extends Controller
     {
         $categories = Category::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.product.edit', compact('product', 'categories'));
+        return view('admin.products.edit', compact('product', 'categories'));
     }
 
     // ── PUT /admin/products/{product} ────────────────────────
@@ -158,5 +159,27 @@ class ProductController extends Controller
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Produk berhasil dihapus.');
+    }
+
+    // ── GET /admin/products/{product}/units ───────────────────
+    public function units(Product $product): JsonResponse
+    {
+        return response()->json(['success' => true, 'data' => $product->units]);
+    }
+
+    // ── GET /admin/products/{product}/stocks ──────────────────
+    public function stockByWarehouse(Product $product): JsonResponse
+    {
+        $stocks = $product->stocks()->with('warehouse:id,name,code')->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'product'     => $product->only('id', 'name', 'sku', 'unit', 'min_stock'),
+                'total_stock' => $stocks->sum('quantity'),
+                'is_low'      => $product->isLowStock(),
+                'stocks'      => $stocks,
+            ],
+        ]);
     }
 }

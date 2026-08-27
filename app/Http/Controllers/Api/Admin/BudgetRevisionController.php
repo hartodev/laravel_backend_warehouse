@@ -113,4 +113,3 @@ class BudgetRevisionController extends Controller
         return response()->json(['success' => true, 'message' => 'Revisi anggaran ditolak.', 'data' => $br->fresh()]);
     }
 }
-

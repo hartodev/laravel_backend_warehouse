@@ -206,7 +206,11 @@ public function approvedRequests()
     {
         return $this->hasMany(UserCreationRequest::class, 'requested_by');
     }
+
+        public function supplier()
+    {
+        return $this->belongsTo(\App\Models\Supplier::class);
+    }
+
+
 }
-
-
-

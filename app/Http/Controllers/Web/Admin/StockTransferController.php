@@ -9,12 +9,12 @@ use App\Models\StockMovement;
 use App\Models\StockTransfer;
 use App\Models\StockTransferItem;
 use App\Models\Warehouse;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\View\View;
 
 class StockTransferController extends Controller
 {
@@ -23,29 +23,31 @@ class StockTransferController extends Controller
         return in_array($user->role, ['superadmin', 'super_admin']);
     }
 
-    // ── GET /admin/stock-transfers ───────────────────────────────
+    // ── GET /admin/stock-transfers ─────────────────────────────
+    // NB: label & warna status sudah dihitung sendiri di dalam view
+    // (lihat @php block di Admin/stock_transfer/index.blade.php),
+    // jadi controller cukup kirim data transfer-nya saja.
     public function index(Request $request): View
     {
-        $transfers = StockTransfer::with(['fromWarehouse:id,name,code', 'toWarehouse:id,name,code', 'requestedBy:id,name'])
+        $transfers = StockTransfer::with(['fromWarehouse:id,name', 'toWarehouse:id,name', 'requestedBy:id,name'])
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->latest()
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.stock-transfers.index', compact('transfers'));
+        return view('Admin.stock_transfer.index', compact('transfers'));
     }
 
-    // ── GET /admin/stock-transfers/create ────────────────────────
+    // ── GET /admin/stock-transfers/create ──────────────────────
     public function create(): View
     {
-        $user = auth()->user();
-        $warehouses = Warehouse::where('is_active', true)->get();
-        $products = Product::where('is_active', true)->orderBy('name')->get();
+        $warehouses = Warehouse::where('is_active', true)->orderBy('name')->get();
+        $products = Product::where('is_active', true)->orderBy('name')->get(['id', 'name', 'sku', 'unit']);
 
-        return view('admin.stock-transfers.create', compact('warehouses', 'products', 'user'));
+        return view('Admin.stock_transfer.create', compact('warehouses', 'products'));
     }
 
-    // ── POST /admin/stock-transfers ──────────────────────────────
+    // ── POST /admin/stock-transfers ────────────────────────────
     public function store(Request $request): RedirectResponse
     {
         $user = auth()->user();
@@ -73,15 +75,14 @@ class StockTransferController extends Controller
         }
 
         $transfer = null;
-        DB::transaction(function () use ($request, &$transfer) {
-            $count  = StockTransfer::whereYear('created_at', now()->year)->count() + 1;
+DB::transaction(function () use ($request, $user, &$transfer) {            $count  = StockTransfer::whereYear('created_at', now()->year)->count() + 1;
             $number = 'TRF/' . now()->format('Y') . '/' . str_pad($count, 4, '0', STR_PAD_LEFT);
 
             $transfer = StockTransfer::create([
                 'transfer_number'   => $number,
                 'from_warehouse_id' => $request->from_warehouse_id,
                 'to_warehouse_id'   => $request->to_warehouse_id,
-                'requested_by'      => auth()->id(),
+                'requested_by'      => $user->id,
                 'status'            => 'pending_confirmation',
                 'transfer_date'     => $request->transfer_date,
                 'expected_arrival'  => $request->expected_arrival,
@@ -104,12 +105,12 @@ class StockTransferController extends Controller
             ->with('success', 'Request transfer dibuat. Silakan konfirmasi untuk melanjutkan.');
     }
 
-    // ── GET /admin/stock-transfers/{transfer} ────────────────────
+    // ── GET /admin/stock-transfers/{stockTransfer} ─────────────
     public function show(StockTransfer $transfer): View
     {
         $transfer->load([
-            'fromWarehouse:id,name,code',
-            'toWarehouse:id,name,code',
+            'fromWarehouse:id,name',
+            'toWarehouse:id,name',
             'requestedBy:id,name',
             'confirmedBy:id,name',
             'approvedBy:id,name',
@@ -120,10 +121,11 @@ class StockTransferController extends Controller
             'items.product:id,name,sku,unit',
         ]);
 
-        return view('admin.stock-transfers.show', compact('transfer'));
+        return view('Admin.stock_transfer.show', compact('transfer'));
     }
 
-    // ── POST /admin/stock-transfers/{transfer}/confirm ───────────
+    // ── POST /admin/stock-transfers/{stockTransfer}/confirm ────
+    // Admin Gudang A lanjutkan request ke approval superadmin
     public function confirm(StockTransfer $transfer): RedirectResponse
     {
         $user = auth()->user();
@@ -144,7 +146,8 @@ class StockTransferController extends Controller
         return back()->with('success', 'Transfer dikonfirmasi, menunggu approval superadmin.');
     }
 
-    // ── POST /admin/stock-transfers/{transfer}/cancel ────────────
+    // ── POST /admin/stock-transfers/{stockTransfer}/cancel ─────
+    // Admin Gudang A batal (wajib alasan)
     public function cancel(Request $request, StockTransfer $transfer): RedirectResponse
     {
         $user = auth()->user();
@@ -171,7 +174,49 @@ class StockTransferController extends Controller
         return redirect()->route('admin.stock-transfers.index')->with('success', 'Transfer dibatalkan.');
     }
 
-    // ── POST /admin/stock-transfers/{transfer}/send ──────────────
+    // ── POST /admin/stock-transfers/{stockTransfer}/approve ─────
+    // Superadmin
+    public function approve(StockTransfer $transfer): RedirectResponse
+    {
+        if (! $this->isSuperadmin(auth()->user())) {
+            return back()->with('error', 'Hanya superadmin yang bisa approve.');
+        }
+        if ($transfer->status !== 'pending_approval') {
+            return back()->with('error', 'Hanya transfer pending_approval yang dapat disetujui.');
+        }
+
+        $transfer->update([
+            'status'      => 'approved',
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+        ]);
+
+        return back()->with('success', 'Transfer disetujui.');
+    }
+
+    // ── POST /admin/stock-transfers/{stockTransfer}/reject ──────
+    // Superadmin (wajib alasan)
+    public function reject(Request $request, StockTransfer $transfer): RedirectResponse
+    {
+        if (! $this->isSuperadmin(auth()->user())) {
+            return back()->with('error', 'Hanya superadmin yang bisa reject.');
+        }
+        if ($transfer->status !== 'pending_approval') {
+            return back()->with('error', 'Hanya transfer pending_approval yang dapat ditolak.');
+        }
+
+        $validator = Validator::make($request->all(), ['reject_reason' => 'required|string']);
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $transfer->update(['status' => 'rejected', 'reject_reason' => $request->reject_reason]);
+
+        return redirect()->route('admin.stock-transfers.show', $transfer)->with('success', 'Transfer ditolak.');
+    }
+
+    // ── POST /admin/stock-transfers/{stockTransfer}/send ────────
+    // Admin Gudang A kirim barang + lampiran wajib
     public function send(Request $request, StockTransfer $transfer): RedirectResponse
     {
         $user = auth()->user();
@@ -183,13 +228,13 @@ class StockTransferController extends Controller
             return back()->with('error', 'Hanya admin gudang asal yang bisa mengirim.');
         }
 
-        // Form Blade mengirim items sebagai array langsung (bukan JSON string
-        // seperti di API multipart) — jadi tidak perlu json_decode di sini.
+        // Form Blade mengirim 'items' sebagai array langsung (bukan JSON string
+        // seperti request multipart di API), jadi tidak perlu json_decode di sini.
         $validator = Validator::make($request->all(), [
-            'items'                          => 'required|array|min:1',
-            'items.*.stock_transfer_item_id' => 'required|exists:stock_transfer_items,id',
-            'items.*.quantity_sent'          => 'required|integer|min:1',
-            'attachment'                     => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'items'                           => 'required|array|min:1',
+            'items.*.stock_transfer_item_id'  => 'required|exists:stock_transfer_items,id',
+            'items.*.quantity_sent'           => 'required|integer|min:1',
+            'attachment'                      => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         if ($validator->fails()) {
@@ -211,10 +256,15 @@ class StockTransferController extends Controller
                         ->first();
 
                     if (! $stock) {
-                        throw new \RuntimeException("Stok untuk produk \"{$transferItem->product->name}\" tidak ditemukan di gudang asal.");
+                        throw new \RuntimeException(
+                            "Stok untuk produk \"{$transferItem->product->name}\" tidak ditemukan di gudang asal."
+                        );
                     }
+
                     if ($stock->quantity < $qtySent) {
-                        throw new \RuntimeException("Stok \"{$transferItem->product->name}\" tidak cukup. Tersedia: {$stock->quantity}, diminta kirim: {$qtySent}.");
+                        throw new \RuntimeException(
+                            "Stok \"{$transferItem->product->name}\" tidak cukup. Tersedia: {$stock->quantity}, diminta kirim: {$qtySent}."
+                        );
                     }
 
                     $before = $stock->quantity;
@@ -251,7 +301,8 @@ class StockTransferController extends Controller
         return redirect()->route('admin.stock-transfers.show', $transfer)->with('success', 'Barang berhasil dikirim.');
     }
 
-    // ── POST /admin/stock-transfers/{transfer}/checklist ─────────
+    // ── POST /admin/stock-transfers/{stockTransfer}/checklist ──
+    // Admin Gudang B validasi penerimaan
     public function checklist(Request $request, StockTransfer $transfer): RedirectResponse
     {
         $user = auth()->user();
@@ -333,5 +384,36 @@ class StockTransferController extends Controller
             : 'Barang diterima sesuai, transfer selesai.';
 
         return redirect()->route('admin.stock-transfers.show', $transfer)->with('success', $msg);
+    }
+
+    // ── POST /admin/stock-transfers/{stockTransfer}/resolve-discrepancy ──
+    // Superadmin
+    public function resolveDiscrepancy(Request $request, StockTransfer $transfer): RedirectResponse
+    {
+        if (! $this->isSuperadmin(auth()->user())) {
+            return back()->with('error', 'Hanya superadmin yang bisa resolve.');
+        }
+        if ($transfer->status !== 'discrepancy') {
+            return back()->with('error', 'Hanya transfer berstatus discrepancy yang bisa diresolusi.');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'resolution' => 'required|in:accept,cancel',
+            'notes'      => 'required|string',
+        ]);
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $newStatus = $request->resolution === 'accept' ? 'received' : 'cancelled';
+
+        $transfer->update([
+            'status'           => $newStatus,
+            'resolved_by'      => auth()->id(),
+            'resolved_at'      => now(),
+            'resolution_notes' => $request->notes,
+        ]);
+
+        return redirect()->route('admin.stock-transfers.show', $transfer)->with('success', 'Discrepancy diresolusi.');
     }
 }

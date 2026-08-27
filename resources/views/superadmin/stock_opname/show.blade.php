@@ -102,7 +102,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @foreach($stockOpname->items as $item)
-                        <tr x-data="{ sys: {{ $item->system_stock }}, phys: {{ $item->physical_stock }} }">
+                        <tr x-data="{ sys: {{ $item->system_stock }}, phys: {{ $item->physical_stock ?? 0 }} }">
                             <td class="font-medium">{{ $item->product->name ?? '—' }}</td>
                             <td class="font-mono text-xs text-gray-500">{{ $item->product->sku ?? '—' }}</td>
                             <td class="text-right font-medium">{{ $item->system_stock }}</td>

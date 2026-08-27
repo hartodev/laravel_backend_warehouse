@@ -23,12 +23,19 @@ class CategoryController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.categories.index', compact('categories'));
+        return view('admin.category.index', compact('categories'));
     }
 
     public function create(): View
     {
-        return view('admin.categories.create');
+        return view('admin.category.create');
+    }
+
+    public function show(Category $category): View
+    {
+        $category->loadCount('products');
+
+        return view('admin.category.show', compact('category'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -53,24 +60,23 @@ class CategoryController extends Controller
 
     public function edit(Category $category): View
     {
-        return view('admin.categories.edit', compact('category'));
+        return view('admin.category.edit', compact('category'));
     }
 
     public function update(Request $request, Category $category): RedirectResponse
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
+            'name'        => 'sometimes|required|string|max:255',
             'code'        => ['nullable', 'string', 'max:50', Rule::unique('categories')->ignore($category->id)],
             'description' => 'nullable|string',
             'is_active'   => 'nullable|boolean',
         ]);
 
-        $category->update([
-            'name'        => $validated['name'],
-            'code'        => $validated['code'] ? strtoupper($validated['code']) : null,
-            'description' => $validated['description'] ?? null,
-            'is_active'   => $request->boolean('is_active'),
-        ]);
+        $data = $request->only('name', 'description');
+        if ($request->has('code')) $data['code'] = $request->code ? strtoupper($request->code) : null;
+        if ($request->has('is_active')) $data['is_active'] = $request->boolean('is_active');
+
+        $category->update($data);
 
         return redirect()->route('admin.categories.index')
             ->with('success', 'Kategori berhasil diupdate.');

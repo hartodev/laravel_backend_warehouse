@@ -7,25 +7,44 @@
 //           Hanya urutan, indentasi, dan komentar section.
 // ============================================================
 
-use App\Http\Controllers\Web\Auth\AuthWebController;
-use App\Http\Controllers\Web\Superadmin\ActivityLogController;
-use App\Http\Controllers\Web\Admin\ProductUnitController;
-use App\Http\Controllers\Web\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\Web\Admin\AdminDashboardController;
 use App\Http\Controllers\Web\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Web\Admin\ProductController as AdminProductController;
-use App\Http\Controllers\Web\Admin\PurchaseOrderController as AdminPurchaseOrderController;
-use App\Http\Controllers\Web\Admin\StockOpnameController as AdminStockOpnameController;
-use App\Http\Controllers\Web\Admin\StockController as AdminStockController;
-use App\Http\Controllers\Web\Admin\StockMovementController as AdminStockMovementController;
-use App\Http\Controllers\Web\Admin\StockTransferController as AdminStockTransferController;
-use App\Http\Controllers\Web\Admin\StockReportController as AdminStockReportController;
 use App\Http\Controllers\Web\Admin\ProductSubmissionController as AdminProductSubmissionController;
+use App\Http\Controllers\Web\Admin\ProductUnitController as AdminProductUnitController;
+use App\Http\Controllers\Web\Admin\SalesOrderController as AdminSalesOrderController;
+use App\Http\Controllers\Web\Admin\UserCreationRequestController as AdminUserCreationRequestController;
+use App\Http\Controllers\Web\Admin\WarehouseController as AdminWarehouseController;
+use App\Http\Controllers\Web\Admin\BarcodeController as AdminBarcodeController;
+use App\Http\Controllers\Web\Admin\CashBookController as AdminCashBookController;
+use App\Http\Controllers\Web\Admin\BudgetRequestController as AdminBudgetRequestController;
+use App\Http\Controllers\Web\Admin\BudgetVerificationController as AdminBudgetVerificationController;   
+use App\Http\Controllers\Web\Admin\BudgetRevisionController as AdminBudgetRevisionController;
+use App\Http\Controllers\Web\Admin\PurchaseOrderController as AdminPurchaseOrderController;
+use App\Http\Controllers\Web\Admin\StockController as AdminStockController;
+use App\Http\Controllers\Web\Admin\PaymentController as AdminPaymentController;
+use App\Http\Controllers\Web\Admin\ExpenseReportController as AdminExpenseReportController;
+use App\Http\Controllers\Web\Admin\StockMovementController as AdminStockMovementController;
+use App\Http\Controllers\Web\Admin\StockOpnameController as AdminStockOpnameController;
+use App\Http\Controllers\Web\Admin\StockReportController as AdminStockReportController;
+use App\Http\Controllers\Web\Admin\StockTransferController as AdminStockTransferController;
+use App\Http\Controllers\Web\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\Web\Auth\AuthWebController;
+use App\Http\Controllers\Web\Landing\LandingContactController;
+use App\Http\Controllers\Web\Landing\LandingFaqController;
+use App\Http\Controllers\Web\Landing\LandingFeatureController;
+use App\Http\Controllers\Web\Landing\LandingStatController;
+use App\Http\Controllers\Web\Landing\LandingTestimonialController;
+use App\Http\Controllers\Web\Superadmin\ActivityLogController;
 use App\Http\Controllers\Web\Superadmin\BarcodeController;
 use App\Http\Controllers\Web\Superadmin\BudgetRequestController;
 use App\Http\Controllers\Web\Superadmin\CashBookController;
 use App\Http\Controllers\Web\Superadmin\CategoryController;
 use App\Http\Controllers\Web\Superadmin\DashboardController;
 use App\Http\Controllers\Web\Superadmin\ExpenseReportController;
+use App\Http\Controllers\web\Superadmin\LandingBenefitController;
+use App\Http\Controllers\web\Superadmin\LandingContactLeadController;
+use App\Http\Controllers\web\Superadmin\LandingWorkflowStepController;
 use App\Http\Controllers\Web\Superadmin\PaymentController;
 use App\Http\Controllers\Web\Superadmin\ProductController;
 use App\Http\Controllers\Web\Superadmin\ProductSubmissionController;
@@ -42,10 +61,12 @@ use App\Http\Controllers\Web\Superadmin\UserController;
 use App\Http\Controllers\Web\Superadmin\UserCreationRequestController;
 use App\Http\Controllers\Web\Superadmin\WarehouseController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Web\Landing\LandingFaqController;
-use App\Http\Controllers\Web\Landing\LandingFeatureController;
-use App\Http\Controllers\Web\Landing\LandingStatController;
-use App\Http\Controllers\Web\Landing\LandingTestimonialController;
+
+use App\Http\Controllers\Web\Supplier\DashboardController as SupplierDashboardController;
+use App\Http\Controllers\Web\Supplier\ProductController as SupplierProductController;
+use App\Http\Controllers\Web\Supplier\PurchaseOrderController as SupplierPurchaseOrderController;
+use App\Http\Controllers\Web\Superadmin\SupplierAccountController;
+
 
 // ────────────────────────────────────────────────────────────
 //  PUBLIC / AUTH ROUTES
@@ -96,6 +117,7 @@ Route::prefix('user-requests')
 //  SUPERADMIN WEB PANEL
 //  Semua route di bawah ini berprefix nama 'superadmin.'
 //  karena berada di dalam Route::prefix('superadmin')->group()
+//  ⚠️ TIDAK ADA PERUBAHAN di blok ini (sesuai permintaan).
 // ══════════════════════════════════════════════════════════════
 Route::prefix('superadmin')
     ->name('superadmin.')
@@ -305,9 +327,8 @@ Route::prefix('superadmin')
 
 // ══════════════════════════════════════════════════════════════
 //  ADMIN PANEL
-//  Sekarang dibungkus penuh: URL diprefix '/admin', nama route
-//  diprefix 'admin.', dan dijaga middleware auth + role.
-//  Role yang diizinkan: admin & super_admin.
+//  URL diprefix '/admin', nama route diprefix 'admin.', dijaga
+//  middleware auth + role. Role yang diizinkan: admin & super_admin.
 //
 //  PENTING — dampak perubahan ini pada kode lain di project:
 //   • URL berubah, mis. "/suppliers" → "/admin/suppliers"
@@ -323,14 +344,15 @@ Route::prefix('admin')
     ->name('admin.')
     ->middleware(['auth', 'role:admin,super_admin'])
     ->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\Web\Admin\AdminDashboardController::class, 'index'])->name('dashboard');
+
+        // ── Dashboard ────────────────────────────────────────
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
         // ── Master: Suppliers / Categories / Products ────────
-        // NB: sekarang pakai controller khusus dari namespace
-        // App\Http\Controllers\Web\Admin\... (bukan lagi berbagi
-        // class dengan section SUPERADMIN). File-file controller
-        // di bawah ini HARUS ada / dibuat dulu di folder
-        // app/Http/Controllers/Web/Admin/, kalau belum ada akan
-        // muncul error "Class not found":
+        // Pakai controller khusus dari namespace
+        // App\Http\Controllers\Web\Admin\... (terpisah dari Superadmin).
+        // File-file controller ini HARUS ada di app/Http/Controllers/Web/Admin/,
+        // kalau belum ada akan muncul error "Class not found":
         //   - Admin\SupplierController
         //   - Admin\CategoryController
         //   - Admin\ProductController
@@ -340,15 +362,16 @@ Route::prefix('admin')
         //   - Admin\StockController
         //   - Admin\StockMovementController
         Route::resource('suppliers', AdminSupplierController::class)->except('show');
-        Route::resource('categories', AdminCategoryController::class)->except('show');
+        Route::resource('categories', AdminCategoryController::class);
         Route::resource('products', AdminProductController::class);
 
-    Route::post('products/{product}/units', [ProductUnitController::class, 'store'])->name('products.units.store');
-    Route::put('products/{product}/units/{unit}', [ProductUnitController::class, 'update'])->name('products.units.update');
-    Route::delete('products/{product}/units/{unit}', [ProductUnitController::class, 'destroy'])->name('products.units.destroy');
+        Route::post('products/{product}/units', [AdminProductUnitController::class, 'store'])->name('products.units.store');
+        Route::put('products/{product}/units/{unit}', [AdminProductUnitController::class, 'update'])->name('products.units.update');
+        Route::delete('products/{product}/units/{unit}', [AdminProductUnitController::class, 'destroy'])->name('products.units.destroy');
+        Route::resource('product-units', AdminProductUnitController::class)->except('show');
 
         // ── Purchase Order ────────────────────────────────────
-        Route::prefix('purchase-orders')
+             Route::prefix('purchase-orders')
             ->name('purchase-orders.')
             ->controller(AdminPurchaseOrderController::class)
             ->group(function () {
@@ -356,6 +379,10 @@ Route::prefix('admin')
                 Route::get('create', 'create')->name('create');
                 Route::post('/', 'store')->name('store');
                 Route::get('{po}', 'show')->name('show');
+                Route::put('{po}', 'update')->name('update');
+                Route::delete('{po}', 'destroy')->name('destroy');
+                Route::post('{po}/approve', 'approve')->name('approve');
+                Route::post('{po}/reject', 'reject')->name('reject');
                 Route::post('{po}/receive', 'receive')->name('receive');
             });
 
@@ -367,11 +394,15 @@ Route::prefix('admin')
                 Route::get('/', 'index')->name('index');
                 Route::get('create', 'create')->name('create');
                 Route::post('/', 'store')->name('store');
+                // HARUS di atas '{opname}' — kalau di bawah, "products-for-scope"
+                // akan dianggap value {opname} dan salah route.
                 Route::get('products-for-scope', 'productsForScope')->name('products-for-scope');
                 Route::get('{opname}', 'show')->name('show');
                 Route::post('{opname}/start', 'start')->name('start');
                 Route::post('{opname}/save-progress', 'saveProgress')->name('save-progress'); // POST, bukan PATCH (form biasa)
                 Route::post('{opname}/complete', 'complete')->name('complete');
+                Route::post('{opname}/approve', 'approve')->name('approve');
+                Route::post('{opname}/reject', 'reject')->name('reject');
             });
 
         // ── Stock (list + input manual) ────────────────────────
@@ -381,19 +412,54 @@ Route::prefix('admin')
             ->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::post('manual-in', 'manualIn')->name('manual-in');
+                                Route::get('/low-stock', 'lowStock')->name('low-stock');
+                // ★ BARU (disisipkan) — detail stok per warehouse untuk admin
+                Route::get('/warehouse/{warehouse}', 'byWarehouse')->name('by-warehouse');
+
             });
 
         // ── Stock Movement (riwayat, read-only) ────────────────
-        Route::get('stock-movements', [AdminStockMovementController::class, 'index'])->name('stock-movements.index');
-        Route::resource('product-units', ProductUnitController::class)->except('show');
-        Route::resource('warehouses', WarehouseController::class);
-    Route::resource('sales-orders', SalesOrderController::class)->only(['index', 'create', 'store', 'show']);
-        Route::patch('sales-orders/{salesOrder}/approve', [SalesOrderController::class, 'approve'])->name('sales-orders.approve');
-        Route::patch('sales-orders/{salesOrder}/reject', [SalesOrderController::class, 'reject'])->name('sales-orders.reject');
-    Route::resource('user-requests', UserCreationRequestController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
-        Route::resource('stock-transfers', AdminStockTransferController::class)->only(['index', 'create', 'store', 'show']);
-    // ── Laporan Stok ─────────────────────────────────────────
-    Route::get('stock-reports', [AdminStockReportController::class, 'index'])->name('stock-reports.index');
+        // NB: sebelumnya baris ini didaftarkan dua kali — sudah dirapikan,
+        // sekarang cukup satu.
+        // Route::get('stock-movements', [AdminStockMovementController::class, 'index'])->name('stock-movements.index');
+        Route::resource('stock-movements', AdminStockMovementController::class)->only(['index', 'show','create','store']);
+
+        // ── Stock Transfer ──────────────────────────────────────
+// ── Stock Transfer ──────────────────────────────────────
+// ── Stock Transfer ──────────────────────────────────────
+Route::resource('stock-transfers', AdminStockTransferController::class)
+    ->only(['index', 'create', 'store', 'show'])
+    ->parameters(['stock-transfers' => 'transfer']);
+
+Route::post('stock-transfers/{transfer}/confirm', [AdminStockTransferController::class, 'confirm'])->name('stock-transfers.confirm');
+Route::post('stock-transfers/{transfer}/cancel', [AdminStockTransferController::class, 'cancel'])->name('stock-transfers.cancel');
+Route::post('stock-transfers/{transfer}/approve', [AdminStockTransferController::class, 'approve'])->name('stock-transfers.approve');
+Route::post('stock-transfers/{transfer}/reject', [AdminStockTransferController::class, 'reject'])->name('stock-transfers.reject');
+Route::post('stock-transfers/{transfer}/send', [AdminStockTransferController::class, 'send'])->name('stock-transfers.send');
+Route::post('stock-transfers/{transfer}/checklist', [AdminStockTransferController::class, 'checklist'])->name('stock-transfers.checklist');
+Route::post('stock-transfers/{transfer}/resolve-discrepancy', [AdminStockTransferController::class, 'resolveDiscrepancy'])->name('stock-transfers.resolve-discrepancy');
+// ⚠️ Warehouses belum punya controller Admin sendiri —
+        // masih pakai WarehouseController (Superadmin). Kalau warehouse
+        // management memang sengaja dibagi ke admin & super_admin,
+        // biarkan begini. Kalau tidak, buat dulu
+        // App\Http\Controllers\Web\Admin\WarehouseController lalu ganti
+        // baris di bawah ini.
+        Route::resource('warehouses', AdminWarehouseController::class);
+
+        // ── Sales Order ──────────────────────────────────────────
+        Route::resource('sales-orders', AdminSalesOrderController::class)->only(['index', 'create', 'store', 'show','edit','update','destroy']);
+        Route::patch('sales-orders/{salesOrder}/approve', [AdminSalesOrderController::class, 'approve'])->name('sales-orders.approve');
+        Route::patch('sales-orders/{salesOrder}/reject', [AdminSalesOrderController::class, 'reject'])->name('sales-orders.reject');
+
+        // ── User Creation Requests ───────────────────────────────
+        Route::resource('user-requests', AdminUserCreationRequestController::class)->only(['index', 'create', 'store', 'show', 'destroy','update']);
+
+        // ── Laporan Stok ─────────────────────────────────────────
+        Route::get('stock-reports', [AdminStockReportController::class, 'index'])->name('stock-reports.index');
+        // ★ BARU (disisipkan dari versi Claude) — detail laporan stok per warehouse
+        Route::get('stock-reports/warehouse/{warehouse}', [AdminStockReportController::class, 'byWarehouse'])->name('stock-reports.by-warehouse');
+
+        // ── Product Submissions ───────────────────────────────────
         Route::prefix('product-submissions')
             ->name('product-submissions.')
             ->controller(AdminProductSubmissionController::class)
@@ -403,39 +469,96 @@ Route::prefix('admin')
                 Route::patch('{submission}/approve', 'approve')->name('approve');
                 Route::patch('{submission}/reject', 'reject')->name('reject');
             });
-    Route::resource('payments', PaymentController::class);
-    Route::post('payments/{payment}/verify', [PaymentController::class, 'verify'])->name('payments.verify');
 
-    // ── Stock Movement (riwayat, read-only) — diaktifkan ────
-    Route::get('stock-movements', [AdminStockMovementController::class, 'index'])->name('stock-movements.index');
+        // ═══════════════════════════════════════════════════════
+        // ⚠️ ROUTE DI BAWAH INI MASIH "REUSE" CONTROLLER SUPERADMIN
+        // Belum ada versi Admin\* untuk fitur-fitur ini. Ini artinya
+        // saat admin membuka /admin/payments, /admin/cash-books,
+        // /admin/budget-requests, dst — kalau view di controller
+        // Superadmin itu extend layout superadmin (bukan layout
+        // admin), sidebar & menu yang muncul BAKAL superadmin lagi —
+        // persis bug yang barusan kita perbaiki, tapi kali ini untuk
+        // fitur finance/budget.
+        //
+        // Ada 2 pilihan:
+        //   1. Kalau fitur ini memang HANYA untuk super_admin,
+        //      HAPUS semua baris di bawah ini dari grup admin —
+        //      biar admin nggak punya akses sama sekali (paling aman).
+        //   2. Kalau admin memang boleh lihat/pakai, buatin
+        //      Admin\PaymentController, Admin\CashBookController, dst
+        //      dengan view sendiri yang extend layout admin.
+        //
+        // ★ CATATAN: budget-requests di bawah sudah dilengkapi dengan
+        //   route show/approve/reject/tunda (disisipkan dari versi Claude).
+        //   Route ini masih pakai AdminBudgetRequestController — pastikan
+        //   controller tsb sudah punya method show/approve/reject/tunda,
+        //   kalau belum akan error "Method not found".
+        // ═══════════════════════════════════════════════════════
+        Route::resource('payments', AdminPaymentController::class);
+        Route::post('payments/{payment}/verify', [AdminPaymentController::class, 'verify'])->name('payments.verify');
 
-    // ── Payments (reuse Superadmin controller) ───────────────
-    Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+        // Route::get('cash-books', [AdminCashBookController::class, 'index'])->name('cash-books.index');
 
-    // ── Cash Books (reuse Superadmin controller) ─────────────
-    Route::get('cash-books', [CashBookController::class, 'index'])->name('cash-books.index');
+        Route::get('budget-requests', [AdminBudgetRequestController::class, 'index'])->name('budget-requests.index');
+        // ★ BARU (disisipkan dari versi Claude)
+        Route::get('budget-requests/{budgetRequest}', [AdminBudgetRequestController::class, 'show'])->name('budget-requests.show');
+        Route::post('budget-requests/{budgetRequest}/approve', [AdminBudgetRequestController::class, 'approve'])->name('budget-requests.approve');
+        Route::post('budget-requests/{budgetRequest}/reject', [AdminBudgetRequestController::class, 'reject'])->name('budget-requests.reject');
+        Route::post('budget-requests/{budgetRequest}/tunda', [AdminBudgetRequestController::class, 'tunda'])->name('budget-requests.tunda');
 
-    // ── Budget Requests (reuse Superadmin controller) ────────
-    Route::get('budget-requests', [BudgetRequestController::class, 'index'])->name('budget-requests.index');
+        // Route::get('budget-verifications', [AdminBudgetVerificationController::class, 'index'])->name('budget-verifications.index');
+        Route::resource('budget-verifications', AdminBudgetVerificationController::class)->only('show','index','store','destroy','edit','update','create');
+Route::resource('budget-revisions', AdminBudgetRevisionController::class);
+Route::post('budget-revisions/{budgetRevision}/approve', [AdminBudgetRevisionController::class, 'approve'])
+    ->name('budget-revisions.approve');
+Route::post('budget-revisions/{budgetRevision}/reject', [AdminBudgetRevisionController::class, 'reject'])
+    ->name('budget-revisions.reject');
+        // Route::get('expense-reports', [AdminExpenseReportController::class, 'index'])->name('expense-reports.index');
+        Route::resource('expense-reports',AdminExpenseReportController::class);
 
-    // ── Budget Verifications (reuse Superadmin controller) ───
-    Route::get('budget-verifications', [\App\Http\Controllers\Web\Superadmin\BudgetVerificationController::class, 'index'])->name('budget-verifications.index');
+        Route::get('barcodes/scan', [AdminBarcodeController::class, 'scan'])->name('barcodes.scan');
+        Route::post('barcodes/scan', [AdminBarcodeController::class, 'doScan'])->name('barcodes.do-scan');
 
-    // ── Budget Revisions (reuse Superadmin controller) ───────
-    Route::get('budget-revisions', [\App\Http\Controllers\Web\Superadmin\BudgetRevisionController::class, 'index'])->name('budget-revisions.index');
 
-    // ── Expense Reports (reuse Superadmin controller) ────────
-    Route::get('expense-reports', [ExpenseReportController::class, 'index'])->name('expense-reports.index');
+        /////////
+Route::resource('cashbook', AdminCashBookController::class)->only('index','show','store','detele','update','create')
+    ->parameters(['cashbook' => 'book']);
+        });
 
-    // ── Barcodes (reuse Superadmin controller) ───────────────
-    Route::get('barcodes/scan', [BarcodeController::class, 'scan'])->name('barcodes.scan');
-    Route::post('barcodes/scan', [BarcodeController::class, 'doScan'])->name('barcodes.do-scan');
+
+
+
+// ── Portal Supplier (role: supplier) ────────────────────────────────
+Route::prefix('supplier')->name('supplier.')->middleware(['auth', 'role:supplier'])->group(function () {
+
+    Route::get('/dashboard', [SupplierDashboardController::class, 'index'])->name('dashboard');
+
+    Route::controller(SupplierProductController::class)->prefix('products')->name('products.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{product}', 'show')->name('show');
     });
 
-/*
-Catatan penting soal urutan route:
-- Route::get('products-for-scope', ...) HARUS didaftarkan SEBELUM
-  Route::get('{opname}', ...) — kalau tidak, Laravel akan menganggap
-  "products-for-scope" sebagai value {opname} dan salah route.
-  Di atas sudah diurutkan dengan benar.
-*/
+    Route::controller(SupplierPurchaseOrderController::class)->prefix('purchase-orders')->name('purchase-orders.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{purchaseOrder}', 'show')->name('show');
+    });
+});
+
+// ── Tambahan untuk group Superadmin yang SUDAH ADA — jangan dibuat baru,
+//    gabungkan ke group superadmin existing kamu ─────────────────────
+Route::controller(SupplierAccountController::class)
+    ->prefix('superadmin/suppliers/{supplier}/account')
+    ->name('superadmin.suppliers.account.')
+    ->middleware(['auth', 'role:super_admin'])
+    ->group(function () {
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::delete('/', 'destroy')->name('destroy');
+    });
+
+
+
+
+
+
+    

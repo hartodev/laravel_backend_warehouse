@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Web\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Stock;
+use App\Models\StockMovement;
 use App\Models\StockOpname;
 use App\Models\StockOpnameItem;
 use App\Models\Warehouse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -90,7 +92,7 @@ class StockOpnameController extends Controller
                         'product_id'      => $stock->product_id,
                         'system_stock'    => $stock->quantity,
                         'physical_stock'  => null,
-                        'difference'      => null,
+                        // 'difference'      => null,
                     ]);
                 }
 
@@ -152,7 +154,7 @@ class StockOpnameController extends Controller
 
                 $item->update([
                     'physical_stock' => $itemData['physical_stock'],
-                    'difference'     => $itemData['physical_stock'] - $item->system_stock,
+                    // 'difference'     => $itemData['physical_stock'] - $item->system_stock,
                 ]);
             }
 
@@ -190,7 +192,7 @@ class StockOpnameController extends Controller
 
                 $item->update([
                     'physical_stock' => $itemData['physical_stock'],
-                    'difference'     => $itemData['physical_stock'] - $item->system_stock,
+                    // 'difference'     => $itemData['physical_stock'] - $item->system_stock,
                 ]);
             }
 
@@ -199,6 +201,111 @@ class StockOpnameController extends Controller
 
         return redirect()->route('admin.stock-opnames.show', $opname)
             ->with('success', 'Opname selesai dihitung. Menunggu persetujuan Super Admin.');
+    }
+
+    // ── POST /admin/stock-opnames/{opname}/approve ─────────────
+    // Adjust stok berdasarkan difference
+    public function approve(StockOpname $opname): RedirectResponse
+    {
+        if ($opname->status !== 'pending_approval') {
+            return back()->with('error', 'Hanya opname pending_approval yang dapat disetujui.');
+        }
+
+        DB::transaction(function () use ($opname) {
+            $items = StockOpnameItem::where('stock_opname_id', $opname->id)
+                ->whereNotNull('physical_stock')
+                ->get();
+
+            foreach ($items as $item) {
+                if ($item->difference === 0) continue;
+
+                $stock = Stock::firstOrCreate(
+                    ['product_id' => $item->product_id, 'warehouse_id' => $opname->warehouse_id],
+                    ['quantity' => 0]
+                );
+
+                $before = $stock->quantity;
+                $after  = $item->physical_stock;
+
+                $stock->update(['quantity' => $after]);
+
+                StockMovement::create([
+                    'product_id'      => $item->product_id,
+                    'warehouse_id'    => $opname->warehouse_id,
+                    'type'            => 'adjustment',
+                    'quantity'        => abs($item->difference),
+                    'quantity_before' => $before,
+                    'quantity_after'  => $after,
+                    'reference_type'  => 'stock_opname',
+                    'reference_id'    => $opname->id,
+                    'created_by'      => auth()->id(),
+                    'note'            => "Penyesuaian opname #{$opname->opname_number}",
+                ]);
+            }
+
+            $opname->update([
+                'status'      => 'approved',
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+            ]);
+        });
+
+        return redirect()->route('admin.stock-opnames.show', $opname)
+            ->with('success', 'Opname disetujui. Stok sudah disesuaikan.');
+    }
+
+    // ── POST /admin/stock-opnames/{opname}/reject ──────────────
+    public function reject(Request $request, StockOpname $opname): RedirectResponse
+    {
+        if ($opname->status !== 'pending_approval') {
+            return back()->with('error', 'Hanya opname pending_approval yang dapat ditolak.');
+        }
+
+        $request->validate(['reject_reason' => 'required|string|max:500']);
+
+        $opname->update([
+            'status'        => 'in_progress',
+            'reject_reason' => $request->reject_reason,
+            'completed_at'  => null,
+        ]);
+
+        return redirect()->route('admin.stock-opnames.show', $opname)
+            ->with('success', 'Opname dikembalikan untuk diperbaiki.');
+    }
+
+    // ── GET /admin/products-for-opname?warehouse_id={id}&search={q} ──
+    // Endpoint bantu: untuk scope=manual, load produk yang ada di gudang
+    public function productsForOpname(Request $request): JsonResponse
+    {
+        $request->validate(['warehouse_id' => 'required|exists:warehouses,id']);
+
+        $query = Stock::with('product:id,name,sku,category_id,unit')
+            ->where('warehouse_id', $request->warehouse_id)
+            ->where('quantity', '>=', 0)
+            ->whereHas('product');
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->whereHas('product', fn($q) =>
+            $q->where('name', 'like', "%{$s}%")
+                ->orWhere('sku', 'like', "%{$s}%"));
+        }
+
+        if ($request->filled('category_id')) {
+            $query->whereHas('product', fn($q) =>
+            $q->where('category_id', $request->category_id));
+        }
+
+        $stocks = $query->get()->map(fn($s) => [
+            'product_id'    => $s->product_id,
+            'product_name'  => $s->product->name ?? '-',
+            'product_sku'   => $s->product->sku ?? '-',
+            'product_unit'  => $s->product->unit ?? 'pcs',
+            'category_id'   => $s->product->category_id,
+            'current_stock' => $s->quantity,
+        ]);
+
+        return response()->json(['success' => true, 'data' => $stocks]);
     }
 
     // ── GET /admin/stock-opnames/products-for-scope (dipakai fetch() di halaman create) ──
