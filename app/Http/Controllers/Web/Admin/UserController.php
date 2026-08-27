@@ -29,13 +29,13 @@ class UserController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.users.index', compact('users'));
+        return view('Admin.users.index', compact('users'));
     }
 
     // ── GET /admin/users/create ───────────────────────────────
     public function create(): View
     {
-        return view('admin.users.create');
+        return view('Admin.users.create');
     }
 
     // ── GET /admin/users/{user} ───────────────────────────────
@@ -43,7 +43,7 @@ class UserController extends Controller
     {
         $user->load('profile');
 
-        return view('admin.users.show', compact('user'));
+        return view('Admin.users.show', compact('user'));
     }
 
     // ── GET /admin/users/{user}/edit ──────────────────────────
@@ -51,7 +51,7 @@ class UserController extends Controller
     {
         $user->load('profile');
 
-        return view('admin.users.edit', compact('user'));
+        return view('Admin.users.edit', compact('user'));
     }
 
     // ── POST /admin/users ──────────────────────────────────────

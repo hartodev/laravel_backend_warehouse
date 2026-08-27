@@ -25,13 +25,13 @@ class SupplierController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.suppliers.index', compact('suppliers'));
+        return view('Admin.suppliers.index', compact('suppliers'));
     }
 
     // ── GET /admin/suppliers/create ──────────────────────────
     public function create(): View
     {
-        return view('admin.suppliers.create');
+        return view('Admin.suppliers.create');
     }
 
     // ── POST /admin/suppliers ────────────────────────────────
@@ -66,7 +66,7 @@ class SupplierController extends Controller
     // ── GET /admin/suppliers/{supplier}/edit ─────────────────
     public function edit(Supplier $supplier): View
     {
-        return view('admin.suppliers.edit', compact('supplier'));
+        return view('Admin.suppliers.edit', compact('supplier'));
     }
 
     // ── PUT /admin/suppliers/{supplier} ──────────────────────

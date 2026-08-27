@@ -31,7 +31,7 @@ class PurchaseOrderController extends Controller
 
         $suppliers = Supplier::where('is_active', true)->orderBy('name')->get(['id', 'name']);
 
-        return view('admin.purchase-orders.index', compact('pos', 'suppliers'));
+        return view('Admin.purchase-orders.index', compact('pos', 'suppliers'));
     }
 
     // ── GET /admin/purchase-orders/create ─────────────────────
@@ -41,7 +41,7 @@ class PurchaseOrderController extends Controller
         $warehouses = Warehouse::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']);
         $products   = Product::where('is_active', true)->orderBy('name')->get(['id', 'name', 'sku', 'unit', 'purchase_price']);
 
-        return view('admin.purchase-orders.create', compact('suppliers', 'warehouses', 'products'));
+        return view('Admin.purchase-orders.create', compact('suppliers', 'warehouses', 'products'));
     }
 
     // ── POST /admin/purchase-orders ───────────────────────────
@@ -124,7 +124,7 @@ class PurchaseOrderController extends Controller
     {
         $po->load(['supplier', 'warehouse:id,name,code', 'createdBy:id,name', 'approvedBy:id,name', 'items.product:id,name,sku,unit']);
 
-        return view('admin.purchase-orders.show', compact('po'));
+        return view('Admin.purchase-orders.show', compact('po'));
     }
 
     // ── PUT /admin/purchase-orders/{po} ───────────────────────

@@ -35,7 +35,7 @@ class StockController extends Controller
         $warehouses = Warehouse::orderBy('name')->get(['id', 'name', 'code']);
         $products   = Product::where('is_active', true)->orderBy('name')->get(['id', 'name', 'sku', 'unit']);
 
-        return view('admin.stocks.index', compact('stocks', 'warehouses', 'products'));
+        return view('Admin.stocks.index', compact('stocks', 'warehouses', 'products'));
     }
 
     // ── POST /admin/stocks/manual-in ──────────────────────────
@@ -101,7 +101,7 @@ public function lowStock(Request $request)
             ->join('products', 'stocks.product_id', '=', 'products.id')
             ->sum(DB::raw('stocks.quantity * products.purchase_price'));
 
-        return view('admin.stocks.by-warehouse', compact('warehouse', 'stocks', 'totalValue'));
+        return view('Admin.stocks.by-warehouse', compact('warehouse', 'stocks', 'totalValue'));
     }
 }
 // namespace App\Http\Controllers\Web\Admin;
@@ -137,7 +137,7 @@ public function lowStock(Request $request)
 //         $warehouses = Warehouse::orderBy('name')->get(['id', 'name', 'code']);
 //         $products   = Product::where('is_active', true)->orderBy('name')->get(['id', 'name', 'sku', 'unit']);
 
-//         return view('admin.stocks.index', compact('stocks', 'warehouses', 'products'));
+//         return view('Admin.stocks.index', compact('stocks', 'warehouses', 'products'));
 //     }
 
 //     // ── POST /admin/stocks/manual-in ──────────────────────────
@@ -203,6 +203,6 @@ public function lowStock(Request $request)
 //             ->join('products', 'stocks.product_id', '=', 'products.id')
 //             ->sum(DB::raw('stocks.quantity * products.purchase_price'));
 
-//         return view('admin.stocks.by-warehouse', compact('warehouse', 'stocks', 'totalValue'));
+//         return view('Admin.stocks.by-warehouse', compact('warehouse', 'stocks', 'totalValue'));
 //     }
 // }

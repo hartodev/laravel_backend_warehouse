@@ -32,7 +32,7 @@ class StockMovementController extends Controller
 
         $warehouses = Warehouse::orderBy('name')->get(['id', 'name', 'code']);
 
-        return view('admin.stock-movements.index', compact('movements', 'warehouses'));
+        return view('Admin.stock-movements.index', compact('movements', 'warehouses'));
     }
 
     // ── GET /admin/stock-movements/{movement} ──────────────────
@@ -40,7 +40,7 @@ class StockMovementController extends Controller
     {
         $movement->load(['product:id,name,sku,unit', 'warehouse:id,name,code', 'createdBy:id,name']);
 
-        return view('admin.stock-movements.show', compact('movement'));
+        return view('Admin.stock-movements.show', compact('movement'));
     }
 
     // ── POST /admin/stock-movements — input stok manual (adjustment) ──

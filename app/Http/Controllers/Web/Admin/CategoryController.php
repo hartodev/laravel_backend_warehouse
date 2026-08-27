@@ -23,19 +23,19 @@ class CategoryController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.category.index', compact('categories'));
+        return view('Admin.category.index', compact('categories'));
     }
 
     public function create(): View
     {
-        return view('admin.category.create');
+        return view('Admin.category.create');
     }
 
     public function show(Category $category): View
     {
         $category->loadCount('products');
 
-        return view('admin.category.show', compact('category'));
+        return view('Admin.category.show', compact('category'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -60,7 +60,7 @@ class CategoryController extends Controller
 
     public function edit(Category $category): View
     {
-        return view('admin.category.edit', compact('category'));
+        return view('Admin.category.edit', compact('category'));
     }
 
     public function update(Request $request, Category $category): RedirectResponse

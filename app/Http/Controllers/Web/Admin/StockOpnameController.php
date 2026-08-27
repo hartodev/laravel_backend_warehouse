@@ -30,7 +30,7 @@ class StockOpnameController extends Controller
 
         $warehouses = Warehouse::orderBy('name')->get(['id', 'name', 'code']);
 
-        return view('admin.stock-opnames.index', compact('opnames', 'warehouses'));
+        return view('Admin.stock-opnames.index', compact('opnames', 'warehouses'));
     }
 
     // ── GET /admin/stock-opnames/create ───────────────────────
@@ -39,7 +39,7 @@ class StockOpnameController extends Controller
         $warehouses = Warehouse::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']);
         $categories = Category::where('is_active', true)->orderBy('name')->get(['id', 'name']);
 
-        return view('admin.stock-opnames.create', compact('warehouses', 'categories'));
+        return view('Admin.stock-opnames.create', compact('warehouses', 'categories'));
     }
 
     // ── POST /admin/stock-opnames ──────────────────────────────
@@ -111,7 +111,7 @@ class StockOpnameController extends Controller
     {
         $opname->load('items.product:id,name,sku,unit', 'warehouse:id,name,code', 'createdBy:id,name');
 
-        return view('admin.stock-opnames.show', compact('opname'));
+        return view('Admin.stock-opnames.show', compact('opname'));
     }
 
     // ── POST /admin/stock-opnames/{opname}/start ───────────────

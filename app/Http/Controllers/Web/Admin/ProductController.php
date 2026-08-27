@@ -34,7 +34,7 @@ class ProductController extends Controller
 
         $categories = Category::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.products.index', compact('products', 'categories'));
+        return view('Admin.products.index', compact('products', 'categories'));
     }
 
     // ── GET /admin/products/create ───────────────────────────
@@ -42,7 +42,7 @@ class ProductController extends Controller
     {
         $categories = Category::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.products.create', compact('categories'));
+        return view('Admin.products.create', compact('categories'));
     }
 
     // ── POST /admin/products ─────────────────────────────────
@@ -92,7 +92,7 @@ class ProductController extends Controller
         $product->load(['category:id,name,code', 'units'])
                 ->load(['stocks.warehouse:id,name,code']);
 
-        return view('admin.products.show', compact('product'));
+        return view('Admin.products.show', compact('product'));
     }
 
     // ── GET /admin/products/{product}/edit ───────────────────
@@ -100,7 +100,7 @@ class ProductController extends Controller
     {
         $categories = Category::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.products.edit', compact('product', 'categories'));
+        return view('Admin.products.edit', compact('product', 'categories'));
     }
 
     // ── PUT /admin/products/{product} ────────────────────────
