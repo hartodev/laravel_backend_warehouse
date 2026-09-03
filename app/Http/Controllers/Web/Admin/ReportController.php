@@ -19,7 +19,7 @@ class ReportController extends Controller
     {
         $reports = ReportService::available();
 
-        return view('admin.reports.index', compact('reports'));
+        return view('Admin.reports.index', compact('reports'));
     }
 
     /**
