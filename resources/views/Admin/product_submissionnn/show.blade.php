@@ -4,21 +4,13 @@
 
 <div class="admin-page-head">
     <h2>{{ $submission->name }}</h2>
-    @php
-        $statusLabel = match($submission->status) {
-            'pending' => 'Pending',
-            'pending_sa' => 'Menunggu Super Admin',
-            'approved' => 'Disetujui',
-            'rejected' => 'Ditolak',
-            default => ucfirst($submission->status),
-        };
-        $statusClass = match($submission->status) {
-            'approved' => 'admin-badge-success',
-            'rejected' => 'admin-badge-danger',
-            default => 'admin-badge-warning',
-        };
-    @endphp
-    <span class="admin-badge {{ $statusClass }}">{{ $statusLabel }}</span>
+    @if($submission->status === 'approved')
+    <span class="admin-badge admin-badge-success">Disetujui</span>
+    @elseif($submission->status === 'rejected')
+    <span class="admin-badge admin-badge-danger">Ditolak</span>
+    @else
+    <span class="admin-badge admin-badge-warning">Pending</span>
+    @endif
 </div>
 
 @if(session('success'))
@@ -75,13 +67,14 @@
         <p>{{ $submission->description ?: '-' }}</p>
     </div>
     <div class="admin-detail-item">
-        <p class="admin-label">Diproses Oleh (Super Admin)</p>
+        <p class="admin-label">Diproses Oleh</p>
         <p>{{ $submission->approvedBy->name ?? '-' }}</p>
     </div>
     @if($submission->status === 'approved')
     <div class="admin-detail-item">
         <p class="admin-label">Produk Terbentuk</p>
-        <p>{{ $submission->product->name ?? '-' }} <span class="cell-mono cell-muted">({{ $submission->product->sku ?? '-' }})</span></p>
+        <p>{{ $submission->product->name ?? '-' }} <span
+                class="cell-mono cell-muted">({{ $submission->product->sku ?? '-' }})</span></p>
     </div>
     @endif
     @if($submission->status === 'rejected')
@@ -95,21 +88,27 @@
 @if($submission->status === 'pending')
 <div class="admin-card admin-card-pad" style="margin-bottom:20px;">
     <h3 style="margin-top:0;">Review Pengajuan</h3>
-    <p class="admin-form-hint" style="margin-top:-6px;">
-        Setelah Anda review dan pastikan datanya benar, teruskan pengajuan ini ke Super Admin untuk keputusan akhir.
-    </p>
-    <form action="{{ route('admin.product-submissions.forward', $submission) }}" method="POST"
-        onsubmit="return confirm('Teruskan pengajuan ini ke Super Admin?');">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <form action="{{ route('admin.product-submissions.approve', $submission) }}" method="POST"
+            onsubmit="return confirm('Setujui pengajuan produk ini?');">
+            @csrf
+            @method('PATCH')
+            <button type="submit" class="btn-primary ripple">Setujui</button>
+        </form>
+        <button type="button" class="btn-danger"
+            onclick="document.getElementById('reject-form').style.display='flex'">Tolak</button>
+    </div>
+
+    <form id="reject-form" action="{{ route('admin.product-submissions.reject', $submission) }}" method="POST"
+        style="display:none;gap:10px;margin-top:14px;align-items:flex-end;">
         @csrf
         @method('PATCH')
-        <button type="submit" class="btn-primary ripple">Teruskan ke Super Admin</button>
+        <div style="flex:1;">
+            <label class="admin-label">Alasan Penolakan</label>
+            <textarea name="reject_reason" required class="admin-textarea"></textarea>
+        </div>
+        <button type="submit" class="btn-danger">Tolak</button>
     </form>
-</div>
-@elseif($submission->status === 'pending_sa')
-<div class="admin-card admin-card-pad" style="margin-bottom:20px;">
-    <p class="admin-form-hint" style="margin:0;">
-        Pengajuan ini sudah diteruskan dan sedang menunggu keputusan Super Admin.
-    </p>
 </div>
 @endif
 

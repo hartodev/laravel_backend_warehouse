@@ -6,17 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::table('product_submissions', function (Blueprint $table) {
-            $table->json('change_data')->nullable()->after('status');
+            $table->boolean('is_urgent')->default(false)->after('description');
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::table('product_submissions', function (Blueprint $table) {
-            $table->dropColumn('change_data');
+            //
         });
     }
 };

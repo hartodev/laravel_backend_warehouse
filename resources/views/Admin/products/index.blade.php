@@ -86,3 +86,5 @@
 
 <div class="admin-pagination">{{ $products->appends(request()->query())->links() }}</div>
 @endsection
+
+

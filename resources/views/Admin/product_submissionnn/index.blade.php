@@ -94,28 +94,31 @@
 <div class="admin-pagination">{{ $submissions->appends(request()->query())->links() }}</div>
 
 <style>
-    .admin-page-head-flex {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 16px;
-        flex-wrap: wrap;
-    }
-    .admin-page-subtitle {
-        margin: 4px 0 0;
-        font-size: 13px;
-        color: var(--admin-text-muted, #6b7280);
-    }
-    .admin-filter-card {
-        padding: 14px 16px;
-        margin-bottom: 16px;
-    }
-    .admin-filter-bar {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin: 0;
-    }
+.admin-page-head-flex {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.admin-page-subtitle {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--admin-text-muted, #6b7280);
+}
+
+.admin-filter-card {
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
+
+.admin-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 0;
+}
 </style>
 @endsection

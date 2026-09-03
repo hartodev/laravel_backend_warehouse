@@ -302,6 +302,16 @@ Route::prefix('superadmin')
         Route::resource('landing-benefits', LandingBenefitController::class)->except(['show']);
 
         Route::resource('landing-workflow-steps', LandingWorkflowStepController::class)->except(['show']);
+
+        // ── Pusat Laporan (Generate Laporan semua modul) ─────────
+        Route::prefix('reports')
+            ->name('reports.')
+            ->controller(\App\Http\Controllers\Web\Superadmin\ReportController::class)
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/filter-options', 'filterOptions')->name('filter-options');
+                Route::get('/{type}', 'show')->name('show');
+            });
     });
 
 // ──────────────────────────────────────────────────────────────
@@ -460,15 +470,22 @@ Route::post('stock-transfers/{transfer}/resolve-discrepancy', [AdminStockTransfe
         Route::get('stock-reports/warehouse/{warehouse}', [AdminStockReportController::class, 'byWarehouse'])->name('stock-reports.by-warehouse');
 
         // ── Product Submissions ───────────────────────────────────
-        Route::prefix('product-submissions')
-            ->name('product-submissions.')
-            ->controller(AdminProductSubmissionController::class)
-            ->group(function () {
-                Route::get('/', 'index')->name('index');
-                Route::get('{submission}', 'show')->name('show');
-                Route::patch('{submission}/approve', 'approve')->name('approve');
-                Route::patch('{submission}/reject', 'reject')->name('reject');
-            });
+Route::prefix('product-submissions')
+    ->name('product-submissions.')
+    ->controller(AdminProductSubmissionController::class)
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');       // ★ shortcut
+        Route::post('/', 'store')->name('store');              // ★ shortcut
+        Route::get('{submission}', 'show')->name('show');
+        Route::get('{submission}/edit', 'edit')->name('edit');
+        Route::put('{submission}', 'update')->name('update');
+        Route::delete('{submission}', 'destroy')->name('destroy');
+        Route::patch('{submission}/approve', 'approve')->name('approve');
+        Route::patch('{submission}/reject', 'reject')->name('reject');
+        Route::patch('{submission}/forward', 'forward')->name('forward');
+
+    });
 
         // ═══════════════════════════════════════════════════════
         // ⚠️ ROUTE DI BAWAH INI MASIH "REUSE" CONTROLLER SUPERADMIN
@@ -523,6 +540,16 @@ Route::post('budget-revisions/{budgetRevision}/reject', [AdminBudgetRevisionCont
         /////////
 Route::resource('cashbook', AdminCashBookController::class)->only('index','show','store','detele','update','create')
     ->parameters(['cashbook' => 'book']);
+
+        // ── Pusat Laporan (Generate Laporan semua modul) ─────────
+        Route::prefix('reports')
+            ->name('reports.')
+            ->controller(\App\Http\Controllers\Web\Admin\ReportController::class)
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/filter-options', 'filterOptions')->name('filter-options');
+                Route::get('/{type}', 'show')->name('show');
+            });
         });
 
 

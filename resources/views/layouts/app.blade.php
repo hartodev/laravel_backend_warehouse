@@ -847,6 +847,17 @@
             </a>
             @endforeach
 
+            {{-- LAPORAN --}}
+            <div class="group-label">Laporan</div>
+            <a href="{{ route('superadmin.reports.index') }}"
+                class="nav-item {{ request()->routeIs('superadmin.reports.*') ? 'active' : '' }}">
+                <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 17v-2a4 4 0 014-4h4M9 17H7a2 2 0 01-2-2V7a2 2 0 012-2h6l4 4v6a2 2 0 01-2 2h-2M9 17v2a2 2 0 002 2h2a2 2 0 002-2v-2" />
+                </svg>
+                <span class="nav-text">Pusat Laporan</span>
+            </a>
+
             {{-- INVENTORI --}}
             <div class="group-label">Inventori</div>
 

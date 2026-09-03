@@ -113,6 +113,13 @@
                     class="nav-link {{ request()->routeIs('admin.expense-reports.*') ? 'active' : '' }}">
                     <i class="lucide-receipt"></i> Laporan Realisasi
                 </a>
+
+                <div class="nav-section-title">Laporan</div>
+                <a href="{{ route('admin.reports.index') }}"
+                    class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+                    <i class="lucide-printer"></i> Pusat Laporan
+                </a>
+
                 <a href="{{ route('admin.barcodes.scan') }}"
                     class="nav-link {{ request()->routeIs('admin.barcodes.*') ? 'active' : '' }}">
                     <i class="lucide-scan-line"></i> Scan Barcode

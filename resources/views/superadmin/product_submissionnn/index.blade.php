@@ -23,7 +23,6 @@
             <select name="status" class="form-select">
                 <option value="">Semua</option>
                 <option value="pending" {{ request('status')==='pending'?'selected':'' }}>Pending</option>
-                <option value="pending_sa" {{ request('status')==='pending_sa'?'selected':'' }}>Menunggu Persetujuan</option>
                 <option value="approved" {{ request('status')==='approved'?'selected':'' }}>Approved</option>
                 <option value="rejected" {{ request('status')==='rejected'?'selected':'' }}>Rejected</option>
             </select>
@@ -56,39 +55,17 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse($submissions as $s)
-            @php
-                // ★ Kalau product_id masih null, ini pengajuan PRODUK BARU
-                // yang belum di-approve — datanya diambil dari submission
-                // itu sendiri, bukan dari relasi product (yang memang belum ada).
-                $isNewProduct = is_null($s->product_id);
-            @endphp
             <tr>
-                <td class="max-w-xs truncate">
-                    {{ $s->product->name ?? $s->name ?? '—' }}
-                    @if($s->is_urgent)
-                    <span class="badge badge-danger" style="margin-left:6px;">Urgent</span>
-                    @endif
-                </td>
-                <td class="font-mono text-xs">{{ $s->product->sku ?? $s->sku ?? '—' }}</td>
-                <td>{{ $s->product->category->name ?? $s->category->name ?? '—' }}</td>
-                <td>{{ $s->submittedBy->name ?? $s->admin->name ?? '—' }}</td>
+                <td class="max-w-xs truncate">{{ $s->product->name ?? '—' }}</td>
+                <td class="font-mono text-xs">{{ $s->product->sku ?? '—' }}</td>
+                <td>{{ $s->product->category->name ?? '—' }}</td>
+                <td>{{ $s->submittedBy->name ?? '—' }}</td>
                 <td>{{ $s->created_at?->isoFormat('D MMM Y, HH:mm') }}</td>
                 <td>
-                    @php
-                        $statusLabel = match($s->status) {
-                            'pending' => 'Pending',
-                            'pending_sa' => 'Menunggu Persetujuan',
-                            'approved' => 'Approved',
-                            'rejected' => 'Rejected',
-                            default => ucfirst($s->status),
-                        };
-                        $statusBadge = match($s->status) {
-                            'approved' => 'badge-success',
-                            'pending', 'pending_sa' => 'badge-warning',
-                            default => 'badge-danger',
-                        };
-                    @endphp
-                    <span class="badge {{ $statusBadge }}">{{ $statusLabel }}</span>
+                    <span
+                        class="badge {{ $s->status === 'approved' ? 'badge-success' : ($s->status === 'pending' ? 'badge-warning' : 'badge-danger') }}">
+                        {{ ucfirst($s->status) }}
+                    </span>
                 </td>
                 <td class="text-right">
                     <a href="{{ route('superadmin.product-submissions.show', $s) }}"
@@ -105,3 +82,4 @@
 </div>
 <div class="mt-4">{{ $submissions->links() }}</div>
 @endsection
+
