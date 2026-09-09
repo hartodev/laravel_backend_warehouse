@@ -97,12 +97,15 @@ class StockOpnameController extends Controller
             }
 
             foreach ($stocks as $stock) {
+                // NOTE: kolom 'difference' adalah GENERATED COLUMN di database
+                // (dihitung otomatis oleh MySQL dari physical_stock - system_stock).
+                // JANGAN sertakan 'difference' di sini — MySQL akan menolak insert
+                // dengan error 3105 jika kolom generated diisi manual.
                 StockOpnameItem::create([
                     'stock_opname_id' => $opname->id,
                     'product_id'      => $stock->product_id,
                     'system_stock'    => $stock->quantity,
                     'physical_stock'  => null,
-                    'difference'      => null,
                 ]);
             }
 
@@ -195,9 +198,10 @@ class StockOpnameController extends Controller
 
                 if (!$item) continue;
 
+                // 'difference' dihitung otomatis oleh MySQL (generated column) —
+                // cukup update physical_stock, jangan ikut set 'difference'.
                 $item->update([
                     'physical_stock' => $itemData['physical_stock'],
-                    'difference'     => $itemData['physical_stock'] - $item->system_stock,
                 ]);
             }
 
@@ -250,9 +254,10 @@ class StockOpnameController extends Controller
 
                 if (!$item) continue;
 
+                // 'difference' dihitung otomatis oleh MySQL (generated column) —
+                // cukup update physical_stock, jangan ikut set 'difference'.
                 $item->update([
                     'physical_stock' => $itemData['physical_stock'],
-                    'difference'     => $itemData['physical_stock'] - $item->system_stock,
                 ]);
             }
 
@@ -404,7 +409,6 @@ class StockOpnameController extends Controller
         return sprintf('OP/%s/%s/%04d', $year, $month, $last);
     }
 }
-
 
 ////////code lama before 2206
 // namespace App\Http\Controllers\Api\Admin;
