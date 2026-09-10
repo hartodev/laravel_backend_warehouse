@@ -108,8 +108,14 @@
             </div>
             <div style="margin-bottom:12px;">
                 <label class="admin-label">Produk</label>
-                <input type="number" name="product_id" value="{{ old('product_id') }}" required class="admin-input"
-                    placeholder="ID Produk">
+                <select name="product_id" required class="admin-select">
+                    <option value="">Pilih Produk</option>
+                    @foreach($products as $product)
+                    <option value="{{ $product->id }}" @selected(old('product_id')==$product->id)>
+                        {{ $product->name }} ({{ $product->sku }})
+                    </option>
+                    @endforeach
+                </select>
             </div>
             <div style="margin-bottom:12px;">
                 <label class="admin-label">Tipe</label>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use App\Models\Stock;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
@@ -31,8 +32,9 @@ class StockMovementController extends Controller
             ->withQueryString();
 
         $warehouses = Warehouse::orderBy('name')->get(['id', 'name', 'code']);
+        $products = Product::orderBy('name')->get(['id', 'name', 'sku']);
 
-        return view('Admin.stock-movements.index', compact('movements', 'warehouses'));
+        return view('Admin.stock-movements.index', compact('movements', 'warehouses', 'products'));
     }
 
     // ── GET /admin/stock-movements/{movement} ──────────────────
