@@ -41,7 +41,7 @@ $typeLabel = ['in' => 'Masuk', 'out' => 'Keluar', 'adjustment' => 'Penyesuaian']
     </div>
     <div class="admin-detail-item">
         <p class="admin-label">Tanggal</p>
-        <p>{{ $movement->created_at->format('d M Y H:i') }}</p>
+        <p>{{ $movement->created_at?->format('d M Y H:i') ?? '-' }}</p>
     </div>
     @if($movement->note)
     <div class="admin-detail-item" style="grid-column:span 2;">

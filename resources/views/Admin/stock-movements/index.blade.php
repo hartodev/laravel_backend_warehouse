@@ -54,7 +54,7 @@
         <tbody>
             @forelse ($movements as $movement)
             <tr>
-                <td class="cell-muted">{{ $movement->created_at->format('d M Y H:i') }}</td>
+                <td class="cell-muted">{{ $movement->created_at?->format('d M Y H:i') ?? '-' }}</td>
                 <td>{{ $movement->product->name ?? '-' }}</td>
                 <td class="cell-muted">{{ $movement->warehouse->name ?? '-' }}</td>
                 <td>

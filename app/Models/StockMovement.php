@@ -104,8 +104,13 @@ class StockMovement extends Model
         return $this->belongsTo($class, 'reference_id');
     }
 
-    public function purchaseOrder()
-    {
-        return $this->belongsTo(PurchaseOrder::class);
-    }
+    // public function purchaseOrder()
+    // {
+    //     return $this->belongsTo(PurchaseOrder::class);
+    // }
+
+//     public function getRouteKeyName()
+// {
+//     return 'uuid'; // atau kolom lain
+// }
 }

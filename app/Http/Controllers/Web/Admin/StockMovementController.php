@@ -37,14 +37,27 @@ class StockMovementController extends Controller
         return view('Admin.stock-movements.index', compact('movements', 'warehouses', 'products'));
     }
 
+    // // ── GET /admin/stock-movements/{movement} ──────────────────
+    // public function show(StockMovement $movement): View
+    // {
+    //     $movement->load(['product:id,name,sku,unit', 'warehouse:id,name,code', 'createdBy:id,name']);
+
+    //     return view('Admin.stock-movements.show', compact('movement'));
+    // }
+
+
+
+
     // ── GET /admin/stock-movements/{movement} ──────────────────
-    public function show(StockMovement $movement): View
-    {
-        $movement->load(['product:id,name,sku,unit', 'warehouse:id,name,code', 'createdBy:id,name']);
+public function show(int $id): View
+{
+    $movement = StockMovement::query()
+        ->where('id', $id)
+        ->with(['product:id,name,sku,unit', 'warehouse:id,name,code', 'createdBy:id,name'])
+        ->firstOrFail();
 
-        return view('Admin.stock-movements.show', compact('movement'));
-    }
-
+    return view('Admin.stock-movements.show', compact('movement'));
+}
     // ── POST /admin/stock-movements — input stok manual (adjustment) ──
 public function store(Request $request): RedirectResponse
 {
