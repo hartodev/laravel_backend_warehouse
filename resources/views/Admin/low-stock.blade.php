@@ -1,15 +1,26 @@
-@extends('layouts.admin')
+@php
+    // Halaman ini dipakai bareng oleh route admin.* (full akses) dan
+    // stocker.* (read-only). Deteksi dari nama route yang sedang aktif,
+    // supaya layout & link yang dipakai ikut menyesuaikan.
+    $isStockerView  = request()->routeIs('stocker.*');
+    $routePrefix    = $isStockerView ? 'stocker' : 'admin';
+    $canManageStock = auth()->user() && in_array(auth()->user()->role, ['admin', 'super_admin']);
+@endphp
+@extends($isStockerView ? 'layouts.stocker' : 'layouts.admin')
 @section('title', 'Stok')
+@section('page-title', 'Stok')
 @section('content')
 
 <div class="admin-page-head">
     <h2>Stok</h2>
     <div style="display:flex;gap:8px;">
-        <a href="{{ route('admin.stocks.low-stock') }}" class="btn-outline"><i class="lucide-alert-triangle"></i> Stok
+        <a href="{{ route($routePrefix.'.stocks.low-stock') }}" class="btn-outline"><i class="lucide-alert-triangle"></i> Stok
             Menipis</a>
+        @if($canManageStock)
         <button type="button" class="btn-primary ripple"
             onclick="document.getElementById('manual-in-modal').classList.remove('hidden')"><i class="lucide-plus"></i>
             Input Stok Manual</button>
+        @endif
     </div>
 </div>
 
@@ -82,6 +93,7 @@
 
 <div class="admin-pagination">{{ $stocks->appends(request()->query())->links() }}</div>
 
+@if($canManageStock)
 <div id="manual-in-modal" class="admin-modal-overlay {{ $errors->any() ? '' : 'hidden' }}">
     <div class="admin-card" style="padding:20px;max-width:420px;width:100%;">
         <h3 style="margin-bottom:12px;">Input Stok Manual</h3>
@@ -99,25 +111,14 @@
             </div>
             <div style="margin-bottom:12px;">
                 <label class="admin-label">Produk</label>
-                @php($selectedProduct = $products->firstWhere('id', (int) old('product_id')))
-                <div class="searchable-select" id="product-select">
-                    <input type="text" id="product-search-input" class="admin-input"
-                        placeholder="Cari nama / SKU produk..." autocomplete="off"
-                        value="{{ $selectedProduct?->name }}">
-                    <input type="hidden" name="product_id" id="product-select-value" value="{{ old('product_id') }}">
-                    <div class="searchable-select-list" id="product-select-list" hidden>
-                        @foreach($products as $product)
-                        <div class="searchable-select-option" data-id="{{ $product->id }}"
-                            data-search="{{ strtolower($product->name.' '.$product->sku) }}">
-                            <strong>{{ $product->name }}</strong>
-                            <span class="cell-muted">({{ $product->sku }}) — {{ $product->unit }}</span>
-                        </div>
-                        @endforeach
-                        <div class="searchable-select-empty" hidden>Produk tidak ditemukan.</div>
-                    </div>
-                </div>
-                <p class="searchable-select-error" id="product-select-error" hidden>Silakan pilih produk dari daftar.
-                </p>
+                <select name="product_id" required class="admin-select">
+                    <option value="">Pilih Produk</option>
+                    @foreach($products as $product)
+                    <option value="{{ $product->id }}" @selected(old('product_id')==$product->id)>{{ $product->name }}
+                        ({{ $product->sku }}) — {{ $product->unit }}
+                    </option>
+                    @endforeach
+                </select>
             </div>
             <div style="margin-bottom:12px;">
                 <label class="admin-label">Jumlah</label>
@@ -158,59 +159,6 @@
 .hidden {
     display: none;
 }
-
-/* ── Combobox pencarian produk (menggantikan <select> panjang) ── */
-.searchable-select {
-    position: relative;
-}
-
-.searchable-select-list {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
-    max-height: 220px;
-    overflow-y: auto;
-    background: #fff;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--r-md);
-    box-shadow: var(--shadow-md);
-    z-index: 60;
-    padding: 4px;
-}
-
-.searchable-select-option {
-    padding: 8px 10px;
-    border-radius: var(--r-sm);
-    cursor: pointer;
-    font-size: 13.5px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    line-height: 1.3;
-}
-
-.searchable-select-option:hover,
-.searchable-select-option.is-active {
-    background: var(--bg-subtle);
-}
-
-.searchable-select-option span {
-    font-size: 11.5px;
-}
-
-.searchable-select-empty {
-    padding: 10px;
-    font-size: 13px;
-    color: var(--text-muted);
-    text-align: center;
-}
-
-.searchable-select-error {
-    color: var(--accent-red);
-    font-size: 12px;
-    margin: 6px 0 0;
-}
 </style>
 <script>
 // Tutup modal kalau klik area gelap di luar box
@@ -224,74 +172,6 @@ document.addEventListener('keydown', function(e) {
         document.getElementById('manual-in-modal').classList.add('hidden');
     }
 });
-
-// ── Combobox pencarian Produk ──────────────────────────────────
-// Menggantikan <select> panjang: user cukup mengetik nama/SKU,
-// daftar produk otomatis difilter tanpa harus scroll manual.
-(function() {
-    var wrapper = document.getElementById('product-select');
-    var input = document.getElementById('product-search-input');
-    var hiddenInput = document.getElementById('product-select-value');
-    var list = document.getElementById('product-select-list');
-    var emptyMsg = list.querySelector('.searchable-select-empty');
-    var errorMsg = document.getElementById('product-select-error');
-    var options = Array.prototype.slice.call(list.querySelectorAll('.searchable-select-option'));
-
-    function openList() {
-        filterOptions();
-        list.hidden = false;
-    }
-
-    function closeList() {
-        list.hidden = true;
-    }
-
-    function filterOptions() {
-        var query = input.value.trim().toLowerCase();
-        var visibleCount = 0;
-        options.forEach(function(opt) {
-            var match = opt.dataset.search.indexOf(query) !== -1;
-            opt.hidden = !match;
-            if (match) visibleCount++;
-        });
-        emptyMsg.hidden = visibleCount !== 0;
-    }
-
-    function selectOption(opt) {
-        hiddenInput.value = opt.dataset.id;
-        input.value = opt.querySelector('strong').textContent;
-        errorMsg.hidden = true;
-        closeList();
-    }
-
-    input.addEventListener('focus', openList);
-    input.addEventListener('input', function() {
-        // Kalau user mengetik ulang setelah sebelumnya sudah pilih produk,
-        // anggap pilihan lama batal sampai dia klik salah satu opsi lagi —
-        // supaya tidak submit produk yang beda dari teks yang terlihat.
-        hiddenInput.value = '';
-        openList();
-    });
-
-    options.forEach(function(opt) {
-        opt.addEventListener('click', function() {
-            selectOption(opt);
-        });
-    });
-
-    document.addEventListener('click', function(e) {
-        if (!wrapper.contains(e.target)) closeList();
-    });
-
-    // <input type="hidden"> tidak ditegakkan oleh atribut "required" bawaan
-    // browser, jadi validasi wajib-pilih dilakukan manual saat submit.
-    wrapper.closest('form').addEventListener('submit', function(e) {
-        if (!hiddenInput.value) {
-            e.preventDefault();
-            errorMsg.hidden = false;
-            input.focus();
-        }
-    });
-})();
 </script>
+@endif
 @endsection

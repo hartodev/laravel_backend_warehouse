@@ -1,26 +1,20 @@
-@php
-$isStockerView = request()->routeIs('stocker.*');
-$routePrefix = $isStockerView ? 'stocker' : 'admin';
-@endphp
-@extends($isStockerView ? 'layouts.stocker' : 'layouts.admin')
+@extends('layouts.stocker')
 @section('title', 'Stok per Gudang')
 @section('page-title', 'Stok per Gudang')
 @section('content')
 
 <div class="admin-page-head">
-    <h2>Stok — {{ $warehouse->name }} <span class="cell-mono cell-muted">({{ $warehouse->code }})</span></h2>
+    <h2>Stok — {{ $warehouse->name }} <span class="cell-mono cell-muted">({{ $warehouse->code }})</span>
+        <span class="admin-badge admin-badge-success" style="font-size:.65rem;vertical-align:middle;">Read Only</span>
+    </h2>
 </div>
 
 <div class="admin-detail-grid" style="margin-bottom:20px;max-width:320px;">
-    <div class="admin-detail-item">
-        <p class="admin-label">Total Nilai Stok</p>
-        <p><strong>Rp{{ number_format($totalValue, 0, ',', '.') }}</strong></p>
-    </div>
+    <div class="admin-detail-item"><p class="admin-label">Total Nilai Stok</p><p><strong>Rp{{ number_format($totalValue, 0, ',', '.') }}</strong></p></div>
 </div>
 
 <form method="GET" class="admin-filter-bar">
-    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama / SKU produk..."
-        class="admin-input" style="max-width:280px;">
+    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama / SKU produk..." class="admin-input" style="max-width:280px;">
     <button class="btn-outline">Filter</button>
 </form>
 
@@ -49,9 +43,7 @@ $routePrefix = $isStockerView ? 'stocker' : 'admin';
                 <td class="cell-mono cell-muted">{{ $stock->product->min_stock ?? '-' }}</td>
             </tr>
             @empty
-            <tr>
-                <td colspan="7" class="cell-empty">Belum ada stok di gudang ini.</td>
-            </tr>
+            <tr><td colspan="7" class="cell-empty">Belum ada stok di gudang ini.</td></tr>
             @endforelse
         </tbody>
     </table>
@@ -60,6 +52,6 @@ $routePrefix = $isStockerView ? 'stocker' : 'admin';
 <div class="admin-pagination">{{ $stocks->appends(request()->query())->links() }}</div>
 
 <div class="admin-action-panel" style="margin-top:20px;">
-    <a href="{{ route($routePrefix.'.stocks.index') }}" class="btn-secondary">← Kembali</a>
+    <a href="{{ route('stocker.stocks.index') }}" class="btn-secondary">← Kembali</a>
 </div>
 @endsection

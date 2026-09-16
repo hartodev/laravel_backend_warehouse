@@ -1,6 +1,6 @@
 @php
-$isStockerView = request()->routeIs('stocker.*');
-$routePrefix = $isStockerView ? 'stocker' : 'admin';
+    $isStockerView = request()->routeIs('stocker.*');
+    $routePrefix   = $isStockerView ? 'stocker' : 'admin';
 @endphp
 @extends($isStockerView ? 'layouts.stocker' : 'layouts.admin')
 @section('title', 'Stok Menipis')

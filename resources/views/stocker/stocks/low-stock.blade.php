@@ -1,14 +1,10 @@
-@php
-$isStockerView = request()->routeIs('stocker.*');
-$routePrefix = $isStockerView ? 'stocker' : 'admin';
-@endphp
-@extends($isStockerView ? 'layouts.stocker' : 'layouts.admin')
+@extends('layouts.stocker')
 @section('title', 'Stok Menipis')
 @section('page-title', 'Stok Menipis')
 @section('content')
 
 <div class="admin-page-head">
-    <h2>Stok Menipis</h2>
+    <h2>Stok Menipis <span class="admin-badge admin-badge-success" style="font-size:.65rem;vertical-align:middle;">Read Only</span></h2>
 </div>
 
 <form method="GET" class="admin-filter-bar">
@@ -53,6 +49,6 @@ $routePrefix = $isStockerView ? 'stocker' : 'admin';
 </div>
 
 <div class="admin-action-panel" style="margin-top:20px;">
-    <a href="{{ route($routePrefix.'.stocks.index') }}" class="btn-secondary">← Kembali</a>
+    <a href="{{ route('stocker.stocks.index') }}" class="btn-secondary">← Kembali</a>
 </div>
 @endsection

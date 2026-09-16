@@ -22,6 +22,7 @@ use App\Http\Controllers\Web\Admin\BudgetVerificationController as AdminBudgetVe
 use App\Http\Controllers\Web\Admin\BudgetRevisionController as AdminBudgetRevisionController;
 use App\Http\Controllers\Web\Admin\PurchaseOrderController as AdminPurchaseOrderController;
 use App\Http\Controllers\Web\Admin\StockController as AdminStockController;
+use App\Http\Controllers\Web\Stocker\StockerDashboardController;
 use App\Http\Controllers\Web\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Web\Admin\ExpenseReportController as AdminExpenseReportController;
 use App\Http\Controllers\Web\Admin\StockMovementController as AdminStockMovementController;
@@ -554,6 +555,23 @@ Route::resource('cashbook', AdminCashBookController::class)->only('index','show'
 
 
 
+
+// ── Portal Stocker (role: warehouse_keeper) — READ ONLY stok ──────
+Route::prefix('stocker')
+    ->name('stocker.')
+    ->middleware(['auth', 'role:warehouse_keeper,admin,super_admin'])
+    ->group(function () {
+        Route::get('/dashboard', [StockerDashboardController::class, 'index'])->name('dashboard');
+
+        Route::prefix('stocks')
+            ->name('stocks.')
+            ->controller(AdminStockController::class)
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/low-stock', 'lowStock')->name('low-stock');
+                Route::get('/warehouse/{warehouse}', 'byWarehouse')->name('by-warehouse');
+            });
+    });
 
 // ── Portal Supplier (role: supplier) ────────────────────────────────
 Route::prefix('supplier')->name('supplier.')->middleware(['auth', 'role:supplier'])->group(function () {

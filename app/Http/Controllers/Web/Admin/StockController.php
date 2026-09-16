@@ -13,7 +13,12 @@ use Illuminate\View\View;
 
 class StockController extends Controller
 {
-    // ── GET /admin/stocks ──────────────────────────────────────
+    // ── GET /admin/stocks  atau  GET /stocker/stocks ────────────
+    // Controller ini dipakai bersama oleh route 'admin.stocks.*'
+    // (full akses) dan 'stocker.stocks.*' (read-only). Perbedaan
+    // tampilan (layout, tombol aksi) ditentukan lewat view yang
+    // dipilih berdasarkan nama route saat ini — BUKAN cuma judul,
+    // supaya stocker tidak pernah melihat/menyentuh view admin.
     public function index(Request $request): View
     {
         $stocks = Stock::with(['product:id,name,sku,unit,min_stock', 'warehouse:id,name,code'])
@@ -33,14 +38,28 @@ class StockController extends Controller
             ->withQueryString();
 
         $warehouses = Warehouse::orderBy('name')->get(['id', 'name', 'code']);
-        $products   = Product::where('is_active', true)->orderBy('name')->get(['id', 'name', 'sku', 'unit']);
+
+        // Halaman stocker: read-only, tidak butuh daftar produk untuk form
+        // input manual (form itu memang tidak ditampilkan di view stocker).
+        if ($request->routeIs('stocker.*')) {
+            return view('stocker.stocks.index', compact('stocks', 'warehouses'));
+        }
+
+        $products = Product::where('is_active', true)->orderBy('name')->get(['id', 'name', 'sku', 'unit']);
 
         return view('Admin.stocks.index', compact('stocks', 'warehouses', 'products'));
     }
 
     // ── POST /admin/stocks/manual-in ──────────────────────────
+    // Hanya terdaftar di grup route 'admin.*' (dijaga middleware
+    // role:admin,super_admin) dan view stocker sama sekali tidak
+    // menampilkan form ini. Guard di bawah ini adalah lapis
+    // pertahanan tambahan (defense in depth) kalau suatu saat ada
+    // yang keliru mendaftarkan route ini di grup stocker.
     public function manualIn(Request $request): RedirectResponse
     {
+        abort_unless(in_array($request->user()->role, ['admin', 'super_admin']), 403, 'Anda tidak memiliki akses untuk mengubah stok.');
+
         $validated = $request->validate([
             'warehouse_id' => 'required|exists:warehouses,id',
             'product_id'   => 'required|exists:products,id',
@@ -74,18 +93,24 @@ class StockController extends Controller
             ->with('success', 'Stok berhasil ditambahkan.');
     }
 
+    // ── GET /admin/stocks/low-stock  atau  GET /stocker/stocks/low-stock ──
+    public function lowStock(Request $request)
+    {
+        $lowStocks = Stock::with(['product:id,name,sku,unit,min_stock', 'warehouse:id,name,code'])
+            ->whereHas('product', fn($q) => $q->whereColumn('stocks.quantity', '<=', 'products.min_stock'))
+            ->when($request->warehouse_id, fn($q) => $q->where('warehouse_id', $request->warehouse_id))
+            ->get();
 
-public function lowStock(Request $request)
-{
-    $lowStocks = Stock::with(['product:id,name,sku,unit,min_stock', 'warehouse:id,name,code'])
-        ->whereHas('product', fn($q) => $q->whereColumn('stocks.quantity', '<=', 'products.min_stock'))
-        ->when($request->warehouse_id, fn($q) => $q->where('warehouse_id', $request->warehouse_id))
-        ->get();
+        $warehouses = Warehouse::orderBy('name')->get(['id', 'name', 'code']);
 
-    return view('Admin.stocks.low-stock', compact('lowStocks'));
-}
+        if ($request->routeIs('stocker.*')) {
+            return view('stocker.stocks.low-stock', compact('lowStocks', 'warehouses'));
+        }
 
-    // ── GET /admin/stocks/warehouse/{warehouse} — stok per gudang ──
+        return view('Admin.stocks.low-stock', compact('lowStocks', 'warehouses'));
+    }
+
+    // ── GET /admin/stocks/warehouse/{warehouse}  atau  GET /stocker/stocks/warehouse/{warehouse} ──
     public function byWarehouse(Request $request, Warehouse $warehouse): View
     {
         $stocks = Stock::with('product:id,name,sku,unit,min_stock,purchase_price,selling_price')
@@ -101,9 +126,14 @@ public function lowStock(Request $request)
             ->join('products', 'stocks.product_id', '=', 'products.id')
             ->sum(DB::raw('stocks.quantity * products.purchase_price'));
 
+        if ($request->routeIs('stocker.*')) {
+            return view('stocker.stocks.by-warehouse', compact('warehouse', 'stocks', 'totalValue'));
+        }
+
         return view('Admin.stocks.by-warehouse', compact('warehouse', 'stocks', 'totalValue'));
     }
 }
+
 // namespace App\Http\Controllers\Web\Admin;
 
 // use App\Http\Controllers\Controller;
