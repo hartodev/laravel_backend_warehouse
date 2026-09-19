@@ -49,6 +49,13 @@ $typeLabel = ['in' => 'Masuk', 'out' => 'Keluar', 'adjustment' => 'Penyesuaian']
         <p>{{ $movement->note }}</p>
     </div>
     @endif
+    @if($movement->taken_by_name)
+    <div class="admin-detail-item">
+        <p class="admin-label">Diambil Oleh</p>
+        <p>{{ $movement->taken_by_name }} <span class="cell-muted">({{ $movement->taken_by_division ?? '-' }})</span>
+        </p>
+    </div>
+    @endif
 </div>
 
 <div class="admin-action-panel">

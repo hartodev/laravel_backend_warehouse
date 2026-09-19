@@ -96,6 +96,14 @@
 
         <form action="{{ route('admin.stock-movements.store') }}" method="POST">
             @csrf
+            <div style="margin-bottom:12px; position:relative;">
+                <label class="admin-label">Produk</label>
+                <input type="text" id="product-search" class="admin-input" placeholder="Ketik nama atau SKU produk..."
+                    autocomplete="off" value="{{ old('product_name') }}">
+                <input type="hidden" name="product_id" id="product-id" value="{{ old('product_id') }}">
+                <div id="product-search-results" class="product-search-dropdown hidden"></div>
+            </div>
+
             <div style="margin-bottom:12px;">
                 <label class="admin-label">Gudang</label>
                 <select name="warehouse_id" required class="admin-select">
@@ -106,17 +114,7 @@
                     @endforeach
                 </select>
             </div>
-            <div style="margin-bottom:12px;">
-                <label class="admin-label">Produk</label>
-                <select name="product_id" required class="admin-select">
-                    <option value="">Pilih Produk</option>
-                    @foreach($products as $product)
-                    <option value="{{ $product->id }}" @selected(old('product_id')==$product->id)>
-                        {{ $product->name }} ({{ $product->sku }})
-                    </option>
-                    @endforeach
-                </select>
-            </div>
+
             <div style="margin-bottom:12px;">
                 <label class="admin-label">Tipe</label>
                 <select name="type" id="movement-type" required class="admin-select">
@@ -125,18 +123,33 @@
                     <option value="adjustment" @selected(old('type')==='adjustment' )>Penyesuaian</option>
                 </select>
             </div>
+
             <div id="adjustment-direction-wrap" class="{{ old('type') === 'adjustment' ? '' : 'hidden' }}"
                 style="margin-bottom:12px;">
                 <label class="admin-label">Arah Penyesuaian</label>
-                <select name="adjustment_type" class="admin-select">
+                <select name="adjustment_type" id="adjustment-type" class="admin-select">
                     <option value="in" @selected(old('adjustment_type')==='in' )>Tambah</option>
                     <option value="out" @selected(old('adjustment_type')==='out' )>Kurangi</option>
                 </select>
             </div>
+
             <div style="margin-bottom:12px;">
                 <label class="admin-label">Jumlah</label>
                 <input type="number" min="1" name="quantity" value="{{ old('quantity') }}" required class="admin-input">
             </div>
+
+            {{-- Field baru: hanya muncul kalau tipe-nya "keluar" --}}
+            <div id="taken-by-wrap" class="hidden" style="margin-bottom:12px;">
+                <label class="admin-label">Diambil Oleh (Nama)</label>
+                <input type="text" name="taken_by_name" value="{{ old('taken_by_name') }}" class="admin-input"
+                    placeholder="Nama karyawan yang mengambil barang">
+            </div>
+            <div id="taken-by-division-wrap" class="hidden" style="margin-bottom:12px;">
+                <label class="admin-label">Divisi / Departemen</label>
+                <input type="text" name="taken_by_division" value="{{ old('taken_by_division') }}" class="admin-input"
+                    placeholder="Contoh: Produksi, Maintenance, Gudang">
+            </div>
+
             <div style="margin-bottom:16px;">
                 <label class="admin-label">Catatan</label>
                 <textarea name="note" class="admin-textarea" placeholder="Opsional">{{ old('note') }}</textarea>
@@ -150,9 +163,14 @@
     </div>
 </div>
 
+{{--
+    Data produk sudah di-JSON-encode di controller (variabel $productsJson),
+    jadi baris ini murni {{ }} tanpa fn()/-> apapun. Tidak ada lagi
+yang bisa dirusak auto-formatter di sini.
+--}}
+<div id="product-data" class="hidden" data-products="{{ $productsJson }}"></div>
+
 <style>
-/* Overlay modal: display diatur di sini, BUKAN inline style,
-   supaya class .hidden bisa menimpanya */
 .admin-modal-overlay {
     position: fixed;
     inset: 0;
@@ -163,8 +181,6 @@
     z-index: 50;
 }
 
-/* Specificity .admin-modal-overlay.hidden > .admin-modal-overlay saja,
-   jadi aturan ini selalu menang saat class "hidden" ditambahkan */
 .admin-modal-overlay.hidden {
     display: none;
 }
@@ -172,23 +188,149 @@
 .hidden {
     display: none;
 }
+
+.product-search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 220px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    z-index: 60;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .08);
+}
+
+.product-search-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.product-search-item:hover,
+.product-search-item.active {
+    background: #f3f4f6;
+}
+
+.product-search-empty {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #9ca3af;
+}
 </style>
+
 <script>
 document.getElementById('movement-type').addEventListener('change', function() {
     document.getElementById('adjustment-direction-wrap').classList.toggle('hidden', this.value !==
         'adjustment');
 });
 
-// Tutup modal kalau klik area gelap di luar box
 document.getElementById('add-movement-modal').addEventListener('click', function(e) {
-    if (e.target === this) this.classList.add('hidden');
+    if (e.target === this) {
+        this.classList.add('hidden');
+    }
 });
 
-// Tutup modal dengan tombol Escape
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         document.getElementById('add-movement-modal').classList.add('hidden');
     }
 });
+
+var productDataEl = document.getElementById('product-data');
+var productList = JSON.parse(productDataEl.getAttribute('data-products'));
+
+var searchInput = document.getElementById('product-search');
+var hiddenId = document.getElementById('product-id');
+var resultsBox = document.getElementById('product-search-results');
+
+function buildResultsHtml(list) {
+    if (list.length === 0) {
+        return '<div class="product-search-empty">Produk tidak ditemukan</div>';
+    }
+    var html = '';
+    for (var j = 0; j < list.length; j++) {
+        var item = list[j];
+        var safeName = item.name.replace(/"/g, '&quot;');
+        html += '<div class="product-search-item" data-id="' + item.id + '" data-name="' + safeName + ' (' + item.sku +
+            ')">';
+        html += item.name + ' <span class="cell-muted">(' + item.sku + ')</span>';
+        html += '</div>';
+    }
+    return html;
+}
+
+function renderResults(query) {
+    var q = query.trim().toLowerCase();
+    var matches;
+
+    if (!q) {
+        // Query kosong: tampilkan SEMUA produk (bisa di-scroll)
+        matches = productList;
+    } else {
+        matches = [];
+        for (var i = 0; i < productList.length; i++) {
+            var p = productList[i];
+            var nameMatch = p.name.toLowerCase().indexOf(q) !== -1;
+            var skuMatch = p.sku.toLowerCase().indexOf(q) !== -1;
+            if (nameMatch || skuMatch) {
+                matches.push(p);
+            }
+        }
+    }
+
+    resultsBox.innerHTML = buildResultsHtml(matches);
+    resultsBox.classList.remove('hidden');
+}
+
+searchInput.addEventListener('input', function() {
+    hiddenId.value = '';
+    renderResults(this.value);
+});
+
+searchInput.addEventListener('focus', function() {
+    // Selalu tampilkan list (kosong = semua produk) saat input di-klik/focus
+    renderResults(this.value);
+});
+
+resultsBox.addEventListener('click', function(e) {
+    var item = e.target.closest('.product-search-item');
+    if (!item) {
+        return;
+    }
+    hiddenId.value = item.getAttribute('data-id');
+    searchInput.value = item.getAttribute('data-name');
+    resultsBox.classList.add('hidden');
+});
+
+document.addEventListener('click', function(e) {
+    var insideSearch = e.target.closest('#product-search');
+    var insideResults = e.target.closest('#product-search-results');
+    if (!insideSearch && !insideResults) {
+        resultsBox.classList.add('hidden');
+    }
+});
+var typeSelect = document.getElementById('movement-type');
+var adjTypeSelect = document.getElementById('adjustment-type');
+var adjWrap = document.getElementById('adjustment-direction-wrap');
+var takenByWrap = document.getElementById('taken-by-wrap');
+var takenByDivisionWrap = document.getElementById('taken-by-division-wrap');
+
+function updateFormVisibility() {
+    var isAdjustment = typeSelect.value === 'adjustment';
+    adjWrap.classList.toggle('hidden', !isAdjustment);
+
+    var isOut = typeSelect.value === 'out' || (isAdjustment && adjTypeSelect.value === 'out');
+
+    takenByWrap.classList.toggle('hidden', !isOut);
+    takenByDivisionWrap.classList.toggle('hidden', !isOut);
+}
+
+typeSelect.addEventListener('change', updateFormVisibility);
+adjTypeSelect.addEventListener('change', updateFormVisibility);
+updateFormVisibility();
 </script>
 @endsection
