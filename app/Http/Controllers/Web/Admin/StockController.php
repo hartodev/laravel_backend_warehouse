@@ -132,6 +132,41 @@ class StockController extends Controller
 
         return view('Admin.stocks.by-warehouse', compact('warehouse', 'stocks', 'totalValue'));
     }
+
+    public function update(Request $request, Stock $stock): RedirectResponse
+    {
+        abort_unless(in_array($request->user()->role, ['admin', 'super_admin']), 403, 'Anda tidak memiliki akses untuk mengubah stok.');
+ 
+        $validated = $request->validate([
+            'quantity' => 'required|integer|min:0',
+            'note'     => 'nullable|string|max:255',
+        ]);
+ 
+        DB::transaction(function () use ($validated, $stock) {
+            $before = $stock->quantity;
+            $after  = (int) $validated['quantity'];
+            $diff   = $after - $before;
+ 
+            $stock->update(['quantity' => $after]);
+ 
+            if ($diff !== 0) {
+                StockMovement::create([
+                    'product_id'      => $stock->product_id,
+                    'warehouse_id'    => $stock->warehouse_id,
+                    'type'            => $diff > 0 ? 'in' : 'out',
+                    'quantity'        => abs($diff),
+                    'quantity_before' => $before,
+                    'quantity_after'  => $after,
+                    'reference_type'  => 'adjustment',
+                    'created_by'      => auth()->id(),
+                    'note'            => $validated['note'] ?? 'Koreksi stok manual oleh admin',
+                ]);
+            }
+        });
+ 
+        return redirect()->route('admin.stocks.index')
+            ->with('success', 'Stok berhasil diperbarui.');
+    }
 }
 
 // namespace App\Http\Controllers\Web\Admin;

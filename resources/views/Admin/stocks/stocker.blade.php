@@ -1,3 +1,4 @@
+3
 <!DOCTYPE html>
 <html lang="id">
 
@@ -32,7 +33,8 @@
                 <a href="{{ route('stocker.stocks.index') }}"
                     class="nav-link {{ request()->routeIs('stocker.stocks.index') || request()->routeIs('stocker.stocks.by-warehouse') ? 'active' : '' }}">
                     <i class="lucide-boxes"></i> Semua Stok
-                    <span class="badge bg-secondary-subtle text-secondary ms-1" style="font-size:.6rem;">read-only</span>
+                    <span class="badge bg-secondary-subtle text-secondary ms-1"
+                        style="font-size:.6rem;">read-only</span>
                 </a>
                 <a href="{{ route('stocker.stocks.low-stock') }}"
                     class="nav-link {{ request()->routeIs('stocker.stocks.low-stock') ? 'active' : '' }}">

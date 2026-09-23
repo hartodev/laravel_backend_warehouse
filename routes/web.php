@@ -426,6 +426,8 @@ Route::prefix('admin')
                                 Route::get('/low-stock', 'lowStock')->name('low-stock');
                 // ★ BARU (disisipkan) — detail stok per warehouse untuk admin
                 Route::get('/warehouse/{warehouse}', 'byWarehouse')->name('by-warehouse');
+                Route::put('/{stock}', 'update')->name('update');
+                 
 
             });
 

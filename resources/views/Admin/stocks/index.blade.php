@@ -52,6 +52,7 @@
                 <th>Satuan</th>
                 <th>Min. Stok</th>
                 <th>Status</th>
+                <th>Aksi</th>
             </tr>
         </thead>
         <tbody>
@@ -70,10 +71,17 @@
                         <span class="admin-badge admin-badge-success">Aman</span>
                         @endif
                 </td>
+                <td>
+                    <button type="button" class="btn-outline btn-edit-stock"
+                        data-update-url="{{ route('admin.stocks.update', $stock->id) }}"
+                        data-product="{{ $stock->product->name ?? '-' }}" data-quantity="{{ $stock->quantity }}">
+                        <i class="lucide-pencil"></i> Edit
+                    </button>
+                </td>
             </tr>
             @empty
             <tr>
-                <td colspan="7" class="cell-empty">Belum ada data stok.</td>
+                <td colspan="8" class="cell-empty">Belum ada data stok.</td>
             </tr>
             @endforelse
         </tbody>
@@ -82,6 +90,7 @@
 
 <div class="admin-pagination">{{ $stocks->appends(request()->query())->links() }}</div>
 
+{{-- ── Modal: Input Stok Manual (sudah ada sebelumnya) ── --}}
 <div id="manual-in-modal" class="admin-modal-overlay {{ $errors->any() ? '' : 'hidden' }}">
     <div class="admin-card" style="padding:20px;max-width:420px;width:100%;">
         <h3 style="margin-bottom:12px;">Input Stok Manual</h3>
@@ -130,6 +139,30 @@
             <div class="admin-form-actions" style="justify-content:flex-end;">
                 <button type="button" class="btn-secondary"
                     onclick="document.getElementById('manual-in-modal').classList.add('hidden')">Batal</button>
+                <button type="submit" class="btn-primary ripple">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- ── Modal: Koreksi Qty Stok (BARU — untuk method update()) ── --}}
+<div id="edit-stock-modal" class="admin-modal-overlay hidden">
+    <div class="admin-card" style="padding:20px;max-width:380px;width:100%;">
+        <h3 style="margin-bottom:12px;">Koreksi Stok — <span id="edit-stock-product"></span></h3>
+        <form id="edit-stock-form" method="POST" action="">
+            @csrf
+            @method('PUT')
+            <div style="margin-bottom:12px;">
+                <label class="admin-label">Qty Baru</label>
+                <input type="number" min="0" name="quantity" id="edit-stock-quantity" required class="admin-input">
+            </div>
+            <div style="margin-bottom:16px;">
+                <label class="admin-label">Catatan</label>
+                <textarea name="note" class="admin-textarea" placeholder="Alasan koreksi (opsional)"></textarea>
+            </div>
+            <div class="admin-form-actions" style="justify-content:flex-end;">
+                <button type="button" class="btn-secondary"
+                    onclick="document.getElementById('edit-stock-modal').classList.add('hidden')">Batal</button>
                 <button type="submit" class="btn-primary ripple">Simpan</button>
             </div>
         </form>
@@ -222,6 +255,7 @@ document.getElementById('manual-in-modal').addEventListener('click', function(e)
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         document.getElementById('manual-in-modal').classList.add('hidden');
+        document.getElementById('edit-stock-modal').classList.add('hidden');
     }
 });
 
@@ -291,6 +325,27 @@ document.addEventListener('keydown', function(e) {
             errorMsg.hidden = false;
             input.focus();
         }
+    });
+})();
+
+// ── Modal Koreksi Qty Stok (BARU) ──────────────────────────────
+(function() {
+    var modal = document.getElementById('edit-stock-modal');
+    var form = document.getElementById('edit-stock-form');
+    var productLabel = document.getElementById('edit-stock-product');
+    var quantityInput = document.getElementById('edit-stock-quantity');
+
+    document.querySelectorAll('.btn-edit-stock').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            form.action = btn.dataset.updateUrl;
+            productLabel.textContent = btn.dataset.product;
+            quantityInput.value = btn.dataset.quantity;
+            modal.classList.remove('hidden');
+        });
+    });
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.add('hidden');
     });
 })();
 </script>
