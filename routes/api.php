@@ -139,6 +139,13 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ══════════════════════════════════════════════════════════
+    //  WAREHOUSE KEEPER (stocker) — dikunci ke gudang miliknya
+    // ══════════════════════════════════════════════════════════
+    Route::middleware('role:warehouse_keeper')->prefix('keeper')->controller(KeeperStockController::class)->group(function () {
+        Route::get('stocks', 'stocks'); // read-only, dikunci ke gudang milik user
+    });
+
+    // ══════════════════════════════════════════════════════════
     //  ADMIN ROLE
     // ══════════════════════════════════════════════════════════
     Route::middleware('role:admin,super_admin')->group(function () {
