@@ -555,6 +555,18 @@ Route::resource('cashbook', AdminCashBookController::class)->only('index','show'
 
 
 
+// ── Portal Stocker (role: warehouse_keeper) — READ ONLY ─────────────
+Route::prefix('stocker')->name('stocker.')->middleware(['auth', 'role:warehouse_keeper'])->group(function () {
+
+    Route::get('/dashboard', [\App\Http\Controllers\Web\Stocker\DashboardController::class, 'index'])->name('dashboard');
+
+    Route::controller(\App\Http\Controllers\Web\Stocker\StockController::class)
+        ->prefix('stocks')->name('stocks.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/low-stock', 'lowStock')->name('low-stock');
+        });
+});
+
 // ── Portal Supplier (role: supplier) ────────────────────────────────
 Route::prefix('supplier')->name('supplier.')->middleware(['auth', 'role:supplier'])->group(function () {
 

@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\Admin\SupplierController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\WarehouseController;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Keeper\KeeperStockController;
 use App\Http\Controllers\Api\User\ChatController;
 use App\Http\Controllers\Api\User\NotificationController;
 use App\Http\Controllers\Api\User\ProfileController;
@@ -127,6 +128,13 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/',    'store');
             Route::get('{budget_revision}', 'show');
         });
+    });
+
+    // ══════════════════════════════════════════════════════════
+    //  WAREHOUSE KEEPER (stocker) — dikunci ke gudang miliknya
+    // ══════════════════════════════════════════════════════════
+    Route::middleware('role:warehouse_keeper')->prefix('keeper')->controller(KeeperStockController::class)->group(function () {
+        Route::get('stocks', 'stocks'); // read-only, dikunci ke gudang milik user
     });
 
     // ══════════════════════════════════════════════════════════

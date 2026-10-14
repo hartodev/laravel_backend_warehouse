@@ -27,7 +27,8 @@ class AuthWebController extends Controller
             'super_admin'      => route('superadmin.dashboard'),
             'admin', 'partner' => route('admin.dashboard'), // halaman admin yang sudah ada; ganti kalau mau landing page lain
             'supplier'      => route('supplier.dashboard'), // halaman supplier yang sudah ada; ganti kalau mau landing page lain
-            default            => route('home'),
+            'warehouse_keeper' => route('stocker.dashboard'),
+            default            => route('landing.index'), // route 'home' tidak ada (di-comment di web.php)
         };
     }
 
