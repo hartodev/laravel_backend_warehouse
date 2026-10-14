@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\User\UserBudgetRequestController;
 use App\Http\Controllers\Api\Admin\AdminBudgetRequestController;
 use App\Http\Controllers\Api\Admin\UserCreationRequestController;
+use App\Http\Controllers\Api\Keeper\KeeperStockController;
 
 // ══════════════════════════════════════════════════════════════
 //  PUBLIC — Tidak butuh login
@@ -126,6 +127,14 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/',     'index');
             Route::post('/',    'store');
             Route::get('{budget_revision}', 'show');
+        });
+
+
+    // ── Stocker (warehouse_keeper) — READ ONLY, dikunci ke gudang miliknya ──
+    Route::middleware('role:warehouse_keeper')
+        ->prefix('keeper')
+        ->group(function () {
+            Route::get('stocks', [KeeperStockController::class, 'stocks']);
         });
     });
 

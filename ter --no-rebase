@@ -1,0 +1,19 @@
+* [33mfe5d6c3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m up stocker untuk mobile
+[31m|[m * [33m14835c0[m[33m ([m[1;31mupstream/master[m[33m, [m[1;31mupstream/HEAD[m[33m)[m update crud bagian edit stock
+[31m|[m * [33m48000fc[m up product dii stock moventment
+[31m|[m * [33md83bc44[m up halaman baru untuk stockers dn tambahan untuk input product manual dengan filtering product
+[31m|[m * [33mb6936ee[m update detail stock movement
+[31m|[m *   [33mc463220[m Merge branch 'master' of https://github.com/hartodev/laravel_backend_warehouse
+[31m|[m [33m|[m[31m\[m  
+[31m|[m [33m|[m[31m/[m  
+[31m|[m[31m/[m[33m|[m   
+* [33m|[m [33md388be3[m up migration
+[34m|[m * [33m5876087[m up product dengan name bukan id (dari laptop)
+[34m|[m[34m/[m  
+* [33m75a778a[m upp
+* [33mf3833cd[m update tambahan dari laptop
+* [33mbd99d8c[m hapus
+* [33m801ccf4[m up product view
+* [33mb4fbc4f[m uppp
+* [33mc34cd53[m update nama folder admin
+* [33mfe0b473[m hapus admin controller lama

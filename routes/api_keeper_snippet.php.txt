@@ -1,0 +1,16 @@
+// ═══════════════════════════════════════════════════════════════
+//  JANGAN timpa routes/api.php — cukup tambahkan 2 hal ini.
+// ═══════════════════════════════════════════════════════════════
+
+// 1) Di bagian use (atas file), tambahkan:
+use App\Http\Controllers\Api\Keeper\KeeperStockController;
+
+// 2) Letakkan DI DALAM group Route::middleware('auth:sanctum')->group(function () { ... })
+//    (misalnya tepat sebelum blok "USER ROLE" / role:user,admin,super_admin):
+
+    // ── Stocker (warehouse_keeper) — READ ONLY, dikunci ke gudang miliknya ──
+    Route::middleware('role:warehouse_keeper')
+        ->prefix('keeper')
+        ->group(function () {
+            Route::get('stocks', [KeeperStockController::class, 'stocks']);
+        });
