@@ -53,6 +53,15 @@
         <p>{{ optional($po->expected_date)->format('d M Y') ?? '-' }}</p>
     </div>
     <div class="admin-detail-item">
+        <p class="admin-label">Konfirmasi Supplier</p>
+        <p>{{ optional($po->supplier_confirmed_at)->format('d M Y H:i') ?? 'Belum' }}</p>
+    </div>
+    <div class="admin-detail-item">
+        <p class="admin-label">Dikirim Supplier</p>
+        <p>{{ optional($po->shipped_at)->format('d M Y H:i') ?? 'Belum' }}</p>
+        @if ($po->supplier_note)<p style="font-size:12px;opacity:.7">{{ $po->supplier_note }}</p>@endif
+    </div>
+    <div class="admin-detail-item">
         <p class="admin-label">Dibuat Oleh</p>
         <p>{{ $po->createdBy->name ?? '-' }}</p>
     </div>

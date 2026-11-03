@@ -59,8 +59,8 @@ class BudgetRevisionController extends Controller
             return response()->json(['success' => false, 'message' => 'Anda hanya dapat mengajukan revisi untuk RAB milik Anda sendiri.'], 403);
         }
 
-        if (! in_array($budgetRequest->status, ['approved', 'approved_revisi'])) {
-            return response()->json(['success' => false, 'message' => 'Hanya RAB yang sudah disetujui yang dapat direvisi.'], 422);
+        if (! in_array($budgetRequest->status, ['pending_sa', 'approved', 'approved_revisi'])) {
+            return response()->json(['success' => false, 'message' => 'Hanya RAB yang sudah disetujui admin yang dapat direvisi.'], 422);
         }
 
         if ($validated['jenis_perubahan'] === 'pengurangan' && $validated['nominal_perubahan'] > $budgetRequest->total_estimasi) {
@@ -86,7 +86,7 @@ class BudgetRevisionController extends Controller
 
         $message = $diterapkanOtomatis
             ? 'Revisi anggaran berhasil diajukan dan langsung diterapkan (dana mencukupi).'
-            : 'Revisi anggaran berhasil diajukan. Dana belum mencukupi, menunggu review Admin/Super Admin.';
+            : 'Revisi anggaran berhasil diajukan. Dana belum mencukupi, menunggu persetujuan Admin.';
 
         return response()->json([
             'success' => true,
@@ -95,6 +95,3 @@ class BudgetRevisionController extends Controller
         ], 201);
     }
 }
-
-
-

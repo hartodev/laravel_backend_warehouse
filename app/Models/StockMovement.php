@@ -10,12 +10,21 @@ class StockMovement extends Model
     use HasFactory;
     protected $guarded = [];
 
+    // Laravel 10 hanya membaca property $casts (method casts() baru ada di Laravel 11+)
+    protected $casts = [
+        'quantity'        => 'integer',
+        'quantity_before' => 'integer',
+        'quantity_after'  => 'integer',
+        'taken_date'      => 'date',
+    ];
+
     protected function casts(): array
     {
         return [
             'quantity'        => 'integer',
             'quantity_before' => 'integer',
             'quantity_after'  => 'integer',
+            'taken_date'      => 'date',
         ];
     }
 

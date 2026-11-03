@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Admin;
 
+use App\Services\NotificationService;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
@@ -115,6 +116,8 @@ class PurchaseOrderController extends Controller
             }
         });
 
+        NotificationService::purchaseOrder($po, 'created', auth()->id());
+
         return redirect()->route('admin.purchase-orders.show', $po)
             ->with('success', 'Purchase Order berhasil dibuat, menunggu persetujuan Super Admin.');
     }
@@ -157,11 +160,16 @@ class PurchaseOrderController extends Controller
     // ── POST /admin/purchase-orders/{po}/approve ──────────────
     public function approve(PurchaseOrder $po): RedirectResponse
     {
+        if (auth()->user()->role !== 'super_admin') {
+            return back()->with('error', 'Hanya Super Admin yang dapat menyetujui PO.');
+        }
+
         if ($po->status !== 'pending') {
             return back()->with('error', 'Hanya PO pending yang dapat disetujui.');
         }
 
         $po->update(['status' => 'approved', 'approved_by' => auth()->id(), 'approved_at' => now()]);
+        NotificationService::purchaseOrder($po->fresh(), 'approved', auth()->id());
 
         return redirect()->route('admin.purchase-orders.show', $po)
             ->with('success', 'Purchase Order disetujui.');
@@ -170,6 +178,10 @@ class PurchaseOrderController extends Controller
     // ── POST /admin/purchase-orders/{po}/reject ───────────────
     public function reject(Request $request, PurchaseOrder $po): RedirectResponse
     {
+        if (auth()->user()->role !== 'super_admin') {
+            return back()->with('error', 'Hanya Super Admin yang dapat menolak PO.');
+        }
+
         if ($po->status !== 'pending') {
             return back()->with('error', 'Hanya PO pending yang dapat ditolak.');
         }
@@ -183,6 +195,7 @@ class PurchaseOrderController extends Controller
         }
 
         $po->update(['status' => 'cancelled', 'reject_reason' => $request->reject_reason]);
+        NotificationService::purchaseOrder($po->fresh(), 'rejected', auth()->id());
 
         return redirect()->route('admin.purchase-orders.show', $po)
             ->with('success', 'Purchase Order ditolak.');
@@ -245,6 +258,9 @@ class PurchaseOrderController extends Controller
                 'received_date' => $allReceived ? now() : null,
             ]);
         });
+
+        $po->refresh();
+        NotificationService::purchaseOrder($po, $po->status === 'received' ? 'received' : 'partial', auth()->id());
 
         return redirect()->route('admin.purchase-orders.show', $po)
             ->with('success', 'Penerimaan barang berhasil dicatat.');

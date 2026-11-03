@@ -7,6 +7,7 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\Stock;
 use App\Models\StockMovement;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -108,6 +109,8 @@ class PurchaseOrderController extends Controller
             }
         });
 
+        NotificationService::purchaseOrder($po, 'created', auth()->id());
+
         return response()->json(['success' => true, 'message' => 'Purchase Order berhasil dibuat.', 'data' => $po->load(['items.product:id,name,sku', 'supplier:id,name'])], 201);
     }
 
@@ -143,6 +146,8 @@ class PurchaseOrderController extends Controller
 
         $po->update(['status' => 'approved', 'approved_by' => auth()->id(), 'approved_at' => now()]);
 
+        NotificationService::purchaseOrder($po->fresh(), 'approved', auth()->id());
+
         return response()->json(['success' => true, 'message' => 'Purchase Order disetujui.', 'data' => $po->fresh()]);
     }
 
@@ -163,13 +168,15 @@ class PurchaseOrderController extends Controller
 
         $po->update(['status' => 'cancelled', 'reject_reason' => $request->reject_reason]);
 
+        NotificationService::purchaseOrder($po->fresh(), 'rejected', auth()->id());
+
         return response()->json(['success' => true, 'message' => 'Purchase Order ditolak.', 'data' => $po->fresh()]);
     }
 
     // POST /api/purchase-orders/{po}/receive — terima barang
     public function receive(Request $request, PurchaseOrder $po): JsonResponse
     {
-        if ($po->status !== 'approved') {
+        if (! in_array($po->status, ['approved', 'partial'])) {
             return response()->json(['success' => false, 'message' => 'Hanya PO yang sudah disetujui yang dapat diterima.'], 422);
         }
 
@@ -223,6 +230,9 @@ class PurchaseOrderController extends Controller
                 'received_date' => $allReceived ? now() : null,
             ]);
         });
+
+        $po->refresh();
+        NotificationService::purchaseOrder($po, $po->status === 'received' ? 'received' : 'partial', auth()->id());
 
         return response()->json(['success' => true, 'message' => 'Penerimaan barang berhasil dicatat.', 'data' => $po->fresh()->load('items.product:id,name,sku')]);
     }

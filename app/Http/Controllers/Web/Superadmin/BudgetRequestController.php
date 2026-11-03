@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Superadmin;
 use App\Http\Controllers\Controller;
 use App\Models\BudgetRequest;
 use App\Services\CashBookService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -251,6 +252,8 @@ class BudgetRequestController extends Controller
             ]);
         });
 
+        NotificationService::budgetRequest($budgetRequest->fresh(), 'approved_final', auth()->id());
+
         return back()->with('success', 'Pengajuan anggaran disetujui. Dana sebesar Rp ' .
             number_format($budgetRequest->total_estimasi, 0, ',', '.') . ' telah dialokasikan.');
     }
@@ -272,6 +275,8 @@ class BudgetRequestController extends Controller
             'finance_at'             => now(),
             'catatan_branch_manager' => trim(($budgetRequest->catatan_branch_manager ?? '') . ' | SA: ' . $request->reject_reason),
         ]);
+
+        NotificationService::budgetRequest($budgetRequest->fresh(), 'rejected_final', auth()->id());
 
         return back()->with('success', 'Pengajuan anggaran ditolak.');
     }
@@ -315,6 +320,7 @@ class BudgetRequestController extends Controller
         });
 
         $budgetRequest->refresh();
+        NotificationService::budgetRequest($budgetRequest, 'realisasi', auth()->id());
         $sisa = $budgetRequest->total_estimasi - $budgetRequest->total_realisasi;
 
         return back()->with('success', 'Realisasi dana berhasil dicatat. Sisa anggaran: Rp ' .

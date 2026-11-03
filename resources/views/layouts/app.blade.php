@@ -133,8 +133,30 @@
             margin-left: 0 !important;
         }
 
+        /* Overlay sidebar: tersembunyi secara default, tampil hanya saat menu dibuka */
         #sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            z-index: 45; /* di atas topbar (40), di bawah sidebar (50) */
+        }
+
+        #sidebar-overlay.is-open {
             display: block;
+        }
+    }
+
+    @media (max-width: 640px) {
+        #page-content {
+            padding: 16px;
+        }
+    }
+
+    /* Di layar lebar overlay tidak pernah ada */
+    @media (min-width: 1024px) {
+        #sidebar-overlay {
+            display: none !important;
         }
     }
 
@@ -745,9 +767,7 @@
 
 <body class="antialiased" x-cloak>
 
-    <div id="sidebar-overlay" class="hidden fixed inset-0 bg-black/50 z-40 lg:hidden"
-        @click="mobileOpen = false; document.getElementById('sidebar').classList.remove('mobile-open')">
-    </div>
+    <div id="sidebar-overlay" :class="{ 'is-open': mobileOpen }" @click="mobileOpen = false"></div>
 
     <aside id="sidebar" class="fixed inset-y-0 left-0 flex flex-col bg-[#1e1b4b] overflow-y-auto overflow-x-hidden"
         :class="{ 'mobile-open': mobileOpen }">
@@ -1108,7 +1128,7 @@
             </button>
 
             <button
-                @click="mobileOpen = !mobileOpen; document.getElementById('sidebar').classList.toggle('mobile-open'); document.getElementById('sidebar-overlay').classList.toggle('hidden')"
+                @click="mobileOpen = !mobileOpen"
                 class="flex lg:hidden items-center justify-center w-9 h-9 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />

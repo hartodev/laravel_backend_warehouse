@@ -23,6 +23,7 @@
 
 namespace App\Http\Controllers\Web\Superadmin;
 
+use App\Services\NotificationService;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductSubmission;
@@ -146,6 +147,8 @@ class ProductSubmissionController extends Controller
             ]);
         });
 
+        NotificationService::productSubmission($productSubmission->fresh(), 'approved', auth()->id());
+
         return back()->with('success', $isNewProduct
             ? 'Pengajuan produk baru disetujui, produk berhasil dibuat.'
             : 'Submission produk disetujui dan produk diaktifkan.');
@@ -171,6 +174,8 @@ class ProductSubmissionController extends Controller
             'review_note'   => $request->review_note,
             'reject_reason' => $request->review_note,
         ]);
+
+        NotificationService::productSubmission($productSubmission->fresh(), 'rejected', auth()->id());
 
         return back()->with('success', 'Submission produk ditolak.');
     }

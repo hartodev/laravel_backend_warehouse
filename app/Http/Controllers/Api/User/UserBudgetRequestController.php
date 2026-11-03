@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\User;
 
+use App\Services\NotificationService;
 use App\Http\Controllers\Controller;
 use App\Models\BudgetRequest;
 use App\Models\BudgetRequestItem;
@@ -259,6 +260,7 @@ class UserBudgetRequestController extends Controller
         }
 
         $br->update(['status' => 'pending']);
+        NotificationService::budgetRequest($br->fresh(), 'submitted', auth()->id());
 
         return response()->json([
             'success' => true,

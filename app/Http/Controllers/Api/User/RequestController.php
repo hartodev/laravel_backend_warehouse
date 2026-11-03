@@ -158,10 +158,21 @@ class RequestController extends Controller
     }
 
     // Cancel / delete
-    public function destroy(StockRequest $request): JsonResponse
+    public function destroy($id): JsonResponse
     {
+        // Cari termasuk yang sudah soft-delete supaya batal dua kali tidak jadi 404
+        $request = StockRequest::withTrashed()->find($id);
+
+        if (! $request) {
+            return response()->json(['success' => false, 'message' => 'Permintaan tidak ditemukan.'], 404);
+        }
+
         if ($request->user_id !== auth()->id() && ! auth()->user()->isAdmin() && ! auth()->user()->isSuperAdmin()) {
             return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        if ($request->trashed()) {
+            return response()->json(['success' => true, 'message' => 'Permintaan sudah dibatalkan sebelumnya.']);
         }
 
         if (! $request->isPending()) {

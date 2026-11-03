@@ -17,6 +17,8 @@ class PurchaseOrder extends Model
         'expected_date'   => 'date',
         'received_date'   => 'date',
         'approved_at'     => 'datetime',
+        'supplier_confirmed_at' => 'datetime',
+        'shipped_at'      => 'datetime',
         'subtotal'        => 'decimal:2',
         'tax_percent'     => 'decimal:2',
         'tax_amount'      => 'decimal:2',

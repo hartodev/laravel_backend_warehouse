@@ -584,6 +584,8 @@ Route::prefix('supplier')->name('supplier.')->middleware(['auth', 'role:supplier
     Route::controller(SupplierPurchaseOrderController::class)->prefix('purchase-orders')->name('purchase-orders.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/{purchaseOrder}', 'show')->name('show');
+        Route::post('/{purchaseOrder}/confirm', 'confirm')->name('confirm');
+        Route::post('/{purchaseOrder}/ship', 'ship')->name('ship');
     });
 });
 

@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductSubmission;
 use App\Models\Stock;
 use App\Models\StockMovement;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,10 @@ class ProductSubmissionController extends Controller
     public function index(Request $request): JsonResponse
     {
         $submissions = ProductSubmission::with(['admin:id,name,email', 'category:id,name', 'initialWarehouse:id,name'])
+            ->when(auth()->user()->role === 'admin', fn($q) => $q->where('admin_id', auth()->id()))
+            ->when(auth()->user()->role === 'super_admin', fn($q) => $q->where(function ($q) {
+                $q->whereNotNull('product_id')->orWhere('status', '!=', 'pending');
+            }))
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%"))
             ->latest()
@@ -27,6 +32,9 @@ class ProductSubmissionController extends Controller
 
     public function show(ProductSubmission $submission): JsonResponse
     {
+        if (auth()->user()->role === 'admin' && $submission->admin_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Tidak berhak mengakses pengajuan ini.'], 403);
+        }
         $submission->load(['admin:id,name,email', 'category:id,name', 'initialWarehouse:id,name', 'approvedBy:id,name', 'product:id,name,sku']);
 
         return response()->json(['success' => true, 'data' => $submission]);
@@ -45,6 +53,7 @@ class ProductSubmissionController extends Controller
             'purchase_price'       => 'nullable|numeric|min:0',
             'selling_price'        => 'nullable|numeric|min:0',
             'description'          => 'nullable|string',
+            'is_urgent'            => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -64,13 +73,18 @@ class ProductSubmissionController extends Controller
             'selling_price'        => $request->selling_price ?? 0,
             'description'          => $request->description,
             'status'               => 'pending',
+            'is_urgent'            => $request->boolean('is_urgent'),
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Pengajuan produk berhasil dikirim.', 'data' => $submission], 201);
+        return response()->json(['success' => true, 'message' => 'Pengajuan produk berhasil dibuat. Teruskan ke Super Admin setelah direview.', 'data' => $submission], 201);
     }
 
     public function update(Request $request, ProductSubmission $submission): JsonResponse
     {
+        if ($submission->admin_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Hanya pembuat pengajuan yang dapat mengubahnya.'], 403);
+        }
+
         if (! $submission->isPending()) {
             return response()->json(['success' => false, 'message' => 'Pengajuan yang sudah diproses tidak dapat diubah.'], 422);
         }
@@ -82,6 +96,10 @@ class ProductSubmissionController extends Controller
 
     public function destroy(ProductSubmission $submission): JsonResponse
     {
+        if ($submission->admin_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Hanya pembuat pengajuan yang dapat mengubahnya.'], 403);
+        }
+
         if (! $submission->isPending()) {
             return response()->json(['success' => false, 'message' => 'Hanya pengajuan pending yang dapat dihapus.'], 422);
         }
@@ -91,79 +109,123 @@ class ProductSubmissionController extends Controller
         return response()->json(['success' => true, 'message' => 'Pengajuan berhasil dihapus.']);
     }
 
-    // POST /api/product-submissions/{submission}/approve
-    public function approve(Request $request, ProductSubmission $submission): JsonResponse
+    // POST /api/product-submissions/{submission}/forward  (admin pemilik pengajuan)
+    public function forward(ProductSubmission $submission): JsonResponse
     {
-        if (! $submission->isPending()) {
-            return response()->json(['success' => false, 'message' => 'Pengajuan ini sudah diproses sebelumnya.'], 422);
+        if ($submission->admin_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Hanya pembuat pengajuan yang dapat meneruskannya.'], 403);
+        }
+        if ($submission->status !== 'pending') {
+            return response()->json(['success' => false, 'message' => 'Hanya pengajuan berstatus pending yang dapat diteruskan.'], 422);
         }
 
-        DB::transaction(function () use ($submission) {
-            // Buat produk baru
-            $product = Product::create([
-                'category_id'    => $submission->category_id,
-                'name'           => $submission->name,
-                'sku'            => $submission->sku ?? strtoupper('SKU-' . time()),
-                'barcode'        => $submission->barcode,
-                'unit'           => $submission->unit,
-                'purchase_price' => $submission->purchase_price,
-                'selling_price'  => $submission->selling_price,
-                'description'    => $submission->description,
-                'is_active'      => true,
-            ]);
+        $submission->update([
+            'status'      => 'pending_sa',
+            'reviewed_by' => auth()->id(),
+            'reviewed_at' => now(),
+        ]);
 
-            // Buat stok awal jika ada warehouse & initial stock
-            if ($submission->initial_warehouse_id && $submission->initial_stock > 0) {
-                $stock = Stock::create([
-                    'warehouse_id' => $submission->initial_warehouse_id,
-                    'product_id'   => $product->id,
-                    'quantity'     => $submission->initial_stock,
+        NotificationService::productSubmission($submission->fresh(), 'forwarded', auth()->id());
+
+        return response()->json(['success' => true, 'message' => 'Pengajuan diteruskan ke Super Admin.', 'data' => $submission->fresh()]);
+    }
+
+    // POST /api/product-submissions/{submission}/approve  (super admin)
+    public function approve(Request $request, ProductSubmission $submission): JsonResponse
+    {
+        $isNew    = is_null($submission->product_id);
+        $expected = $isNew ? 'pending_sa' : 'pending';
+
+        if ($submission->status !== $expected) {
+            return response()->json(['success' => false, 'message' => $isNew
+                ? 'Pengajuan produk baru ini belum diteruskan oleh Admin, atau sudah diproses.'
+                : 'Hanya pengajuan pending yang dapat disetujui.'], 422);
+        }
+
+        DB::transaction(function () use ($request, $submission, $isNew) {
+            if ($isNew) {
+                $product = Product::create([
+                    'category_id'    => $submission->category_id,
+                    'name'           => $submission->name,
+                    'sku'            => $submission->sku ?? strtoupper('SKU-' . time()),
+                    'barcode'        => $submission->barcode,
+                    'unit'           => $submission->unit,
+                    'purchase_price' => $submission->purchase_price,
+                    'selling_price'  => $submission->selling_price,
+                    'description'    => $submission->description,
+                    'is_active'      => true,
                 ]);
 
-                StockMovement::create([
-                    'product_id'      => $product->id,
-                    'warehouse_id'    => $submission->initial_warehouse_id,
-                    'type'            => 'in',
-                    'quantity'        => $submission->initial_stock,
-                    'quantity_before' => 0,
-                    'quantity_after'  => $submission->initial_stock,
-                    'created_by'      => auth()->id(),
-                    'note'            => 'Stok awal dari pengajuan produk #' . $submission->id,
-                ]);
+                if ($submission->initial_warehouse_id && $submission->initial_stock > 0) {
+                    Stock::create([
+                        'warehouse_id' => $submission->initial_warehouse_id,
+                        'product_id'   => $product->id,
+                        'quantity'     => $submission->initial_stock,
+                    ]);
+
+                    StockMovement::create([
+                        'product_id'      => $product->id,
+                        'warehouse_id'    => $submission->initial_warehouse_id,
+                        'type'            => 'in',
+                        'quantity'        => $submission->initial_stock,
+                        'quantity_before' => 0,
+                        'quantity_after'  => $submission->initial_stock,
+                        'created_by'      => auth()->id(),
+                        'note'            => 'Stok awal dari pengajuan produk #' . $submission->id,
+                    ]);
+                }
+
+                $submission->product_id = $product->id;
+            } else {
+                // Reaktivasi produk lama + terapkan perubahan (sama seperti web)
+                if ($submission->change_data) {
+                    $submission->product->update($submission->change_data);
+                }
+                $submission->product->update(['is_active' => true]);
             }
 
             $submission->update([
                 'status'      => 'approved',
+                'product_id'  => $submission->product_id,
                 'approved_by' => auth()->id(),
                 'approved_at' => now(),
-                'product_id'  => $product->id,
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+                'review_note' => $request->review_note,
             ]);
         });
 
-        return response()->json(['success' => true, 'message' => 'Pengajuan produk disetujui dan produk berhasil dibuat.', 'data' => $submission->fresh()->load('product:id,name,sku')]);
+        NotificationService::productSubmission($submission->fresh(), 'approved', auth()->id());
+
+        return response()->json(['success' => true, 'message' => 'Pengajuan disetujui.', 'data' => $submission->fresh()->load('product:id,name,sku')]);
     }
 
-    // POST /api/product-submissions/{submission}/reject
+    // POST /api/product-submissions/{submission}/reject  (super admin)
     public function reject(Request $request, ProductSubmission $submission): JsonResponse
     {
-        if (! $submission->isPending()) {
-            return response()->json(['success' => false, 'message' => 'Pengajuan ini sudah diproses sebelumnya.'], 422);
+        $expected = is_null($submission->product_id) ? 'pending_sa' : 'pending';
+
+        if ($submission->status !== $expected) {
+            return response()->json(['success' => false, 'message' => 'Pengajuan ini tidak dalam status yang dapat ditolak.'], 422);
         }
 
-        $validator = Validator::make($request->all(), [
-            'reject_reason' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => 'Alasan penolakan wajib diisi.', 'errors' => $validator->errors()], 422);
+        // Terima review_note (web) maupun reject_reason (mobile lama)
+        $reason = $request->review_note ?? $request->reject_reason;
+        if (! $reason || mb_strlen($reason) > 500) {
+            return response()->json(['success' => false, 'message' => 'Alasan penolakan wajib diisi (maks. 500 karakter).'], 422);
         }
 
         $submission->update([
             'status'        => 'rejected',
             'approved_by'   => auth()->id(),
             'approved_at'   => now(),
-            'reject_reason' => $request->reject_reason,
+            'reviewed_by'   => auth()->id(),
+            'reviewed_at'   => now(),
+            'review_note'   => $reason,
+            'reject_reason' => $reason,
         ]);
+
+        NotificationService::productSubmission($submission->fresh(), 'rejected', auth()->id());
 
         return response()->json(['success' => true, 'message' => 'Pengajuan produk ditolak.', 'data' => $submission->fresh()]);
     }

@@ -42,6 +42,7 @@
         <thead>
             <tr>
                 <th>Tanggal</th>
+                <th>Tgl Pengambilan</th>
                 <th>Produk</th>
                 <th>Gudang</th>
                 <th>Tipe</th>
@@ -55,6 +56,7 @@
             @forelse ($movements as $movement)
             <tr>
                 <td class="cell-muted">{{ $movement->created_at?->format('d M Y H:i') ?? '-' }}</td>
+                <td class="cell-muted">{{ $movement->taken_date?->format('d M Y') ?? '-' }}</td>
                 <td>{{ $movement->product->name ?? '-' }}</td>
                 <td class="cell-muted">{{ $movement->warehouse->name ?? '-' }}</td>
                 <td>
@@ -75,7 +77,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="8" class="cell-empty">Belum ada pergerakan stok.</td>
+                <td colspan="9" class="cell-empty">Belum ada pergerakan stok.</td>
             </tr>
             @endforelse
         </tbody>
@@ -148,6 +150,12 @@
                 <label class="admin-label">Divisi / Departemen</label>
                 <input type="text" name="taken_by_division" value="{{ old('taken_by_division') }}" class="admin-input"
                     placeholder="Contoh: Produksi, Maintenance, Gudang">
+            </div>
+
+            <div id="taken-date-wrap" class="hidden" style="margin-bottom:12px;">
+                <label class="admin-label">Tanggal Pengambilan</label>
+                <input type="date" name="taken_date" value="{{ old('taken_date', now()->toDateString()) }}"
+                    max="{{ now()->toDateString() }}" class="admin-input">
             </div>
 
             <div style="margin-bottom:16px;">
@@ -318,6 +326,7 @@ var adjTypeSelect = document.getElementById('adjustment-type');
 var adjWrap = document.getElementById('adjustment-direction-wrap');
 var takenByWrap = document.getElementById('taken-by-wrap');
 var takenByDivisionWrap = document.getElementById('taken-by-division-wrap');
+var takenDateWrap = document.getElementById('taken-date-wrap');
 
 function updateFormVisibility() {
     var isAdjustment = typeSelect.value === 'adjustment';
@@ -327,6 +336,7 @@ function updateFormVisibility() {
 
     takenByWrap.classList.toggle('hidden', !isOut);
     takenByDivisionWrap.classList.toggle('hidden', !isOut);
+    takenDateWrap.classList.toggle('hidden', !isOut);
 }
 
 typeSelect.addEventListener('change', updateFormVisibility);

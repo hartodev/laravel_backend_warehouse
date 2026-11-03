@@ -49,11 +49,15 @@ class BudgetRevision extends Model
      */
     public function hitungAnggaranBaru(): float
     {
-        $sisa = (float) $this->anggaran_awal - (float) $this->realisasi;
+        // Anggaran baru = anggaran awal (total RAB saat ini) ± nominal perubahan.
+        // tambahan -> naik, pengurangan -> turun. Realisasi tidak dikurangkan
+        // karena nilai ini disimpan kembali sebagai total_estimasi RAB.
+        $awal    = (float) $this->anggaran_awal;
+        $nominal = (float) $this->nominal_perubahan;
 
         return $this->jenis_perubahan === 'tambahan'
-            ? $sisa - (float) $this->nominal_perubahan
-            : $sisa + (float) $this->nominal_perubahan;
+            ? $awal + $nominal
+            : $awal - $nominal;
     }
 
     public function isPending(): bool  { return $this->status === 'pending'; }
@@ -63,6 +67,12 @@ class BudgetRevision extends Model
     {
         if ($this->jenis_perubahan !== 'tambahan') {
             return true; // pengurangan tidak butuh tambahan dana
+        }
+
+        // RAB yang baru disetujui admin (menunggu Super Admin) belum mengalokasikan
+        // dana ke kas, jadi revisi hanya mengubah nilai RAB — tidak perlu cek saldo kas.
+        if ($this->budgetRequest?->status === 'pending_sa') {
+            return true;
         }
 
         return (float) $this->nominal_perubahan <= CashBookService::saldoKas();
@@ -95,6 +105,13 @@ class BudgetRevision extends Model
             return;
         }
 
+        // RAB masih menunggu Super Admin: ubah nilai saja. Status tetap pending_sa
+        // (jangan loncati approval Super Admin) dan belum ada catatan kas.
+        if ($budgetRequest->status === 'pending_sa') {
+            $budgetRequest->update(['total_estimasi' => $this->anggaran_baru]);
+            return;
+        }
+
         $budgetRequest->update([
             'total_estimasi' => $this->anggaran_baru,
             'status'         => 'approved_revisi',
@@ -115,7 +132,3 @@ class BudgetRevision extends Model
         }
     }
 }
-
-
-
-

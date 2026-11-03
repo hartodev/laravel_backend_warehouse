@@ -20,6 +20,17 @@ $statusStyles = [
     &larr; Kembali ke daftar PO
 </a>
 
+@if (session('success'))
+<div style="background:var(--success-soft);color:var(--success);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:14px;">
+    {{ session('success') }}
+</div>
+@endif
+@if (session('error') || $errors->any())
+<div style="background:#FBE4E0;color:#B3382C;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:14px;">
+    {{ session('error') ?? $errors->first() }}
+</div>
+@endif
+
 <div class="section-head">
     <div>
         <span class="eyebrow">No. Purchase Order</span>
@@ -47,6 +58,65 @@ $statusStyles = [
         </div>
     </div>
 </div>
+
+@php
+$canConfirm = $purchaseOrder->status === 'approved' && !$purchaseOrder->supplier_confirmed_at;
+$canShip = in_array($purchaseOrder->status, ['approved', 'partial'])
+&& $purchaseOrder->supplier_confirmed_at
+&& ($purchaseOrder->status === 'partial' || !$purchaseOrder->shipped_at);
+@endphp
+
+<div class="section-head">
+    <div>
+        <span class="eyebrow">Tindakan Supplier</span>
+        <h2>Status Pesanan</h2>
+    </div>
+</div>
+
+<div class="meta-grid">
+    <div class="meta-item">
+        <span class="label">Disetujui</span>
+        <div class="value">{{ $purchaseOrder->approved_at ? $purchaseOrder->approved_at->format('d/m/Y H:i') : 'Belum' }}</div>
+    </div>
+    <div class="meta-item">
+        <span class="label">Dikonfirmasi Supplier</span>
+        <div class="value">{{ $purchaseOrder->supplier_confirmed_at ? $purchaseOrder->supplier_confirmed_at->format('d/m/Y H:i') : 'Belum' }}</div>
+    </div>
+    <div class="meta-item">
+        <span class="label">Dikirim</span>
+        <div class="value">{{ $purchaseOrder->shipped_at ? $purchaseOrder->shipped_at->format('d/m/Y H:i') : 'Belum' }}</div>
+    </div>
+</div>
+
+@if ($purchaseOrder->supplier_note)
+<p class="text-muted" style="margin:8px 0 14px;font-size:13px;">Catatan Anda: {{ $purchaseOrder->supplier_note }}</p>
+@endif
+
+@if ($canConfirm)
+<form method="POST" action="{{ route('supplier.purchase-orders.confirm', $purchaseOrder) }}" style="margin-bottom:20px;">
+    @csrf
+    <input type="text" name="note" maxlength="500" placeholder="Catatan (opsional)"
+        style="width:100%;max-width:420px;padding:8px 10px;border:1px solid #ccc;border-radius:8px;margin-bottom:8px;display:block;">
+    <button type="submit" class="btn btn-primary">Konfirmasi Pesanan</button>
+</form>
+@endif
+
+@if ($canShip)
+<form method="POST" action="{{ route('supplier.purchase-orders.ship', $purchaseOrder) }}" style="margin-bottom:20px;">
+    @csrf
+    <label class="text-muted" style="font-size:12px;display:block;">Estimasi tiba (opsional)</label>
+    <input type="date" name="expected_date" min="{{ now()->toDateString() }}"
+        style="padding:8px 10px;border:1px solid #ccc;border-radius:8px;margin-bottom:8px;display:block;">
+    <input type="text" name="note" maxlength="500" placeholder="Catatan pengiriman, mis. nomor resi (opsional)"
+        style="width:100%;max-width:420px;padding:8px 10px;border:1px solid #ccc;border-radius:8px;margin-bottom:8px;display:block;">
+    <button type="submit" class="btn btn-primary"
+        onclick="return confirm('Tandai PO ini sudah dikirim?')">Tandai Sudah Dikirim</button>
+</form>
+@endif
+
+@if (!$canConfirm && !$canShip && $purchaseOrder->status === 'pending')
+<p class="text-muted" style="font-size:13px;margin-bottom:20px;">PO masih menunggu persetujuan Super Admin.</p>
+@endif
 
 <div class="section-head">
     <div>

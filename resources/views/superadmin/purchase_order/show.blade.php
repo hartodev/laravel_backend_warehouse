@@ -67,6 +67,11 @@
         <div class="flex justify-between"><span class="text-gray-500">Tgl.
                 Diharapkan</span><span>{{ $purchaseOrder->expected_date ? \Carbon\Carbon::parse($purchaseOrder->expected_date)->isoFormat('D MMM Y') : '—' }}</span>
         </div>
+        <div class="flex justify-between"><span class="text-gray-500">Konfirmasi Supplier</span><span>{{ $purchaseOrder->supplier_confirmed_at ? $purchaseOrder->supplier_confirmed_at->isoFormat('D MMM Y HH:mm') : 'Belum' }}</span></div>
+        <div class="flex justify-between"><span class="text-gray-500">Dikirim Supplier</span><span>{{ $purchaseOrder->shipped_at ? $purchaseOrder->shipped_at->isoFormat('D MMM Y HH:mm') : 'Belum' }}</span></div>
+        @if ($purchaseOrder->supplier_note)
+        <div class="flex justify-between"><span class="text-gray-500">Catatan Supplier</span><span>{{ $purchaseOrder->supplier_note }}</span></div>
+        @endif
         <div class="flex justify-between"><span
                 class="text-gray-500">Pembayaran</span><span>{{ $purchaseOrder->payment_method ? ucfirst($purchaseOrder->payment_method) : '—' }}</span>
         </div>

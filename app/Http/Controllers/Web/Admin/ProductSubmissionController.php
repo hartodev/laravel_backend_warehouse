@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\ProductSubmission;
 use App\Models\Warehouse;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -168,6 +169,8 @@ class ProductSubmissionController extends Controller
             'reviewed_by' => auth()->id(),
             'reviewed_at' => now(),
         ]);
+
+        NotificationService::productSubmission($submission->fresh(), 'forwarded', auth()->id());
 
         return redirect()->route('admin.product-submissions.show', $submission)
             ->with('success', 'Pengajuan telah direview dan diteruskan ke Super Admin.');

@@ -55,6 +55,10 @@ $typeLabel = ['in' => 'Masuk', 'out' => 'Keluar', 'adjustment' => 'Penyesuaian']
         <p>{{ $movement->taken_by_name }} <span class="cell-muted">({{ $movement->taken_by_division ?? '-' }})</span>
         </p>
     </div>
+    <div class="admin-detail-item">
+        <p class="admin-label">Tanggal Pengambilan</p>
+        <p>{{ $movement->taken_date?->format('d M Y') ?? '-' }}</p>
+    </div>
     @endif
 </div>
 

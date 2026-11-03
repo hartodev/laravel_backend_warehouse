@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Request extends Model
 {
@@ -115,12 +116,15 @@ class Request extends Model
         parent::boot();
 
         static::creating(function ($request) {
-            $request->request_number = 'REQ-' . now()->format('Ymd') . '-' . str_pad(
-                static::whereDate('created_at', now())->count() + 1,
-                4,
-                '0',
-                STR_PAD_LEFT
-            );
+            // Jangan timpa nomor yang sudah diisi controller; kalau kosong, buat unik
+            // (withTrashed: data yang dibatalkan/soft-delete tetap memegang nomornya)
+            if (empty($request->request_number)) {
+                $prefix = 'REQ-' . now()->format('Ymd') . '-';
+                do {
+                    $number = $prefix . Str::upper(Str::random(6));
+                } while (static::withTrashed()->where('request_number', $number)->exists());
+                $request->request_number = $number;
+            }
         });
     }
 

@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\BudgetRequest;
+use App\Services\CashBookService;
+use App\Services\NotificationService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -74,6 +77,8 @@ class AdminBudgetRequestController extends Controller
             'catatan_branch_manager' => $request->catatan,
         ]);
 
+        NotificationService::budgetRequest($br->fresh(), 'forwarded', auth()->id());
+
         return response()->json([
             'success' => true,
             'message' => 'Pengajuan RAB disetujui admin. Diteruskan ke Super Admin untuk persetujuan final.',
@@ -112,6 +117,8 @@ class AdminBudgetRequestController extends Controller
             'branch_manager_at'      => now(),
             'catatan_branch_manager' => $request->catatan,
         ]);
+
+        NotificationService::budgetRequest($br->fresh(), 'rejected', auth()->id());
 
         return response()->json([
             'success' => true,
@@ -152,18 +159,118 @@ class AdminBudgetRequestController extends Controller
             'catatan_branch_manager' => $request->catatan,
         ]);
 
+        NotificationService::budgetRequest($br->fresh(), 'postponed', auth()->id());
+
         return response()->json([
             'success' => true,
             'message' => 'Pengajuan RAB ditunda. User dapat merevisi dan submit ulang.',
             'data'    => $br->fresh()->load(['user:id,name', 'items']),
         ]);
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // POST /api/admin/budget-requests/{br}/approve-final   (super_admin)
+    // Sama dengan Web\Superadmin\BudgetRequestController@approve
+    // ─────────────────────────────────────────────────────────────
+    public function approveFinal(Request $request, BudgetRequest $br): JsonResponse
+    {
+        if ($br->status !== 'pending_sa') {
+            return response()->json(['success' => false, 'message' => 'Hanya pengajuan berstatus "Menunggu Super Admin" yang dapat disetujui final.'], 422);
+        }
+
+        if (! $br->budgetVerifications()->where('rekomendasi', 'setuju')->exists()) {
+            return response()->json(['success' => false, 'message' => 'RAB ini belum diverifikasi dengan rekomendasi "setuju". Selesaikan verifikasi anggaran terlebih dahulu.'], 422);
+        }
+
+        $validator = Validator::make($request->all(), ['catatan' => 'nullable|string|max:500']);
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
+        }
+
+        DB::transaction(function () use ($request, $br) {
+            $br->update(['status' => 'approved', 'finance_id' => auth()->id(), 'finance_at' => now()]);
+
+            CashBookService::record([
+                'tanggal'           => now()->toDateString(),
+                'keterangan'        => "Alokasi RAB #{$br->nomor_form} — {$br->divisi}",
+                'jenis'             => 'alokasi_rab',
+                'jumlah_uang'       => $br->total_estimasi,
+                'pihak'             => $br->divisi,
+                'tipe'              => 'masuk',
+                'budget_request_id' => $br->id,
+                'created_by'        => auth()->id(),
+                'catatan'           => $request->catatan,
+            ]);
+        });
+
+        NotificationService::budgetRequest($br->fresh(), 'approved_final', auth()->id());
+
+        return response()->json(['success' => true, 'message' => 'RAB disetujui final dan dana dialokasikan.', 'data' => $br->fresh()->load(['user:id,name', 'items'])]);
+    }
+
+    // POST /api/admin/budget-requests/{br}/reject-final   (super_admin)
+    public function rejectFinal(Request $request, BudgetRequest $br): JsonResponse
+    {
+        if ($br->status !== 'pending_sa') {
+            return response()->json(['success' => false, 'message' => 'Hanya pengajuan berstatus "Menunggu Super Admin" yang dapat ditolak di sini.'], 422);
+        }
+
+        // Terima reject_reason (web) atau catatan (konvensi API admin)
+        $reason = $request->reject_reason ?? $request->catatan;
+        if (! $reason || mb_strlen($reason) > 500) {
+            return response()->json(['success' => false, 'message' => 'Alasan penolakan wajib diisi (maks. 500 karakter).'], 422);
+        }
+
+        $br->update([
+            'status'                 => 'ditolak',
+            'finance_id'             => auth()->id(),
+            'finance_at'             => now(),
+            'catatan_branch_manager' => trim(($br->catatan_branch_manager ?? '') . ' | SA: ' . $reason),
+        ]);
+
+        NotificationService::budgetRequest($br->fresh(), 'rejected_final', auth()->id());
+
+        return response()->json(['success' => true, 'message' => 'RAB ditolak pada tahap final.', 'data' => $br->fresh()->load(['user:id,name', 'items'])]);
+    }
+
+    // POST /api/admin/budget-requests/{br}/realisasi   (super_admin)
+    public function realisasi(Request $request, BudgetRequest $br): JsonResponse
+    {
+        if ($br->status !== 'approved') {
+            return response()->json(['success' => false, 'message' => 'Hanya RAB yang sudah disetujui yang dapat dicatat realisasinya.'], 422);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'jumlah_uang' => 'required|numeric|min:1',
+            'keterangan'  => 'required|string|max:255',
+            'tanggal'     => 'required|date',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => 'Validasi gagal.', 'errors' => $validator->errors()], 422);
+        }
+
+        $sisa = $br->total_estimasi - ($br->total_realisasi ?? 0);
+        if ($request->jumlah_uang > $sisa) {
+            return response()->json(['success' => false, 'message' => 'Jumlah realisasi melebihi sisa anggaran (Rp ' . number_format($sisa, 0, ',', '.') . ').'], 422);
+        }
+
+        DB::transaction(function () use ($request, $br) {
+            $br->increment('total_realisasi', $request->jumlah_uang);
+
+            CashBookService::record([
+                'tanggal'           => $request->tanggal,
+                'keterangan'        => "Realisasi RAB #{$br->nomor_form} — {$request->keterangan}",
+                'jenis'             => 'realisasi_rab',
+                'jumlah_uang'       => $request->jumlah_uang,
+                'pihak'             => $br->divisi,
+                'tipe'              => 'keluar',
+                'budget_request_id' => $br->id,
+                'created_by'        => auth()->id(),
+            ]);
+        });
+
+        NotificationService::budgetRequest($br->fresh(), 'realisasi', auth()->id());
+
+        return response()->json(['success' => true, 'message' => 'Realisasi dana dicatat.', 'data' => $br->fresh()]);
+    }
 }
-
-
-
-
-
-
-
-

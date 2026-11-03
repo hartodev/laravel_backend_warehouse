@@ -10,6 +10,7 @@ use App\Models\StockMovement;
 use App\Models\Warehouse;
 use App\Models\Product;
 use App\Models\Supplier;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -76,7 +77,7 @@ class PurchaseOrderController extends Controller
                 'order_date'      => $request->order_date,
                 'expected_date'   => $request->expected_date,
                 'payment_method'  => $request->payment_method,
-                'status'          => 'draft',
+                'status'          => 'pending',
                 'subtotal'        => $subtotal,
                 'tax_percent'     => $request->tax_percent ?? 0,
                 'tax_amount'      => $taxAmount,
@@ -170,6 +171,8 @@ class PurchaseOrderController extends Controller
             'approved_at' => now(),
         ]);
 
+        NotificationService::purchaseOrder($purchaseOrder->fresh(), 'approved', auth()->id());
+
         return back()->with('success', 'PO disetujui.');
     }
 
@@ -182,51 +185,64 @@ class PurchaseOrderController extends Controller
         $request->validate(['reject_reason' => 'required|string']);
 
         $purchaseOrder->update([
-            'status'        => 'rejected',
+            'status'        => 'cancelled',
             'reject_reason' => $request->reject_reason,
         ]);
+
+        NotificationService::purchaseOrder($purchaseOrder->fresh(), 'rejected', auth()->id());
 
         return back()->with('success', 'PO ditolak.');
     }
 
     public function receive(Request $request, PurchaseOrder $purchaseOrder)
     {
-        if ($purchaseOrder->status !== 'approved') {
-            return back()->with('error', 'Hanya PO approved yang dapat diterima.');
+        if (! in_array($purchaseOrder->status, ['approved', 'partial'])) {
+            return back()->with('error', 'Hanya PO approved/partial yang dapat diterima.');
         }
 
-        DB::transaction(function () use ($purchaseOrder) {
+        // Tanpa input item = terima seluruh sisa; dengan input = penerimaan parsial
+        $input = collect($request->input('items', []))->keyBy('purchase_order_item_id');
+
+        DB::transaction(function () use ($purchaseOrder, $input) {
             foreach ($purchaseOrder->items as $item) {
+                $remaining = max(0, $item->quantity_ordered - $item->quantity_received);
+                $want      = $input->isEmpty() ? $remaining : (int) ($input[$item->id]['quantity_received'] ?? 0);
+                $qty       = min($want, $remaining);
+                if ($qty <= 0) continue;
+
+                $item->increment('quantity_received', $qty);
+
                 $stock = Stock::firstOrCreate(
                     ['warehouse_id' => $purchaseOrder->warehouse_id, 'product_id' => $item->product_id],
                     ['quantity' => 0]
                 );
-
                 $before = $stock->quantity;
-                $stock->addStock($item->quantity_ordered); // ← pakai quantity_ordered sesuai kolom DB
+                $stock->addStock($qty);
 
                 StockMovement::create([
                     'product_id'      => $item->product_id,
                     'warehouse_id'    => $purchaseOrder->warehouse_id,
                     'type'            => 'in',
-                    'quantity'        => $item->quantity_ordered, // ← quantity_ordered
+                    'quantity'        => $qty,
                     'quantity_before' => $before,
                     'quantity_after'  => $stock->quantity,
-                    'reference_type'  => 'purchase_order',  // ← polimorfik, bukan purchase_order_id
+                    'reference_type'  => 'purchase_order',
                     'reference_id'    => $purchaseOrder->id,
                     'created_by'      => auth()->id(),
                     'note'            => "Penerimaan barang dari PO #{$purchaseOrder->po_number}",
                 ]);
             }
 
+            $allReceived = $purchaseOrder->items()->whereColumn('quantity_received', '<', 'quantity_ordered')->doesntExist();
             $purchaseOrder->update([
-                'status'      => 'received',
-                'received_at' => now(),
+                'status'        => $allReceived ? 'received' : 'partial',
+                'received_date' => $allReceived ? now() : null,
             ]);
         });
 
-        return back()->with('success', 'Barang berhasil diterima dan stok diperbarui.');
+        $purchaseOrder->refresh();
+        NotificationService::purchaseOrder($purchaseOrder, $purchaseOrder->status === 'received' ? 'received' : 'partial', auth()->id());
+
+        return back()->with('success', 'Penerimaan barang dicatat dan stok diperbarui.');
     }
 }
-
-

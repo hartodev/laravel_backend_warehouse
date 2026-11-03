@@ -88,6 +88,7 @@ class StockMovementController extends Controller
             'note'              => 'nullable|string',
             'taken_by_name'     => 'nullable|string|max:255|required_if:type,out',
             'taken_by_division' => 'nullable|string|max:255|required_if:type,out',
+            'taken_date'        => 'nullable|date|before_or_equal:today|required_if:type,out',
         ]);
 
         // Wajibkan juga saat adjustment dengan arah "keluar"
@@ -95,6 +96,7 @@ class StockMovementController extends Controller
             $request->validate([
                 'taken_by_name'     => 'required|string|max:255',
                 'taken_by_division' => 'required|string|max:255',
+                'taken_date'        => 'required|date|before_or_equal:today',
             ]);
         }
 
@@ -132,6 +134,7 @@ class StockMovementController extends Controller
                 'note'              => $validated['note'] ?? null,
                 'taken_by_name'     => $validated['taken_by_name'] ?? null,
                 'taken_by_division' => $validated['taken_by_division'] ?? null,
+                'taken_date'        => $validated['taken_date'] ?? null,
             ]);
         });
 

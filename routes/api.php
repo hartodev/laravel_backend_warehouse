@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\Admin\SupplierController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\WarehouseController;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Supplier\SupplierPortalController;
 use App\Http\Controllers\Api\User\ChatController;
 use App\Http\Controllers\Api\User\NotificationController;
 use App\Http\Controllers\Api\User\ProfileController;
@@ -40,18 +41,14 @@ Route::prefix('auth')->group(function () {
 });
 
 
-Route::get('/users', function () {
-    $users = \App\Models\User::where('id', '!=', auth()->id())
-        ->select('id', 'name', 'email')
-        ->get();
-    return response()->json(['success' => true, 'data' => $users]);
-})->middleware('auth:sanctum');
+// NOTE: closure GET /users publik dihapus — membayangi UserController@index (admin).
+// Daftar user untuk chat tersedia di GET /chats/users.
+
 // ══════════════════════════════════════════════════════════════
 //  AUTHENTICATED — Semua role (butuh login)
 // ══════════════════════════════════════════════════════════════
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::apiResource('budget-revisions', \App\Http\Controllers\Api\User\BudgetRevisionController::class)->only(['index', 'show', 'store']);
     // Auth
     Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::get('auth/me',      [AuthController::class, 'me']);
@@ -98,7 +95,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //  USER ROLE — Hanya operasi milik sendiri
     //  (user biasa: index = hanya request milik sendiri)
     // ══════════════════════════════════════════════════════════
-    Route::middleware('role:user,admin,super_admin')->group(function () {
+    Route::middleware('role:user,staff,partner,admin,super_admin')->group(function () {
 
         Route::prefix('requests')->controller(RequestController::class)->group(function () {
             // ⚠️  index() = hanya milik user login (bukan indexAdmin)
@@ -137,6 +134,23 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('stocks', [KeeperStockController::class, 'stocks']);
         });
     });
+
+    // ══════════════════════════════════════════════════════════
+    //  SUPPLIER — Portal, dikunci ke supplier_id miliknya
+    //  (HARUS di luar grup role:user,... agar tidak kena 403)
+    // ══════════════════════════════════════════════════════════
+    Route::middleware('role:supplier')
+        ->prefix('supplier-portal')
+        ->controller(SupplierPortalController::class)
+        ->group(function () {
+            Route::get('dashboard',                       'dashboard');
+            Route::get('products',                        'products');
+            Route::get('products/{product}',              'productShow');
+            Route::get('purchase-orders',                 'purchaseOrders');
+            Route::get('purchase-orders/{purchaseOrder}', 'purchaseOrderShow');
+            Route::post('purchase-orders/{purchaseOrder}/confirm', 'confirmPurchaseOrder');
+            Route::post('purchase-orders/{purchaseOrder}/ship',    'shipPurchaseOrder');
+        });
 
     // ══════════════════════════════════════════════════════════
     //  WAREHOUSE KEEPER (stocker) — dikunci ke gudang miliknya
@@ -189,6 +203,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('{submission}',    'show');
             Route::put('{submission}',    'update');
             Route::delete('{submission}', 'destroy');
+            Route::post('{submission}/forward', 'forward');
         });
 
         // ── Stock ─────────────────────────────────────────────
@@ -333,6 +348,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('{user}',                'destroy');
             Route::patch('{user}/toggle-active',   'toggleActive');
             Route::patch('{user}/reset-password',  'resetPassword');
+            Route::post('{user}/reset-password',   'resetPassword');   // alias: mobile memakai POST
         });
 
         // ── Approve Product Submission ───────────────────────
@@ -359,6 +375,13 @@ Route::middleware('auth:sanctum')->group(function () {
         // ── Approve Purchase Order ───────────────────────────
         Route::post('purchase-orders/{po}/approve', [PurchaseOrderController::class, 'approve']);
         Route::post('purchase-orders/{po}/reject',  [PurchaseOrderController::class, 'reject']);
+
+        // ── RAB tahap final Super Admin ───────────────────────
+        Route::prefix('admin/budget-requests')->controller(AdminBudgetRequestController::class)->group(function () {
+            Route::post('{br}/approve-final', 'approveFinal');
+            Route::post('{br}/reject-final',  'rejectFinal');
+            Route::post('{br}/realisasi',     'realisasi');
+        });
 
         // ── Approve Budget Revision ───────────────────────────
         Route::post('budget-revisions/{br}/approve', [BudgetRevisionController::class, 'approve']);

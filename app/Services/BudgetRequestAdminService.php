@@ -37,6 +37,7 @@ class BudgetRequestAdminService
             'catatan_branch_manager' => $catatan,
         ]);
 
+        NotificationService::budgetRequest($br->fresh(), 'forwarded', $user->id);
         return $br->fresh();
     }
 
@@ -53,6 +54,7 @@ class BudgetRequestAdminService
             'catatan_branch_manager' => $catatan,
         ]);
 
+        NotificationService::budgetRequest($br->fresh(), 'rejected', $user->id);
         return $br->fresh();
     }
 
@@ -69,6 +71,7 @@ class BudgetRequestAdminService
             'catatan_branch_manager' => $catatan,
         ]);
 
+        NotificationService::budgetRequest($br->fresh(), 'postponed', $user->id);
         return $br->fresh();
     }
 }
