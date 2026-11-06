@@ -20,10 +20,36 @@ class NotificationService
             'data'    => $data,
         ]);
 
-        // TODO: panggil pengiriman push FCM di sini setelah kreait/firebase-php terpasang
-        // self::sendPush($user, $title, $body, $data);
+        // Push FCM (dikirim SETELAH response selesai, tidak memperlambat request,
+        // dan kalau gagal tidak menggagalkan transaksi)
+        self::sendPush($user, $title, $body, $data + [
+            'action'          => 'notification',
+            'type'            => $type,
+            'notification_id' => $notification->id,
+        ]);
 
         return $notification;
+    }
+
+    /** Kirim push FCM ke HP user (jika user punya fcm_token). */
+    private static function sendPush(User $user, string $title, string $body, array $data): void
+    {
+        if (! $user->fcm_token) {
+            return;
+        }
+
+        $userId = $user->id;
+
+        dispatch(function () use ($userId, $title, $body, $data) {
+            try {
+                $target = User::find($userId);
+                if ($target) {
+                    app(FcmService::class)->sendToUser($target, $title, $body, $data);
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('Push FCM gagal: ' . $e->getMessage());
+            }
+        })->afterResponse();
     }
 
     /** Kirim ke banyak user sekaligus. */

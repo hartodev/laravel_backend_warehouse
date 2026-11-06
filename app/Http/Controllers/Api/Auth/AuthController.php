@@ -107,6 +107,9 @@ class AuthController extends Controller
     // ── Logout ───────────────────────────────────────────────
     public function logout(Request $request): JsonResponse
     {
+        // Lepas token HP dari akun ini supaya tidak menerima push setelah logout
+        $request->user()->update(['fcm_token' => null]);
+
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([

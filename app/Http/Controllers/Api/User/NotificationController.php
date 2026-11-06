@@ -7,6 +7,7 @@ use App\Models\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Services\NotificationService;
 
 class NotificationController extends Controller
 {
@@ -61,42 +62,26 @@ class NotificationController extends Controller
     }
 
     // ── Static helper untuk kirim notifikasi dari controller lain ──
+    // Simpan ke tabel notifications DAN kirim push FCM ke HP (lewat NotificationService).
     // Contoh: NotificationController::send($userId, 'request_approved', 'Permintaan Disetujui', 'Permintaan #1 disetujui.')
-    // public static function send(int $userId, string $type, string $title, string $body, array $data = []): void
-    // {
-    //     Notification::create([
-    //         'user_id' => $userId,
-    //         'type'    => $type,
-    //         'title'   => $title,
-    //         'body'    => $body,
-    //         'data'    => $data,
-    //         'is_read' => false,
-    //     ]);
-    // }
-
     public static function send(int $userId, string $type, string $title, string $body, array $data = []): void
     {
-        Notification::create([
-            'user_id' => $userId,
-            'type'    => $type,
-            'title'   => $title,
-            'body'    => $body,
-            'data'    => $data,
-            'is_read' => false,
-        ]);
+        $user = User::find($userId);
+        if (! $user) {
+            return;
+        }
+
+        NotificationService::send($user, $type, $title, $body, $data);
     }
 
-    // ── Static helper untuk kirim notifikasi ke semua user dengan role tertentu ──
-    // Contoh: NotificationController::sendToRole('approver_ipal', 'request_created', 'Permintaan Baru', 'Ada permintaan baru menunggu approval.')
+    // ── Kirim ke semua user aktif dengan role tertentu (DB + push FCM) ──
+    // Contoh: NotificationController::sendToRole('admin', 'request_created', 'Request Baru', 'Ada request baru.')
     public static function sendToRole(string $role, string $type, string $title, string $body, array $data = []): void
     {
-        $userIds = User::where('role', $role)->pluck('id');
+        $users = User::where('role', $role)->where('is_active', true)->get();
 
-        foreach ($userIds as $userId) {
-            self::send($userId, $type, $title, $body, $data);
+        foreach ($users as $user) {
+            NotificationService::send($user, $type, $title, $body, $data);
         }
     }
 }
-
-
-

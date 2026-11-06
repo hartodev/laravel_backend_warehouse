@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\User\UserBudgetRequestController;
 use App\Http\Controllers\Api\Admin\AdminBudgetRequestController;
 use App\Http\Controllers\Api\Admin\UserCreationRequestController;
 use App\Http\Controllers\Api\Keeper\KeeperStockController;
+use App\Http\Controllers\Api\FcmController;
 
 // ══════════════════════════════════════════════════════════════
 //  PUBLIC — Tidak butuh login
@@ -52,6 +53,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::get('auth/me',      [AuthController::class, 'me']);
+
+    // 🔔 FCM push notification (semua role)
+    Route::prefix('fcm')->controller(FcmController::class)->group(function () {
+        Route::post('token',   'updateToken');
+        Route::delete('token', 'deleteToken');
+        Route::post('test',    'test');
+    });
 
     // ── Profile ──────────────────────────────────────────────
     Route::prefix('profile')->controller(ProfileController::class)->group(function () {
